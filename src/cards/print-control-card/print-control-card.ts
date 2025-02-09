@@ -342,7 +342,7 @@ export class PrintControlCard extends LitElement {
           <button class="button" @click="${() => this._clickButton(this._entities?.stop)}" ?disabled="${this._isEntityUnavailable(this._entities?.stop)}">
             Stop
           </button>
-          <button class="button" @click="${this._togglePopup}">
+          <button class="button" @click="${this._togglePopup}" ?disabled="${this._isEntityUnavailable(this._entities?.stop)}">
             Skip
           </button>
         </div>
@@ -378,7 +378,6 @@ export class PrintControlCard extends LitElement {
             </div>
           </div>
         </div>
-      }
       </ha-card>
     `;
   }
