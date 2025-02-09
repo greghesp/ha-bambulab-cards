@@ -105,15 +105,12 @@ export class PrintControlCard extends LitElement {
     const rect = event.target.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    console.log("click", x, y)
     const imageData = this._hiddenContext.getImageData(x, y, 1, 1).data;
     const [r, g, b, a] = imageData;
 
     const key = this.rgbaToInt(r, g, b, 0); // For integer comparisons we set the alpha to 0.
-    console.log(key)
     if (key != 0)
     {
-      console.log(!this._objects.get(key)!.skipped)
       if (!this._objects.get(key)!.skipped) {
         const value = this._objects.get(key)!
         value.to_skip = !value.to_skip
@@ -129,7 +126,7 @@ export class PrintControlCard extends LitElement {
       // Find the visible canvas and set up click listener
       this._visibleContext = canvas.getContext('2d', { willReadFrequently: true })!;
       // Add the click event listener to it that looks up the clicked pixel color and toggles any found object on or off.
-      canvas.addEventListener('click', this._handleCanvasClick);
+      canvas.addEventListener('click', (event) => { this._handleCanvasClick(event); });
     }
 
     // Now create a the image to load the pick image into from home assistant.
@@ -151,7 +148,6 @@ export class PrintControlCard extends LitElement {
       const timestamp = this._states[entity.entity_id].state;
       const accessToken = this._states[entity.entity_id].attributes?.access_token
       const imageUrl = `/api/image_proxy/${entity.entity_id}?token=${accessToken}&time=${timestamp}`;
-      console.log("Pick image URL is", imageUrl)
       return imageUrl;
     }
     return '';
@@ -324,13 +320,11 @@ export class PrintControlCard extends LitElement {
     }
 
     if (changedProperties.has('_pickImageState')) {
-      console.log("Pick image state changed")
       this._initializeCanvas();
       this._populateCheckboxList();
     }
 
     if (changedProperties.has('_skippedObjectsState')) {
-      console.log("Skipped objects state changed")
       this._populateCheckboxList()
     }
   }
