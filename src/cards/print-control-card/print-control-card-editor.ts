@@ -21,13 +21,6 @@ export class PrintControlCardEditor extends LitElement {
   @state() private _config?;
   @state() private hass: any;
 
-  static get properties() {
-    return {
-      hass: {},
-      _config: {},
-    };
-  }
-
   public setConfig(config): void {
     this._config = config;
   }

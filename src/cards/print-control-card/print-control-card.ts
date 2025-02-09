@@ -1,5 +1,5 @@
 import { customElement, state, property } from "lit/decorators.js";
-import { html, LitElement, nothing } from "lit";
+import { html, LitElement, nothing, PropertyValues } from "lit";
 import styles from "./card.styles";
 
 import { registerCustomCard } from "../../utils/custom-cards";
@@ -21,9 +21,9 @@ interface Entity {
 }
 
 interface Result {
-  pick_image: Entity | null;
-  skipped_objects: Entity | null;
-  printable_objects: Entity | null;
+  pickImage: Entity | null;
+  skippedObjects: Entity | null;
+  printableObjects: Entity | null;
   pause: Entity | null;
   resume: Entity | null;
   stop: Entity | null;
@@ -44,29 +44,27 @@ export class PrintControlCard extends LitElement {
   _hass;
 
   @state() private _states;
-  @state() private _deviceId: any;
+  @state() private _device_id: any;
   @state() private _entities: any;
+  @state() private _popupVisible: boolean = false;
+  @state() private _objects = new Map<number, PrintableObject>();
+  @state() private _hoveredObject: number = 0;
+  @state() private _pickImage: any;
 
-  static get properties() {
-    return {
-      hass: {},
-      config: {},
-    };
-  }
+  // Home assistant state references that are only used in chanedProperties
+  @state() private _pickImageState: any;
+  @state() private _skippedObjectsState = new Map<string, Object>();
 
-  _pick_image;
-  _hiddenCanvas;
-  _hiddenCtx;
-  _visibleCanvas;
-  _visibleCtx;
-  _object_array;
+  private _hiddenCanvas;
+  private _hiddenContext;
+  private _visibleContext;
  
   constructor() {
     super()
     this._hiddenCanvas = document.createElement('canvas');
     this._hiddenCanvas.width = 512;
     this._hiddenCanvas.height = 512;
-    this._hiddenCtx = this._hiddenCanvas.getContext('2d', { willReadFrequently: true });
+    this._hiddenContext = this._hiddenCanvas.getContext('2d', { willReadFrequently: true });
     this._hoveredObject = 0;
   }
 
@@ -80,7 +78,7 @@ export class PrintControlCard extends LitElement {
   }
 
   setConfig(config) {
-    this._deviceId = config.printer;
+    this._device_id = config.printer;
 
     if (!config.printer) {
       throw new Error("You need to select a Printer");
@@ -92,64 +90,76 @@ export class PrintControlCard extends LitElement {
   }
 
   set hass(hass) {
-    this._hass = hass;
-    this._states = hass.states;
-    this._filterBambuDevices();
+    if (hass) {
+      this._hass = hass;
+      this._states = hass.states;
+      this._asyncFilterBambuDevices();
+    }
   }
 
   private rgbaToInt(r, g, b, a) {
     return r | (g << 8) | (b << 16) | (a << 24);
   }
-  
-  private _updateCanvas() {
-    // Now find the visible canvas.
-    const canvas = this.shadowRoot!.getElementById('canvas') as HTMLCanvasElement;
-    this._visibleCtx = canvas.getContext('2d', { willReadFrequently: true })!;
 
-    // Add the click event listener to it that looks up the clicked pixel color and toggles any found object on or off.
-    canvas.addEventListener('click', (event) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-      const imageData = this._hiddenCtx.getImageData(x, y, 1, 1).data;
-      const [r, g, b, a] = imageData;
+  private _handleCanvasClick(event) {
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    console.log("click", x, y)
+    const imageData = this._hiddenContext.getImageData(x, y, 1, 1).data;
+    const [r, g, b, a] = imageData;
 
-      const key = this.rgbaToInt(r, g, b, 0); // For integer comparisons we set the alpha to 0.
-      if (key != 0)
-      {
-        if (!this._objects.get(key)!.skipped) {
-          const value = this._objects.get(key)!
-          value.to_skip = !value.to_skip
-          this._updateObject(key, value);
-        }
+    const key = this.rgbaToInt(r, g, b, 0); // For integer comparisons we set the alpha to 0.
+    console.log(key)
+    if (key != 0)
+    {
+      console.log(!this._objects.get(key)!.skipped)
+      if (!this._objects.get(key)!.skipped) {
+        const value = this._objects.get(key)!
+        value.to_skip = !value.to_skip
+        this._updateObject(key, value);
       }
-    });
+    }
+  }
+
+  private _initializeCanvas() {
+    const canvas = this.shadowRoot!.getElementById('canvas') as HTMLCanvasElement;
+
+    if (this._visibleContext == null) {
+      // Find the visible canvas and set up click listener
+      this._visibleContext = canvas.getContext('2d', { willReadFrequently: true })!;
+      // Add the click event listener to it that looks up the clicked pixel color and toggles any found object on or off.
+      canvas.addEventListener('click', this._handleCanvasClick);
+    }
 
     // Now create a the image to load the pick image into from home assistant.
-    this._pick_image = new Image();
-    this._pick_image.onload = () => {
-      this._hiddenCtx.drawImage(this._pick_image, 0, 0)
+    this._pickImage = new Image();
+    this._pickImage.onload = () => {
+      // The image has transparency so we need to wipe the background first or old images can be combined
+      this._hiddenContext.clearRect(0, 0, canvas.width, canvas.height);
+      this._hiddenContext.drawImage(this._pickImage, 0, 0)
       this._colorizeCanvas();
     }
 
     // Finally set the home assistant image URL into it to load the image.
-    this._pick_image.src = this._getPickImageUrl();
+    this._pickImage.src = this._getPickImageUrl();
   }
 
   private _getPickImageUrl() {
-    if (this._entities.pick_image) {
-      const entity = this._entities.pick_image;
+    if (this._entities.pickImage) {
+      const entity = this._entities.pickImage;
       const timestamp = this._states[entity.entity_id].state;
       const accessToken = this._states[entity.entity_id].attributes?.access_token
       const imageUrl = `/api/image_proxy/${entity.entity_id}?token=${accessToken}&time=${timestamp}`;
+      console.log("Pick image URL is", imageUrl)
       return imageUrl;
     }
     return '';
   }
 
   private _getSkippedObjects() {
-    if (this._entities?.skipped_objects) {
-      const entity = this._entities.skipped_objects;
+    if (this._entities?.skippedObjects) {
+      const entity = this._entities.skippedObjects;
       const value = this._states[entity.entity_id].attributes['objects'];
       return value
     }
@@ -157,8 +167,8 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getPrintableObjects() {
-    if (this._entities?.printable_objects) {
-      const entity = this._entities.printable_objects;
+    if (this._entities?.printableObjects) {
+      const entity = this._entities.printableObjects;
       const value = this._states[entity.entity_id].attributes['objects'];
       return value
     }
@@ -177,7 +187,7 @@ export class PrintControlCard extends LitElement {
   }
 
   private _colorizeCanvas() {
-    if (this._visibleCtx == undefined) {
+    if (this._visibleContext == undefined) {
       // Lit reactivity can come through here before we're fully initialized.
       return
     }
@@ -187,20 +197,20 @@ export class PrintControlCard extends LitElement {
     const HEIGHT = 512
 
     // Read original pick image into a data buffer so we can read the pixels.
-    const readImageData = this._hiddenCtx.getImageData(0, 0, WIDTH, HEIGHT);
+    const readImageData = this._hiddenContext.getImageData(0, 0, WIDTH, HEIGHT);
     const readData = readImageData.data;
 
     // Overwrite the display image with the starting pick image
-    this._visibleCtx.putImageData(readImageData, 0, 0);  
+    this._visibleContext.putImageData(readImageData, 0, 0);  
 
     // Read the data into a buffer that we'll write to to modify the pixel colors.
-    const writeImageData = this._visibleCtx.getImageData(0, 0, WIDTH, HEIGHT);
+    const writeImageData = this._visibleContext.getImageData(0, 0, WIDTH, HEIGHT);
     const writeData = writeImageData.data;
     const writeDataView = new DataView(writeData.buffer);
   
-    const red = this.rgbaToInt(255, 0, 0, 255);   // For writes we set it to 255 (fully opaque).
-    const green = this.rgbaToInt(0, 255, 0, 255); // For writes we set it to 255 (fully opaque).
-    const blue = this.rgbaToInt(0, 0, 255, 255);  // For writes we set it to 255 (fully opaque).
+    const red = this.rgbaToInt(255, 0, 0, 255);   // For writes we set alpha to 255 (fully opaque).
+    const green = this.rgbaToInt(0, 255, 0, 255); // For writes we set alpha to 255 (fully opaque).
+    const blue = this.rgbaToInt(0, 0, 255, 255);  // For writes we set alpha to 255 (fully opaque).
 
     let lastPixelWasHoveredObject = false
     for (let y = 0; y < HEIGHT; y++) {
@@ -228,6 +238,7 @@ export class PrintControlCard extends LitElement {
                 writeDataView.setUint32(i, blue, true);
               }
             }
+            // And the next pixel out too for a 2 pixel border.
             if (x > 1) {
               const j = i - 4 * 2
               const left = this.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
@@ -246,6 +257,7 @@ export class PrintControlCard extends LitElement {
                 writeDataView.setUint32(i, blue, true);
               }
             }
+            // And the next pixel out too for a 2 pixel border.
             if (y > 1) {
               const j = i - WIDTH * 4 * 2
               const top = this.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
@@ -264,7 +276,7 @@ export class PrintControlCard extends LitElement {
                 writeDataView.setUint32(i, blue, true);
               }
             }
-            // And the next one over for a 2px border.
+            // And the next pixel out too for a 2 pixel border.
             if (x < (WIDTH - 2)) {
               const j = i + 4 * 2
               const right = this.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
@@ -283,7 +295,7 @@ export class PrintControlCard extends LitElement {
                 writeDataView.setUint32(i, blue, true);
               }
             }
-            // And the next one over for a 2px border.
+            // And the next pixel out too for a 2 pixel border.
             if (y < (HEIGHT - 2)) {
               const j = i + WIDTH * 4 * 2
               const below = this.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
@@ -298,20 +310,11 @@ export class PrintControlCard extends LitElement {
     }
 
     // Put the modified image data back into the canvas
-    this._visibleCtx.putImageData(writeImageData, 0, 0);  
+    this._visibleContext.putImageData(writeImageData, 0, 0);  
   }
 
-  @property({ type: Boolean }) _popupVisible = false
-  @property({ type: Map }) _objects = new Map<number, PrintableObject>();
-  @property({ type: Number }) _hoveredObject = 0;
-  @property({ type: Map }) _skipped_objects = new Map<string, Object>();
-  
   updated(changedProperties) {
     super.updated(changedProperties);
-    if (changedProperties.has('_popupVisible') && this._popupVisible) {
-      this._populateCheckboxList();
-      this._updateCanvas();
-    }
     
     if (changedProperties.has('_hoveredObject')) {
       this._colorizeCanvas();
@@ -320,7 +323,14 @@ export class PrintControlCard extends LitElement {
       this._colorizeCanvas();
     }
 
-    if (changedProperties.has('_skipped_objects')) {
+    if (changedProperties.has('_pickImageState')) {
+      console.log("Pick image state changed")
+      this._initializeCanvas();
+      this._populateCheckboxList();
+    }
+
+    if (changedProperties.has('_skippedObjectsState')) {
+      console.log("Skipped objects state changed")
       this._populateCheckboxList()
     }
   }
@@ -342,40 +352,39 @@ export class PrintControlCard extends LitElement {
             Skip
           </button>
         </div>
-        ${this._popupVisible
-          ? html`
-              <div class="popup-background" @click="${this._togglePopup}"></div>
-              <div class="popup">
-                <div class="popup-header">Skip Objects</div>
-                <div class="alpha-text">Alpha</div>
-                <div class="popup-content">
-                  <canvas id="canvas" width="512" height="512"></canvas>
-                  <ul id="checkboxList"></ul>
-                  <div class="checkbox-list">
-                    ${Array.from(this._objects.keys()).map((key) => {
-                      const item = this._objects.get(key)!;
-                      return html`
-                        <label @mouseover="${() => this._onMouseOverCheckBox(key)}" @mouseout="${() => this._onMouseOutCheckBox(key)}">
-                          <input type="checkbox" .checked="${item.to_skip}" @change="${(e: Event) => this._toggleCheckbox(e, key)}" />
-                          ${item.skipped ? item.name + " (already skipped)" : item.name}
-                        </label>
-                        <br />
-                      `;
-                  })}
-                  </div>
-                  <p>Select the object(s) you want to skip printing.</p>
-                  <div class="button-container">
-                    <button class="button" @click="${this._togglePopup}">
-                      Cancel
-                    </button>
-                    <button class="button" @click="${this._callSkipObjectsService}" ?disabled="${this._isSkipButtonDisabled}">
-                      Skip
-                    </button>
-                  </div>
-                </div>
+        <div class="popup-container" style="display: ${this._popupVisible ? 'block' : 'none'};">
+          <div class="popup-background" @click="${this._togglePopup}"></div>
+          <div class="popup">
+            <div class="popup-header">Skip Objects</div>
+            <div class="alpha-text">Alpha</div>
+            <div class="popup-content">
+              <canvas id="canvas" width="512" height="512"></canvas>
+              <ul id="checkboxList"></ul>
+              <div class="checkbox-list">
+                ${Array.from(this._objects.keys()).map((key) => {
+                  const item = this._objects.get(key)!;
+                  return html`
+                    <label @mouseover="${() => this._onMouseOverCheckBox(key)}" @mouseout="${() => this._onMouseOutCheckBox(key)}">
+                      <input type="checkbox" .checked="${item.to_skip}" @change="${(e: Event) => this._toggleCheckbox(e, key)}" />
+                      ${item.skipped ? item.name + " (already skipped)" : item.name}
+                    </label>
+                    <br />
+                  `;
+              })}
               </div>
-            `
-        : ''}
+              <p>Select the object(s) you want to skip printing.</p>
+              <div class="button-container">
+                <button class="button" @click="${this._togglePopup}">
+                  Cancel
+                </button>
+                <button class="button" @click="${this._callSkipObjectsService}" ?disabled="${this._isSkipButtonDisabled}">
+                  Skip
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
       </ha-card>
     `;
   }
@@ -397,7 +406,7 @@ export class PrintControlCard extends LitElement {
   
   private _callSkipObjectsService() {
     const list = Array.from(this._objects.keys()).filter((key) => this._objects.get(key)!.to_skip).map((key) => key).join(',');
-    const data = { "device_id": [this._deviceId], "objects": list }
+    const data = { "device_id": [this._device_id], "objects": list }
     this._hass.callService("bambu_lab", "skip_objects", data).then(() => {
       console.log(`Service called successfully`);
     }).catch((error) => {
@@ -462,11 +471,11 @@ export class PrintControlCard extends LitElement {
     });
   }
 
-  private async _filterBambuDevices() {
+  private async _asyncFilterBambuDevices() {
     const result: Result = {
-      pick_image: null,
-      skipped_objects: null,
-      printable_objects: null,
+      pickImage: null,
+      skippedObjects: null,
+      printableObjects: null,
       pause: null,
       resume: null,
       stop: null,
@@ -474,16 +483,16 @@ export class PrintControlCard extends LitElement {
     // Loop through all hass entities, and find those that belong to the selected device
     for (let key in this._hass.entities) {
       const value = this._hass.entities[key];
-      if (value.device_id === this._deviceId) {
+      if (value.device_id === this._device_id) {
         const r = await this._getEntity(value.entity_id);
         if (r.unique_id.includes("pick_image")) {
-          result.pick_image = value;
+          result.pickImage = value;
         }
         else if (r.unique_id.includes("skipped_objects")) {
-          result.skipped_objects = value;
+          result.skippedObjects = value;
         }
         else if (r.unique_id.includes("printable_objects")) {
-          result.printable_objects = value;
+          result.printableObjects = value;
         }
         else if (r.unique_id.includes("pause")) {
           result.pause = value
@@ -498,6 +507,8 @@ export class PrintControlCard extends LitElement {
     }
 
     this._entities = result;
-    this._skipped_objects = this._states[result.skipped_objects!.entity_id].state
+    // Keep a reference to the skippedObjects state for Lit reactivity to trigger off when it changes.
+    this._pickImageState = this._states[result.pickImage!.entity_id].state
+    this._skippedObjectsState = this._states[result.skippedObjects!.entity_id].state
   }
 }
