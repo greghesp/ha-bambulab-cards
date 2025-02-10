@@ -3,7 +3,7 @@ import { css } from "lit";
 export default css`
   /* Styling for the 'alpha' text */
   .alpha-text {
-    position: absolute; /* Position it absolutely within the card */
+    position: absolute;  /* Position it absolutely within the card */
     top: 10px;           /* 10px from the top */
     right: 10px;         /* 10px from the right */
     color: red;          /* Red text */
@@ -19,14 +19,14 @@ export default css`
     cursor: pointer;
   }
   button:disabled {
-    background-color: #ccc;  /* Light grey background when disabled */
-    color: #666;  /* Dark grey text */
-    cursor: not-allowed;  /* Change cursor to indicate it's not clickable */
+    background-color: #ccc;   /* Light grey background when disabled */
+    color: #666;              /* Dark grey text */
+    cursor: not-allowed;      /* Change cursor to indicate it's not clickable */
   }
   .button-container {
     display: flex;
     justify-content: flex-end;  /* This will align the buttons to the right */
-    gap: 10px;  /* Optional: Adds space between buttons */
+    gap: 10px;                  /* Optional: Adds space between buttons */
   }
   .canvas {
     display: block;
@@ -61,11 +61,9 @@ export default css`
   .popup-header {
     font-size: 18px;
     margin-bottom: 10px;
-    /*color: black; /* Ensure the header text is black */
   }
   .popup-content {
     font-size: 14px;
-    /*color: black; /* Ensure the content text is black */
   }
   /* Remove bullets from the list */
   #checkboxList {
