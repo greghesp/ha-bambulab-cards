@@ -342,12 +342,12 @@ export class PrintControlCard extends LitElement {
           <button class="button" @click="${() => this._clickButton(this._entities?.stop)}" ?disabled="${this._isEntityUnavailable(this._entities?.stop)}">
             Stop
           </button>
-          <button class="button" @click="${this._togglePopup}" ?disabled="${this._isEntityUnavailable(this._entities?.stop)}">
+          <button class="button" @click="${this._showPopup}" ?disabled="${this._isEntityUnavailable(this._entities?.stop)}">
             Skip
           </button>
         </div>
         <div class="popup-container" style="display: ${this._popupVisible ? 'block' : 'none'};">
-          <div class="popup-background" @click="${this._togglePopup}"></div>
+          <div class="popup-background" @click="${this._cancelPopup}"></div>
           <div class="popup">
             <div class="popup-header">Skip Objects</div>
             <div class="alpha-text">Alpha</div>
@@ -368,7 +368,7 @@ export class PrintControlCard extends LitElement {
               </div>
               <p>Select the object(s) you want to skip printing.</p>
               <div class="button-container">
-                <button class="button" @click="${this._togglePopup}">
+                <button class="button" @click="${this._cancelPopup}">
                   Cancel
                 </button>
                 <button class="button" @click="${this._callSkipObjectsService}" ?disabled="${this._isSkipButtonDisabled}">
@@ -382,9 +382,19 @@ export class PrintControlCard extends LitElement {
     `;
   }
 
-  // Function to toggle popup visibility
-  private _togglePopup() {
-    this._popupVisible = !this._popupVisible;
+  // Functions to toggle popup visibility
+  private _showPopup() {
+    this._popupVisible = true;
+  }
+  private _cancelPopup() {
+    this._popupVisible = false;
+    // Now reset all the to_skip to the existing skipped state.
+    let objects = new Map<number, PrintableObject>();
+    this._objects.forEach((value, key) => {
+      value.to_skip = value.skipped;
+      objects.set(key, value);
+    });
+    this._objects = objects;
   }
 
   // Method to check if the skip button should be disabled

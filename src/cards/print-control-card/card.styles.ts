@@ -43,7 +43,7 @@ export default css`
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
-    background: white;
+    background-color: var(--card-background-color, white);
     padding: 20px;
     border: 1px solid #ccc;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
@@ -61,11 +61,11 @@ export default css`
   .popup-header {
     font-size: 18px;
     margin-bottom: 10px;
-    color: black; /* Ensure the header text is black */
+    /*color: black; /* Ensure the header text is black */
   }
   .popup-content {
     font-size: 14px;
-    color: black; /* Ensure the content text is black */
+    /*color: black; /* Ensure the content text is black */
   }
   /* Remove bullets from the list */
   #checkboxList {
