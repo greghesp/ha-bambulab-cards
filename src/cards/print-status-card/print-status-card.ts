@@ -5,6 +5,13 @@ import styles from "./card.styles";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { PRINT_STATUS_CARD_EDITOR_NAME, PRINT_STATUS_CARD_NAME } from "./const";
 
+import P1PONIMAGE  from "../../images/P1P_on.png";
+import P1POFFIMAGE from "../../images/P1P_off.png";
+import P1SONIMAGE  from "../../images/P1S_on.png";
+import P1SOFFIMAGE from "../../images/P1S_off.png";
+import X1CONIMAGE  from "../../images/X1C_on.png";
+import X1COFFIMAGE from "../../images/X1C_off.png";
+
 registerCustomCard({
   type: PRINT_STATUS_CARD_NAME,
   name: "Bambu Lab Print Status Card",
@@ -18,15 +25,6 @@ interface Entity {
   translation_key: string;
   platform: string;
   name: string;
-}
-
-interface Result {
-  pickImage: Entity | null;
-  skippedObjects: Entity | null;
-  printableObjects: Entity | null;
-  pause: Entity | null;
-  resume: Entity | null;
-  stop: Entity | null;
 }
 
 interface PrintableObject {
@@ -45,10 +43,12 @@ export class PrintControlCard extends LitElement {
 
   @state() private _states;
   @state() private _device_id: any;
-  @state() private _entities: any;
+  
+  private _entityList: { [key: string]: Entity }
 
   constructor() {
     super()
+    this._entityList = {}
   }
 
   public static async getConfigElement() {
@@ -92,11 +92,15 @@ export class PrintControlCard extends LitElement {
     return html`
       <ha-card class="card">
         <div class="control-container">
-          <image src="" />
+          <img id="printer" src="${this.getPrinterImage()}" />
           <text>Placeholder text</text>
         </div>
       </ha-card>
     `;
+  }
+
+  private getPrinterImage() {
+    return X1CONIMAGE;
   }
 
   private async _getEntity(entity_id) {
@@ -107,40 +111,15 @@ export class PrintControlCard extends LitElement {
   }
 
   private async _asyncFilterBambuDevices() {
-    const result: Result = {
-      pickImage: null,
-      skippedObjects: null,
-      printableObjects: null,
-      pause: null,
-      resume: null,
-      stop: null,
-    };
+    const result: { [key: string]: Entity } = {}
     // Loop through all hass entities, and find those that belong to the selected device
     for (let key in this._hass.entities) {
       const value = this._hass.entities[key];
       if (value.device_id === this._device_id) {
         const r = await this._getEntity(value.entity_id);
-        if (r.unique_id.includes("pick_image")) {
-          result.pickImage = value;
-        }
-        else if (r.unique_id.includes("skipped_objects")) {
-          result.skippedObjects = value;
-        }
-        else if (r.unique_id.includes("printable_objects")) {
-          result.printableObjects = value;
-        }
-        else if (r.unique_id.includes("pause")) {
-          result.pause = value
-        }
-        else if (r.unique_id.includes("resume")) {
-          result.resume = value
-        }
-        else if (r.unique_id.includes("stop")) {
-          result.stop = value
-        }
       }
     }
 
-    this._entities = result;
+    this._entityList = result;
   }
 }

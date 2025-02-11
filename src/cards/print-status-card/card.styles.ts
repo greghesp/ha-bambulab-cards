@@ -17,4 +17,9 @@ export default css`
     padding: 16px;
     background: var(--card-background-color);
   }
+  #printer {
+    align-items: center;
+    width: 100%;
+    height: auto;
+  }
 `;
