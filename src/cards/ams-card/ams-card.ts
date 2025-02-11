@@ -27,6 +27,7 @@ interface Result {
   humidity: Sensor | null;
   temperature: Sensor | null;
   spools: Sensor[];
+  type: string;
 }
 
 @customElement(AMS_CARD_NAME)
@@ -124,6 +125,7 @@ export class AMS_CARD extends LitElement {
       humidity: null,
       temperature: null,
       spools: [],
+      type: await this.getDeviceModel(),
     };
     // Loop through all hass entities, and find those that belong to the selected device
     for (let key in this._hass.entities) {
@@ -141,5 +143,24 @@ export class AMS_CARD extends LitElement {
     }
 
     this._entities = result;
+  }
+
+  private async getDeviceModel() {
+    if (!this._deviceId) return;
+    
+    try {
+      interface Device {
+        id: string;
+        model?: string;
+      }
+      
+      const deviceInfo = Object.values(this._hass.devices as Record<string, Device>).find(
+        (device: Device) => device.id === this._deviceId
+      );
+      return deviceInfo?.model;
+    } catch (error) {
+      console.error("Error fetching device info:", error);
+      return null;
+    }
   }
 }

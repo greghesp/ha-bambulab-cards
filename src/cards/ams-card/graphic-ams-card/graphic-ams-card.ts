@@ -48,8 +48,8 @@ export class GraphicAmsCard extends LitElement {
                     class="spool-badge"
                     style="border: ${this.states[spool.entity_id]?.attributes.active ||
                     this.states[spool.entity_id]?.attributes.in_use
-                      ? `1px solid ${this.states[spool.entity_id]?.attributes.color}`
-                      : `1px solid rgba(0, 0, 0, 0)`}"
+                      ? `2px solid ${this.states[spool.entity_id]?.attributes.color}`
+                      : `2px solid rgba(255, 255, 255, 0)`}"
                   >
                     <ha-icon
                       icon=${this.states[spool.entity_id]?.state !== "Empty"
@@ -64,8 +64,8 @@ export class GraphicAmsCard extends LitElement {
                   <span
                     class="spool-type"
                     style="border: ${this.states[spool.entity_id]?.attributes.active
-                      ? `1px solid ${this.states[spool.entity_id]?.attributes.color}`
-                      : `1px solid rgba(0, 0, 0, 0)`};"
+                      ? `2px solid ${this.states[spool.entity_id]?.attributes.color}`
+                      : `2px solid rgba(255, 255, 255, 0)`};"
                     >${this.states[spool.entity_id]?.attributes.type}</span
                   >
                 </div>

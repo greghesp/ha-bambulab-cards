@@ -95,6 +95,7 @@ export class Spool extends LitElement {
       stringRoll.appendChild(layer);
     }
   }
+  
 
   getRemainingValue() {
     if (this.isAllZeros(this.tag_uid)) {

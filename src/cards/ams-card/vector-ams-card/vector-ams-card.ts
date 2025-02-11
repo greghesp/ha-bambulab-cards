@@ -35,6 +35,11 @@ export class VectorAmsCard extends LitElement {
     return false;
   }
 
+  remainingModifier(remain){{
+    if(this.entities.type == "AMS Lite") return 100
+    return remain
+  }}
+
   render() {
     return html`
       <ha-card class="card">
@@ -59,7 +64,7 @@ export class VectorAmsCard extends LitElement {
                     ? html` <bl-spool
                         ?active=${this.isActive(this.states[spool.entity_id]?.attributes)}
                         .color="${this.states[spool.entity_id]?.attributes.color}"
-                        .remaining="${this.states[spool.entity_id]?.attributes.remain}"
+                        .remaining="${this.remainingModifier(this.states[spool.entity_id]?.attributes.remain)}"
                         .tag_uid="${this.states[spool.entity_id]?.attributes.tag_uid}"
                       ></bl-spool>`
                     : nothing}
