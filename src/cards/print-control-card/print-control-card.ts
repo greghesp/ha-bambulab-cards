@@ -102,9 +102,27 @@ export class PrintControlCard extends LitElement {
   }
 
   private _handleCanvasClick(event) {
+    const canvas = this.shadowRoot!.getElementById('canvas') as HTMLCanvasElement;
+    // The intrinsic width and height of the canvas (512x512)
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    // The CSS width and height of the canvas (which might be different)
+    const canvasStyleWidth = canvas.offsetWidth; 
+    const canvasStyleHeight = canvas.offsetHeight;
+    // Calculate the scaling factors
+    const scaleX = canvasStyleWidth / canvasWidth;
+    const scaleY = canvasStyleHeight / canvasHeight;
+
     const rect = event.target.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+    // Get x & y in scaled coordinates.
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
+    // Upscale to native canvas size.
+    x = x / scaleX;
+    y = y / scaleY;
+
     const imageData = this._hiddenContext.getImageData(x, y, 1, 1).data;
     const [r, g, b, a] = imageData;
 
@@ -350,24 +368,25 @@ export class PrintControlCard extends LitElement {
           <div class="popup-background" @click="${this._cancelPopup}"></div>
           <div class="popup">
             <div class="popup-header">Skip Objects</div>
-            <div class="alpha-text">Alpha</div>
+            <div id="alpha-text">Alpha</div>
             <div class="popup-content">
+              <p>Select the object(s) you want to skip printing by tapping them in the image or the list.</p>
               <canvas id="canvas" width="512" height="512"></canvas>
-              <ul id="checkboxList"></ul>
               <div class="checkbox-list">
                 ${Array.from(this._objects.keys()).map((key) => {
                   const item = this._objects.get(key)!;
                   return html`
-                    <label @mouseover="${() => this._onMouseOverCheckBox(key)}" @mouseout="${() => this._onMouseOutCheckBox(key)}">
-                      <input type="checkbox" .checked="${item.to_skip}" @change="${(e: Event) => this._toggleCheckbox(e, key)}" />
-                      ${item.skipped ? item.name + " (already skipped)" : item.name}
-                    </label>
-                    <br />
-                  `;
-              })}
+                <div class="checkbox-object">
+                  <label @mouseover="${() => this._onMouseOverCheckBox(key)}" @mouseout="${() => this._onMouseOutCheckBox(key)}">
+                    <input type="checkbox" .checked="${item.to_skip}" @change="${(e: Event) => this._toggleCheckbox(e, key)}" />
+                    ${item.skipped ? item.name + " (already skipped)" : item.name}
+                  </label>
+                  <br />
+                </div>
+                    `;
+                  })}
               </div>
-              <p>Select the object(s) you want to skip printing.</p>
-              <div class="button-container">
+              <div class="popup-button-container">
                 <button class="button" @click="${this._cancelPopup}">
                   Cancel
                 </button>

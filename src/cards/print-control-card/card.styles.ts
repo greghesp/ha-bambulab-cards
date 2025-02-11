@@ -2,7 +2,7 @@ import { css } from "lit";
 
 export default css`
   /* Styling for the 'alpha' text */
-  .alpha-text {
+  #alpha-text {
     position: absolute;  /* Position it absolutely within the card */
     top: 10px;           /* 10px from the top */
     right: 10px;         /* 10px from the right */
@@ -17,19 +17,18 @@ export default css`
     color: white;
     border: none;
     cursor: pointer;
+    border-radius: 5px;
   }
   button:disabled {
-    background-color: #ccc;   /* Light grey background when disabled */
-    color: #666;              /* Dark grey text */
-    cursor: not-allowed;      /* Change cursor to indicate it's not clickable */
+    background-color: #ccc; // Light grey
+    cursor: not-allowed;
   }
-  .button-container {
-    display: flex;
-    justify-content: flex-end;  /* This will align the buttons to the right */
-    gap: 10px;                  /* Optional: Adds space between buttons */
-  }
-  .canvas {
+  #canvas {
     display: block;
+    width: 100%;
+    min-width: 256px
+    max-width: 512px;
+    height: auto;
   }
   .card {
     display: flex;
@@ -39,14 +38,20 @@ export default css`
     background: var(--card-background-color);
   }
   .popup {
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    width: 100%;
+    max-width: min(calc(100vw - 70px), 512px);
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translate(-50%,-50%);
     background-color: var(--card-background-color, white);
-    padding: 20px;
+    padding: 10px;
     border: 1px solid #ccc;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow-x: hidden;
     z-index: 1000;
   }
   .popup-background {
@@ -58,6 +63,12 @@ export default css`
     background: rgba(0, 0, 0, 0.5);
     z-index: 999;
   }
+  .popup-button-container {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+    gap: 10px;
+  }
   .popup-header {
     font-size: 18px;
     margin-bottom: 10px;
@@ -65,13 +76,18 @@ export default css`
   .popup-content {
     font-size: 14px;
   }
-  /* Remove bullets from the list */
-  #checkboxList {
-    list-style-type: none;
+  .checkbox-list {
     padding: 0;
+    overflow-y: auto;    
+    display: flex;
+    flex-wrap: wrap;
+    max-height: 220px;
+    max-width: 100%;
+    width: 100%;
+    overflow-x: hidden;
   }
-  /* Style the checkbox list items */
-  #checkbox li {
-    margin: 10px 0;
+  .checkbox-object {
+    width: calc(50% - 10px);
+    align-items: left;
   }
 `;
