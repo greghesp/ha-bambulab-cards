@@ -27,7 +27,7 @@ interface Result {
   humidity: Sensor | null;
   temperature: Sensor | null;
   spools: Sensor[];
-  type: string;
+  type: string | null | undefined;
 }
 
 @customElement(AMS_CARD_NAME)

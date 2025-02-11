@@ -13,3 +13,8 @@ export function getContrastingTextColor(hexColor) {
   // If luminance is greater than 128, the color is light, so we return black text, otherwise white
   return luminance > 128 ? "#000000" : "#FFFFFF";
 }
+
+export function rgbaToInt(r, g, b, a) {
+  return r | (g << 8) | (b << 16) | (a << 24);
+}
+
