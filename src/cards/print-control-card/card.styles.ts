@@ -39,11 +39,13 @@ export default css`
   }
   .popup {
     position: fixed;
+    display: flex;
+    flex-direction: column;
     top: 50%;
     left: 50%;
     width: 100%;
     max-width: min(calc(100vw - 70px), 512px);
-    max-height: 90vh;
+    max-height: calc(90vh - 90px);
     overflow-y: auto;
     transform: translate(-50%,-50%);
     background-color: var(--card-background-color, white);
@@ -51,7 +53,7 @@ export default css`
     border: 1px solid #ccc;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
-    overflow-x: hidden;
+    overflow-y: auto;
     z-index: 1000;
   }
   .popup-background {
@@ -75,6 +77,9 @@ export default css`
   }
   .popup-content {
     font-size: 14px;
+    display: flex;
+    flex-direction: column; 
+    overflow: hidden;
   }
   .checkbox-list {
     padding: 0;
@@ -82,9 +87,9 @@ export default css`
     display: flex;
     flex-wrap: wrap;
     max-height: 220px;
-    max-width: 100%;
     width: 100%;
-    overflow-x: hidden;
+    max-width: 100%;
+    flex-shrink: 1;
   }
   .checkbox-object {
     width: calc(50% - 10px);
