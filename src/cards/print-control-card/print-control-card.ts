@@ -74,10 +74,6 @@ export class PrintControlCard extends LitElement {
     return document.createElement(PRINT_CONTROL_CARD_EDITOR_NAME);
   }
 
-  // static getStubConfig() {
-  //   return { entity: "sun.sun" };
-  // }
-
   setConfig(config) {
     this._device_id = config.printer;
 

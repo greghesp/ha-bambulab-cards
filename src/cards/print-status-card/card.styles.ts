@@ -17,8 +17,23 @@ export default css`
     padding: 16px;
     background: var(--card-background-color);
   }
+  #container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%; 
+  }
+  .control-container {
+      position: relative;
+      display: inline-block;    
+  .entity {
+      position: absolute;
+      border: 1px solid #000;
+      transform: translate(-50%, -50%);
+  }
   #printer {
-    align-items: center;
+    display: block;
     width: 100%;
     height: auto;
   }
