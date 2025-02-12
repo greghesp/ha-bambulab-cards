@@ -53,17 +53,17 @@ export class PrintControlCard extends LitElement {
     super();
     this._entityList = {};
     this._entityUX = {
-      chamber_light:        { x: 10, y:10, width:20, height:20 }, // light
-      hms_errors:           { x: 90, y:10, width:20, height:20 }, // binary_sensor
-      cover_image:          { x: 50, y:50, width:100, height:100 }, // image
-      nozzle_temperature:   { x: 50, y:10, width:20, height:20 }, // sensor
-      current_stage:        { x: 20, y:20, width:20, height:20 }, // sensor
-      bed_temperature:      { x: 50, y:80, width:20, height:20 }, // sensor
-      chamber_temperature:  { x: 80, y:20, width:20, height:20 }, // sensor
-      chamber_fan:          { x: 80, y:40, width:20, height:20 }, // fan
-      aux_fan:              { x: 20, y:50, width:20, height:20 }, // fan
-      print_progress:       { x: 80, y:80, width:20, height:20 }, // sensor
-      remaining_time:       { x: 80, y:90, width:20, height:20 }, // sensor
+      stage:                { x: 33, y:9,  width:20,  height:20 },  // sensor
+      hms:                  { x: 90, y:10, width:20,  height:20 }, // binary_sensor
+      chamber_light:        { x: 20, y:25, width:20,  height:20 }, // light
+      chamber_temp:         { x: 80, y:25, width:20,  height:20 }, // sensor
+      nozzle_temperature:   { x: 50, y:31, width:20,  height:20 }, // sensor
+      chamber_fan:          { x: 80, y:32, width:20,  height:20 }, // fan
+      aux_fan:              { x: 20, y:52, width:20,  height:20 }, // fan
+      cover_image:          { x: 50, y:53, width:150, height:150 }, // image
+      bed_temperature:      { x: 50, y:75, width:20,  height:20 }, // sensor
+      print_progress:       { x: 50, y:85, width:20,  height:20 }, // sensor
+      remaining_time:       { x: 50, y:92, width:20,  height:20 }, // sensor
     };
   }
 
@@ -79,16 +79,15 @@ export class PrintControlCard extends LitElement {
       throw new Error("You need to select a Printer");
     }
 
-    if (this._hass) {
-      this.hass = this._hass;
-    }
+    // if (this._hass) {
+    //   this.hass = this._hass;
+    // }
   }
 
   set hass(hass) {
     if (hass) {
       this._hass = hass;
       this._states = hass.states;
-      this._asyncFilterBambuDevices();
     }
   }
 
@@ -112,7 +111,8 @@ export class PrintControlCard extends LitElement {
   }
 
   firstUpdated() {
-      this.createElements();
+      //this.createElements();
+      this._asyncFilterBambuDevices();
   }
 
   private getPrinterImage() {
@@ -137,18 +137,45 @@ export class PrintControlCard extends LitElement {
     const imageHeight = backgroundImage.height
 
     for (const key in this._entityUX) {
-            const entity = this._entityUX[key];
-            const element = document.createElement('div');
-            element.className = 'entity';
-            const left = (entity.x / 100) * imageWidth;
-            const top = (entity.y / 100) * imageHeight;
-            element.style.left = `${left}px`;
-            element.style.top = `${top}px`;
-            element.style.width = `${entity.width}px`;
-            element.style.height = `${entity.height}px`;
-            element.innerText = key; // Optional, for identification
-            container.appendChild(element);
+      const entity = this._entityList[key]
+      if (entity != undefined) {
+        const e = this._entityUX[key];
+        let elementType = 'div';
+        if (key == 'cover_image') {
+          elementType = 'img'
+        }
+
+        const element = document.createElement(elementType);
+        element.className = 'entity';
+        element.id = key;
+        const left = (e.x / 100) * imageWidth;
+        const top = (e.y / 100) * imageHeight;
+        element.style.left = `${left}px`;
+        element.style.top = `${top}px`;
+        element.style.width = `${e.width}px`;
+        element.style.height = `${e.height}px`;
+        if (key == 'cover_image') {
+          let img = element as HTMLImageElement;
+          img.src = this._getImageUrl();
+        }
+        element.innerText = this._states[entity.entity_id].state;
+        container.appendChild(element);
       }
+      else {
+        console.log(`${key} was undefined`)
+      }
+    }
+  }
+
+  private _getImageUrl() {
+    const img = this._entityList['cover_image'];
+    if (img) {
+      const timestamp = this._states[img.entity_id].state;
+      const accessToken = this._states[img.entity_id].attributes?.access_token
+      const imageUrl = `/api/image_proxy/${img.entity_id}?token=${accessToken}&time=${timestamp}`;
+      return imageUrl;
+    }
+    return '';
   }
 
   private async _getEntity(entity_id) {
@@ -160,21 +187,22 @@ export class PrintControlCard extends LitElement {
 
   private async _asyncFilterBambuDevices() {
     const entities = this._entityUX;
+    const keys = Object.keys(entities);
     const result: { [key: string]: Entity } = {}
     // Loop through all hass entities, and find those that belong to the selected device
-    const keys = Object.keys(entities);
-    for (let key in this._hass.entities) {
-      const value = this._hass.entities[key];
+    for (let k in this._hass.entities) {
+      const value = this._hass.entities[k];
       if (value.device_id === this._device_id) {
         const r = await this._getEntity(value.entity_id);
-        Object.keys(keys).forEach((key: string) => {
+        for (const key of keys) {
           if (r.unique_id.includes(key)) {
             result[key] = r
           }
-        });
+        };
       }
     }
 
     this._entityList = result;
+    this.createElements()
   }
 }
