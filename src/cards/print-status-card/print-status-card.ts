@@ -46,27 +46,31 @@ export class PrintControlCard extends LitElement {
   @state() private _device_id: any;
   // Home assistant state references that are only used in changedProperties
   //@state() private _entities: any[];
+  //@state() private _lightbulb: any;
 
   private _entityList: { [key: string]: Entity }
   private _entityUX: { [key: string]: EntityUX }
+
+  private X1CEntityUX: { [key: string]: EntityUX } = {
+    stage:                { x: 33, y:9,  width:100, height:60 },  // sensor
+    hms:                  { x: 90, y:10, width:20,  height:20 }, // binary_sensor
+    chamber_light:        { x: 20, y:25, width:20,  height:20 }, // light
+    chamber_temp:         { x: 80, y:25, width:20,  height:20 }, // sensor
+    nozzle_temp:          { x: 50, y:31, width:25,  height:20 }, // sensor
+    chamber_fan_speed:    { x: 80, y:32, width:20,  height:20 }, // fan
+    aux_fan_speed:        { x: 20, y:52, width:20,  height:20 }, // fan
+    cover_image:          { x: 50, y:53, width:150, height:150 }, // image
+    bed_temp:             { x: 50, y:75, width:25,  height:20 }, // sensor
+    print_progress:       { x: 50, y:85, width:25,  height:20 }, // sensor
+    remaining_time:       { x: 50, y:92, width:100, height:20 }, // sensor
+  };
   
   constructor() {
     super();
     this._entityList = {};
-    this._entityUX = {
-      stage:                { x: 33, y:9,  width:20,  height:20 },  // sensor
-      hms:                  { x: 90, y:10, width:20,  height:20 }, // binary_sensor
-      chamber_light:        { x: 20, y:25, width:20,  height:20 }, // light
-      chamber_temp:         { x: 80, y:25, width:20,  height:20 }, // sensor
-      nozzle_temp:          { x: 50, y:31, width:20,  height:20 }, // sensor
-      chamber_fan_speed:    { x: 80, y:32, width:20,  height:20 }, // fan
-      aux_fan_speed:        { x: 20, y:52, width:20,  height:20 }, // fan
-      cover_image:          { x: 50, y:53, width:150, height:150 }, // image
-      bed_temp:             { x: 50, y:75, width:20,  height:20 }, // sensor
-      print_progress:       { x: 50, y:85, width:20,  height:20 }, // sensor
-      remaining_time:       { x: 50, y:92, width:20,  height:20 }, // sensor
-    };
+    this._entityUX = this.X1CEntityUX;
     //this._entities = [];
+    //this._lightbulb = "";
 }
 
   public static async getConfigElement() {
@@ -118,6 +122,8 @@ export class PrintControlCard extends LitElement {
           // Object.keys(result).forEach((key) => {
           //   this._entities.push(this._states[result[key].entity_id]);
           // });
+          //this._lightbulb = this._states[result['chamber_light'].entity_id].state;
+          //console.log(this._lightbulb)
           this._createEntityElements();
         })
   }

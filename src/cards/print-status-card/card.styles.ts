@@ -26,10 +26,15 @@ export default css`
   }
   .control-container {
       position: relative;
-      display: inline-block;    
+      display: inline-block;
+  }
   .entity {
       position: absolute;
       transform: translate(-50%, -50%);
+      display: flex;
+      justify-content: center;
+      text-align: center;
+      align-items: center;
   }
   #printer {
     display: block;
