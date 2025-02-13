@@ -51,6 +51,8 @@ export class PrintControlCard extends LitElement {
   @state() private _objects = new Map<number, PrintableObject>();
   @state() private _hoveredObject: number = 0;
   @state() private _pickImage: any;
+  @state() private _confirmationDialogVisible: boolean = false;
+  @state() private _confirmationDialogBody: string = "";
 
   // Home assistant state references that are only used in chanedProperties
   @state() private _pickImageState: any;
@@ -59,6 +61,7 @@ export class PrintControlCard extends LitElement {
   private _hiddenCanvas;
   private _hiddenContext;
   private _visibleContext;
+  private _confirmationAction;
 
   constructor() {
     super()
@@ -336,27 +339,51 @@ export class PrintControlCard extends LitElement {
     }
 
     if (changedProperties.has('_skippedObjectsState')) {
-      this._populateCheckboxList()
+      this._populateCheckboxList();
     }
+  }
+
+  private _showPauseDialog() {
+    this._confirmationAction = () => { this._clickButton(this._entities?.pause) }
+    this._confirmationDialogBody = "Are you sure you want to pause the print. This may cause quality issues.";
+    this._confirmationDialogVisible = true;
+  }
+
+  private _showStopDialog() {
+    this._confirmationAction = () => { this._clickButton(this._entities?.stop) };
+    this._confirmationDialogBody = "Are you sure you want to stop the print. This cannot be reversed.";
+    this._confirmationDialogVisible = true;
   }
 
   render() {
     return html`
       <ha-card class="card">
         <div class="control-container">
-          <button class="button" @click="${() => this._clickButton(this._entities?.pause)}" ?disabled="${this._isEntityUnavailable(this._entities?.pause)}">
+          <button class="button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this._entities?.pause)}">
             Pause
           </button>
-          <button class="button" @click="${() => this._clickButton(this._entities?.resume)}" ?disabled="${this._isEntityUnavailable(this._entities?.resume)}">
+          <button class="button" @click="${() => { this._clickButton(this._entities?.resume) }}" ?disabled="${this._isEntityUnavailable(this._entities?.resume)}">
             Resume
           </button>
-          <button class="button" @click="${() => this._clickButton(this._entities?.stop)}" ?disabled="${this._isEntityUnavailable(this._entities?.stop)}">
+          <button class="button" @click="${this._showStopDialog}" ?disabled="${this._isEntityUnavailable(this._entities?.stop)}">
             Stop
           </button>
           <button class="button" @click="${this._showPopup}" ?disabled="${this._isEntityUnavailable(this._entities?.stop)}">
             Skip
           </button>
         </div>
+        ${this._confirmationDialogVisible ? html`
+          <ha-dialog id="confirmation-popup" open="true" heading="title">
+            <ha-dialog-header slot="heading">
+              <div slot="title">Please confirm</div>
+            </ha-dialog-header>
+            <div class="content">
+              ${this._confirmationDialogBody}
+            </div>
+            <mwc-button slot="primaryAction" @click="${() => { this._confirmationAction(); this._confirmationDialogVisible = false; }}">Confirm</mwc-button>
+            <mwc-button slot="secondaryAction" @click="${() => { this._confirmationDialogVisible = false; }}">Cancel</mwc-button>
+          </ha-dialog>
+        ` : ``}
         <div class="popup-container" style="display: ${this._popupVisible ? 'block' : 'none'};">
           <div class="popup-background" @click="${this._cancelPopup}"></div>
           <div class="popup">
