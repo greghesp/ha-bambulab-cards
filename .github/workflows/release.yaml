@@ -25,6 +25,16 @@ jobs:
           cache: "npm"
           cache-dependency-path: "${{ github.workspace }}/ha-bambulab-cards/package-lock.json"
 
+      # Update the package.json version to match the release tag
+      - name: 📝 Update package.json version
+        working-directory: "ha-bambulab-cards"
+        run: |
+          # Remove 'v' prefix from tag name if present
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+          # Update package.json version
+          npm version $VERSION --no-git-tag-version
+
       # Install dependencies for the frontend and build it
       - name: 💿 Install Node dependencies
         working-directory: "ha-bambulab-cards"

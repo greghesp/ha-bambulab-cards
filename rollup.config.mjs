@@ -8,6 +8,7 @@ import serve from "rollup-plugin-serve";
 import image from "rollup-plugin-img";
 
 const dev = process.env.ROLLUP_WATCH;
+const ignoreErrors = dev || process.env.IGNORE_TS_ERRORS === 'true';
 
 const serveOptions = {
   contentBase: ["./dist"],
@@ -26,6 +27,7 @@ const plugins = [
   }),
   typescript({
     declaration: false,
+    noEmitOnError: !ignoreErrors
   }),
   nodeResolve(),
   json(),

@@ -1,9 +1,8 @@
 ![GitHub issue custom search in repo](https://img.shields.io/github/issues-search/greghesp/ha-bambulab?query=label%3Afrontend&style=for-the-badge&label=Open%20Issues)
 [![Discord](https://img.shields.io/discord/1337028866643857429?style=for-the-badge&logo=discord&logoColor=white&label=Discord&color=7289da)](https://discord.gg/rsUHAW3DKz)
 
-![GitHub Release Date](https://img.shields.io/github/release-date-pre/greghesp/ha-bambulab?style=for-the-badge&label=Latest%20Beta%20Release) [![GitHub Release](https://img.shields.io/github/v/release/greghesp/ha-bambulab?include_prereleases&style=for-the-badge)](https://github.com/greghesp/ha-bambulab/releases)
 
-![GitHub Release Date](https://img.shields.io/github/release-date/greghesp/ha-bambulab?style=for-the-badge&label=Latest%20Release) [![GitHub Release](https://img.shields.io/github/v/release/greghesp/ha-bambulab?style=for-the-badge)](https://github.com/greghesp/ha-bambulab/releases)
+![GitHub Release Date](https://img.shields.io/github/release-date/greghesp/ha-bambulab-cards?style=for-the-badge&label=Latest%20Release) [![GitHub Release](https://img.shields.io/github/v/release/greghesp/ha-bambulab-cards?style=for-the-badge)](https://github.com/greghesp/ha-bambulab-cards/releases)
 
 # Bambu Lab Cards
 

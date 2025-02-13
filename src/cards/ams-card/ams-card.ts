@@ -2,7 +2,7 @@ import { customElement, state } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 
 import { registerCustomCard } from "../../utils/custom-cards";
-import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME } from "./const";
+import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME, AMS_MODELS } from "./const";
 import styles from "./card.styles";
 import "./components/spool/spool.ts";
 import "./vector-ams-card/vector-ams-card";
@@ -27,7 +27,7 @@ interface Result {
   humidity: Sensor | null;
   temperature: Sensor | null;
   spools: Sensor[];
-  type: string | null | undefined;
+  type: typeof AMS_MODELS[number] | null;
 }
 
 @customElement(AMS_CARD_NAME)
@@ -35,7 +35,6 @@ export class AMS_CARD extends LitElement {
   // private property
   @state() private _hass?;
   @state() private _subtitle;
-  @state() private _entity;
   @state() private _deviceId: any;
   @state() private _entities: any;
   @state() private _states;
@@ -125,7 +124,7 @@ export class AMS_CARD extends LitElement {
       humidity: null,
       temperature: null,
       spools: [],
-      type: await this.getDeviceModel(),
+      type: await this.getDeviceModel() ?? null,
     };
     // Loop through all hass entities, and find those that belong to the selected device
     for (let key in this._hass.entities) {

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "rollup -c --watch --bundleConfigAsCjs",
-    "build": "rollup -c --bundleConfigAsCjs",
+    "build": "cross-env IGNORE_TS_ERRORS=true rollup -c --bundleConfigAsCjs",
+    "build:strict": "cross-env IGNORE_TS_ERRORS=false rollup -c --bundleConfigAsCjs",
     "format": "prettier --write ."
   },
   "author": "Greg Hesp",
@@ -27,6 +28,7 @@
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.1",
+    "cross-env": "^7.0.3",
     "eslint": "^9.14.0",
     "prettier": "^3.3.3",
     "rollup": "^4.18.0",
