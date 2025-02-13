@@ -29,7 +29,6 @@ export default css`
       display: inline-block;    
   .entity {
       position: absolute;
-      border: 1px solid #000;
       transform: translate(-50%, -50%);
   }
   #printer {

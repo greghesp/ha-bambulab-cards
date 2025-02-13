@@ -44,11 +44,12 @@ export class PrintControlCard extends LitElement {
 
   @state() private _states;
   @state() private _device_id: any;
-  
-  //private _entities: string[]
+  // Home assistant state references that are only used in changedProperties
+  //@state() private _entities: any[];
+
   private _entityList: { [key: string]: Entity }
   private _entityUX: { [key: string]: EntityUX }
-
+  
   constructor() {
     super();
     this._entityList = {};
@@ -57,15 +58,16 @@ export class PrintControlCard extends LitElement {
       hms:                  { x: 90, y:10, width:20,  height:20 }, // binary_sensor
       chamber_light:        { x: 20, y:25, width:20,  height:20 }, // light
       chamber_temp:         { x: 80, y:25, width:20,  height:20 }, // sensor
-      nozzle_temperature:   { x: 50, y:31, width:20,  height:20 }, // sensor
-      chamber_fan:          { x: 80, y:32, width:20,  height:20 }, // fan
-      aux_fan:              { x: 20, y:52, width:20,  height:20 }, // fan
+      nozzle_temp:          { x: 50, y:31, width:20,  height:20 }, // sensor
+      chamber_fan_speed:    { x: 80, y:32, width:20,  height:20 }, // fan
+      aux_fan_speed:        { x: 20, y:52, width:20,  height:20 }, // fan
       cover_image:          { x: 50, y:53, width:150, height:150 }, // image
-      bed_temperature:      { x: 50, y:75, width:20,  height:20 }, // sensor
+      bed_temp:             { x: 50, y:75, width:20,  height:20 }, // sensor
       print_progress:       { x: 50, y:85, width:20,  height:20 }, // sensor
       remaining_time:       { x: 50, y:92, width:20,  height:20 }, // sensor
     };
-  }
+    //this._entities = [];
+}
 
   public static async getConfigElement() {
     await import("./print-status-card-editor");
@@ -78,13 +80,10 @@ export class PrintControlCard extends LitElement {
     if (!config.printer) {
       throw new Error("You need to select a Printer");
     }
-
-    // if (this._hass) {
-    //   this.hass = this._hass;
-    // }
   }
 
   set hass(hass) {
+    // This will be called repetitively since the states are constantly changing.
     if (hass) {
       this._hass = hass;
       this._states = hass.states;
@@ -97,13 +96,15 @@ export class PrintControlCard extends LitElement {
 
   updated(changedProperties) {
     super.updated(changedProperties);
+    //console.log(changedProperties)
+    this._createEntityElements();
   }
 
   render() {
     return html`
       <ha-card class="card">
         <div class="control-container">
-          <img id="printer" src="${this.getPrinterImage()}" />
+          <img id="printer" src="${this._getPrinterImage()}" />
           <div id="container"></div>
         </div>
       </ha-card>
@@ -111,66 +112,91 @@ export class PrintControlCard extends LitElement {
   }
 
   firstUpdated() {
-      //this.createElements();
-      this._asyncFilterBambuDevices();
+      this._asyncFilterBambuDevices(Object.keys(this._entityUX)).then(
+        result => {
+          this._entityList = result;
+          // Object.keys(result).forEach((key) => {
+          //   this._entities.push(this._states[result[key].entity_id]);
+          // });
+          this._createEntityElements();
+        })
   }
 
-  private getPrinterImage() {
-    return X1CONIMAGE;
+  private _getPrinterImage() {
+    const lightOn = this._getEntityState('chamber_light') == 'on'
+    if (lightOn) {
+      return X1CONIMAGE;
+    }
+    else {
+      return X1COFFIMAGE;
+    }
   }
 
-  createElements() {
+  private _createEntityElements() {
     const container = this.shadowRoot?.getElementById('container')!;
     const backgroundImage = this.shadowRoot?.getElementById('printer') as HTMLImageElement;
 
     if (backgroundImage.complete) {
-        this.addElements(container, backgroundImage);
+        this._addElements(container, backgroundImage);
     } else {
         backgroundImage.onload = () => {
-            this.addElements(container, backgroundImage);
+            this._addElements(container, backgroundImage);
         };
     }
   }
 
-  addElements(container: HTMLElement, backgroundImage: HTMLImageElement) {
+  private _addElements(container: HTMLElement, backgroundImage: HTMLImageElement) {
     const imageWidth = backgroundImage.width;
-    const imageHeight = backgroundImage.height
-
+    const imageHeight = backgroundImage.height;
+  
+    let htmlString = ''; // Start with an empty string to build the HTML
+  
     for (const key in this._entityUX) {
-      const entity = this._entityList[key]
+      const entity = this._entityList[key];
       if (entity != undefined) {
         const e = this._entityUX[key];
-        let elementType = 'div';
-        if (key == 'cover_image') {
-          elementType = 'img'
-        }
-
-        const element = document.createElement(elementType);
-        element.className = 'entity';
-        element.id = key;
+  
+        // Determine element type
+  
         const left = (e.x / 100) * imageWidth;
         const top = (e.y / 100) * imageHeight;
-        element.style.left = `${left}px`;
-        element.style.top = `${top}px`;
-        element.style.width = `${e.width}px`;
-        element.style.height = `${e.height}px`;
-        if (key == 'cover_image') {
-          let img = element as HTMLImageElement;
-          img.src = this._getImageUrl();
+        const style = `left:${left}px; top:${top}px; width:${e.width}px; height:${e.height}px;`
+  
+        // Build the HTML string for each element
+        let elementHTML = ""
+        let text = this._getEntityState(key);
+        switch (key) {
+          case 'cover_image':
+            elementHTML = `<img class="entity" id="${key}" style="${style}" src="${this._getImageUrl()}" alt="Cover Image" />`;
+            break;
+          case 'chamber_light':
+            elementHTML = `<ha-icon class="entity" id="${key}" icon="mdi:lightbulb-outline" style="${style} color: ${text=='on'?'#ff0':'#fff'};"></ha-icon>`;
+            break;
+          default:
+            if (key.includes('fan') || key.includes('print_progress')) {
+              text += '%'
+            }
+            else if (key.includes('temp')) {
+              // FIXME - Check if display for sensor is configured as C or F
+              const temp = Math.round((Number(text)-32)/1.8);
+              text = `${temp}&deg`
+            }
+            elementHTML = `<div class="entity" id="${key}" style="${style}">${text}</div>`;
+            break;
         }
-        element.innerText = this._states[entity.entity_id].state;
-        container.appendChild(element);
-      }
-      else {
-        console.log(`${key} was undefined`)
+  
+        htmlString += elementHTML; // Append the generated HTML to the string
       }
     }
-  }
+  
+    // Inject the constructed HTML string into the container
+    container.innerHTML = htmlString;
+  }wa
 
   private _getImageUrl() {
     const img = this._entityList['cover_image'];
     if (img) {
-      const timestamp = this._states[img.entity_id].state;
+      const timestamp = this._states[img.entity_id]?.state;
       const accessToken = this._states[img.entity_id].attributes?.access_token
       const imageUrl = `/api/image_proxy/${img.entity_id}?token=${accessToken}&time=${timestamp}`;
       return imageUrl;
@@ -185,24 +211,37 @@ export class PrintControlCard extends LitElement {
     });
   }
 
-  private async _asyncFilterBambuDevices() {
-    const entities = this._entityUX;
-    const keys = Object.keys(entities);
+  private _getEntityState(entity: string) {
+    const entityId = this._entityList[entity]?.entity_id;
+    const entityState = this._states[entityId]?.state;
+    if (entityId && entityState) {
+      // entity.sensor.stage.state.
+      let localizedString = this._hass.localize(`state.${entityId}.${entityState}`);
+      // Example localization key:
+      // "component.bambu_lab.entity.sensor.stage.state.idle"
+      localizedString = this._hass.localize(`component.bambu_lab.entity.sensor.stage.state.${entityState}`);
+      return localizedString || entityState;
+    }
+    else {
+      return "";
+    }
+  }
+
+  private async _asyncFilterBambuDevices(entities: string[]): Promise<{ [key: string]: Entity }> {
     const result: { [key: string]: Entity } = {}
     // Loop through all hass entities, and find those that belong to the selected device
     for (let k in this._hass.entities) {
       const value = this._hass.entities[k];
       if (value.device_id === this._device_id) {
         const r = await this._getEntity(value.entity_id);
-        for (const key of keys) {
-          if (r.unique_id.includes(key)) {
+        for (const key of entities) {
+          const regex = new RegExp(`^[^_]+_${key}$`);
+          if (regex.test(r.unique_id)) {
             result[key] = r
           }
         };
       }
     }
-
-    this._entityList = result;
-    this.createElements()
+    return result;
   }
 }
