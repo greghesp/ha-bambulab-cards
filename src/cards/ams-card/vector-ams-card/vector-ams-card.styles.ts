@@ -9,9 +9,7 @@ export default css`
     --spool-info-height: 36px;
   }
 
-  .card {
-    height: 100%;
-    display: flex;
+  .ha-bambulab-vector-ams-card {
     align-items: center;
   }
 
@@ -39,7 +37,6 @@ export default css`
     display: flex;
     flex-wrap: nowrap;
     justify-content: space-evenly;
-    margin-top: 7px;
   }
 
   .v-spool-holder {
@@ -63,9 +60,8 @@ export default css`
   }
 
   .v-spool-info-wrapper {
-       width: 20%;
-       margin: 7px;
-
+    width: 20%;
+    margin: 7px;
   }
 
   .v-spool-info {
