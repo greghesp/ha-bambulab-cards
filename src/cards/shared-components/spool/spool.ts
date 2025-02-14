@@ -7,7 +7,8 @@ export class Spool extends LitElement {
   @property({ type: Boolean }) public active: boolean = false;
   @property({ type: String }) public color;
   @property({ type: String }) public tag_uid;
-  @property({ type: Number }) public remaining: number = 100;
+  @property({ type: String }) public name;
+  @property({ type: Number }) public remaining;
   @property({ type: Number }) private remainHeight: number = 95;
   @property({ type: Number }) private resizeObserver: ResizeObserver | null = null;
 
@@ -42,25 +43,38 @@ export class Spool extends LitElement {
 
   render() {
     return html`
-      <div class="ha-bambulab-spool-container">
-        <div class="ha-bambulab-spool-side"></div>
+      <div class="ha-bambulab-spool-card-container">
         <div
-          class="string-roll-container"
-          style="${this.active ? "animation: wiggle 3s linear infinite" : nothing}"
+          class="ha-bambulab-spool-card-holder"
+          style="border-color: ${this.active ? this.color : "#808080"}"
         >
-          <div
-            class="v-string-roll"
-            id="v-string-roll"
-            style="background: ${this.color}; height: ${this.remainHeight.toFixed(2)}%"
-          >
-            ${this.active ? html`<div class="v-reflection"></div>` : nothing}
-            ${this.getRemainingValue().type == "unknown" ||
-            this.getRemainingValue().type == "generic"
-              ? ""
-              : html` <div class="remaining-percent"><p>${this.remaining}%</p></div> `}
+          <div class="ha-bambulab-spool-container">
+            <div class="ha-bambulab-spool-side"></div>
+            <div
+              class="string-roll-container"
+              style="${this.active ? "animation: wiggle 3s linear infinite" : nothing}"
+            >
+              <div
+                class="v-string-roll"
+                id="v-string-roll"
+                style="background: ${this.color}; height: ${this.remainHeight.toFixed(2)}%"
+              >
+                ${this.active ? html`<div class="v-reflection"></div>` : nothing}
+                ${this.getRemainingValue().type == "unknown" ||
+                this.getRemainingValue().type == "generic"
+                  ? ""
+                  : html` <div class="remaining-percent"><p>${this.remaining}%</p></div> `}
+              </div>
+            </div>
+            <div class="ha-bambulab-spool-side"></div>
           </div>
         </div>
-        <div class="ha-bambulab-spool-side"></div>
+
+        <div class="ha-bambulab-spool-info-container">
+          <div class="ha-bambulab-spool-info-wrapper">
+            <div class="ha-bambulab-spool-info">${this.name}</div>
+          </div>
+        </div>
       </div>
     `;
   }

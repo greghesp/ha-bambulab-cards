@@ -57,32 +57,12 @@ export class SpoolCard extends LitElement {
   render() {
     return html`
       <ha-card class="card">
-        <div class="ha-bambulab-spool-card-container">
-          <div
-            class="ha-bambulab-spool-card-holder"
-            style="border-color: ${this.states[this._spoolEntityId]?.attributes.active
-              ? this.states[this._spoolEntityId]?.attributes.color
-              : "#808080"}"
-          >
-            <ha-bambulab-spool
-              ?active="${this.states[this._spoolEntityId]?.attributes.active}"
-              .color="${this.states[this._spoolEntityId]?.attributes.color}"
-              .remaining=${60}
-              .name="${this.states[this._spoolEntityId]?.attributes.name}"
-            ></ha-bambulab-spool>
-          </div>
-          ${this._showType
-            ? html`
-                <div class="ha-bambulab-spool-info-container">
-                  <div class="ha-bambulab-spool-info-wrapper">
-                    <div class="ha-bambulab-spool-info">
-                      ${this.states[this._spoolEntityId]?.attributes.name}
-                    </div>
-                  </div>
-                </div>
-              `
-            : nothing}
-        </div>
+        <ha-bambulab-spool
+          ?active="${this.states[this._spoolEntityId]?.attributes.active}"
+          .color="${this.states[this._spoolEntityId]?.attributes.color}"
+          .name="${this.states[this._spoolEntityId]?.attributes.name}"
+          .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
+        ></ha-bambulab-spool>
       </ha-card>
     `;
   }
