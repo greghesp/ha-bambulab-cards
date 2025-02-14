@@ -165,7 +165,7 @@ export class PrintControlCard extends LitElement {
     this._entityUX = undefined; // Initialized once we know what model printer it is.
     //this._entities = [];
     //this._lightbulb = "";
-}
+  }
 
   public static async getConfigElement() {
     await import("./print-status-card-editor");
@@ -181,10 +181,33 @@ export class PrintControlCard extends LitElement {
   }
 
   set hass(hass) {
+    const firstTime = hass && !this._hass;
+
     // This will be called repetitively since the states are constantly changing.
     if (hass) {
       this._hass = hass;
       this._states = hass.states;
+    }
+
+    if (firstTime) {
+      this._asyncGetDeviceInfo(this._device_id).then(
+      result => {
+        this._model = result['model'];
+        this._entityUX = this.EntityUX[this._model];
+        // We have the model - kick off the background image load asap.
+        this.requestUpdate();
+        // Now trigger the load of the entity data.
+        this._asyncFilterBambuDevices(Object.keys(this._entityUX!)).then(
+          result => {
+            this._entityList = result;
+            // Object.keys(result).forEach((key) => {
+            //   this._entities.push(this._states[result[key].entity_id]);
+            // });
+            //this._lightbulb = this._states[result['chamber_light'].entity_id].state;
+            //console.log(this._lightbulb)
+            this._createEntityElements();
+          })
+      })
     }
   }
 
@@ -208,24 +231,6 @@ export class PrintControlCard extends LitElement {
         </div>
       </ha-card>
     `;
-  }
-
-  firstUpdated() {
-    this._asyncGetDeviceInfo(this._device_id).then(
-      result => {
-        this._model = result['model'];
-        this._entityUX = this.EntityUX[this._model];
-        this._asyncFilterBambuDevices(Object.keys(this._entityUX!)).then(
-          result => {
-            this._entityList = result;
-            // Object.keys(result).forEach((key) => {
-            //   this._entities.push(this._states[result[key].entity_id]);
-            // });
-            //this._lightbulb = this._states[result['chamber_light'].entity_id].state;
-            //console.log(this._lightbulb)
-            this._createEntityElements();
-          })
-    })
   }
 
   private _getPrinterImage() {
@@ -288,7 +293,7 @@ export class PrintControlCard extends LitElement {
             elementHTML = `<ha-icon class="entity" id="${key}" icon="mdi:lightbulb-outline" style="${style} color: ${text=='on'?'#ff0':'#fff'};"></ha-icon>`;
             break;
           default:
-            style += `background-color: rgba(0, 0, 0, 0.2); border-radius: ${e.height/2}px; padding: 0px;`;
+            style += `background-color: rgba(0, 0, 0, 0.2); border-radius: ${e.height/2}px; padding: 2px;`;
             if (key.includes('fan') || key.includes('print_progress')) {
               text += '%'
             }
