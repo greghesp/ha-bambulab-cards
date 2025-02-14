@@ -294,7 +294,10 @@ export class PrintControlCard extends LitElement {
             break;
           default:
             style += `background-color: rgba(0, 0, 0, 0.2); border-radius: ${e.height/2}px; padding: 2px;`;
-            if (key.includes('fan') || key.includes('print_progress')) {
+            if (key.includes('fan')) {
+              text = `<ha-icon icon="mdi:fan"></ha-icon>${text}%`
+            } 
+            else if (key == 'print_progress') {
               text += '%'
             }
             else if (key.includes('temp')) {
