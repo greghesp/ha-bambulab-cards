@@ -8,8 +8,8 @@ import { formatMinutes } from "../../utils/helpers"
 
 import A1_ON_IMAGE  from "../../images/A1_on.png";
 import A1_OFF_IMAGE from "../../images/A1_off.png";
-import A1MINI_ON_IMAGE  from "../../images/A1_on.png";
-import A1MINI_OFF_IMAGE from "../../images/A1_off.png";
+import A1MINI_ON_IMAGE  from "../../images/A1Mini_on.png";
+import A1MINI_OFF_IMAGE from "../../images/A1Mini_off.png";
 import P1P_ON_IMAGE  from "../../images/P1P_on.png";
 import P1P_OFF_IMAGE from "../../images/P1P_off.png";
 import P1S_ON_IMAGE  from "../../images/P1S_on.png";
@@ -78,31 +78,25 @@ export class PrintControlCard extends LitElement {
   private _model: string;
 
   private A1EntityUX: { [key: string]: EntityUX } = {
-    stage:                { x: 15, y:10, width:100, height:60 },  // sensor
 //    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
-    chamber_light:        { x: 20, y:25, width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 80, y:25, width:70,  height:25 },  // fan
-    nozzle_temp:          { x: 50, y:31, width:25,  height:20 },  // sensor
-    chamber_temp:         { x: 80, y:32, width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 20, y:52, width:70,  height:25 },  // fan
-    cover_image:          { x: 50, y:53, width:150, height:150 }, // image
-    bed_temp:             { x: 50, y:75, width:25,  height:20 },  // sensor
-    print_progress:       { x: 50, y:85, width:25,  height:20 },  // sensor
-    remaining_time:       { x: 50, y:92, width:100, height:20 },  // sensor
+    chamber_light:        { x: 46.5, y:28,   width:20,  height:20 },  // light
+    nozzle_temp:          { x: 46.5, y:38,   width:25,  height:20 },  // sensor
+    cover_image:          { x: 46.5, y:58,   width:150, height:150 }, // image
+    bed_temp:             { x: 46.5, y:82,   width:25,  height:20 },  // sensor
+    print_progress:       { x: 78, y:81,     width:25,  height:20 },  // sensor
+    remaining_time:       { x: 78, y:85,     width:100, height:20 },  // sensor
+    stage:                { x: 46.5, y:92.5, width:300, height:20 },  // sensor
   };
 
   private A1MiniEntityUX: { [key: string]: EntityUX } = {
-    stage:                { x: 15, y:10, width:100, height:60 },  // sensor
 //    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
-    chamber_light:        { x: 20, y:25, width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 80, y:25, width:70,  height:25 },  // fan
-    nozzle_temp:          { x: 50, y:31, width:25,  height:20 },  // sensor
-    chamber_temp:         { x: 80, y:32, width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 20, y:52, width:70,  height:25 },  // fan
-    cover_image:          { x: 50, y:53, width:150, height:150 }, // image
-    bed_temp:             { x: 50, y:75, width:25,  height:20 },  // sensor
-    print_progress:       { x: 50, y:85, width:25,  height:20 },  // sensor
-    remaining_time:       { x: 50, y:92, width:100, height:20 },  // sensor
+    chamber_light:        { x: 88, y:29, width:20,  height:20 },  // light
+    nozzle_temp:          { x: 41, y:38, width:25,  height:20 },  // sensor
+    cover_image:          { x: 41, y:58, width:150, height:150 }, // image
+    bed_temp:             { x: 41, y:80, width:25,  height:20 },  // sensor
+    print_progress:       { x: 74, y:89, width:25,  height:20 },  // sensor
+    remaining_time:       { x: 74, y:93, width:100, height:20 },  // sensor
+    stage:                { x: 41, y:94, width:300, height:20 },  // sensor
   };
 
 
@@ -192,7 +186,10 @@ export class PrintControlCard extends LitElement {
     if (firstTime) {
       this._asyncGetDeviceInfo(this._device_id).then(
       result => {
-        this._model = result['model'];
+        this._model = result['model'].toUpperCase();
+        if (this._model == 'A1 MINI') {
+          this._model = 'A1MINI';
+        }
         this._entityUX = this.EntityUX[this._model];
         // We have the model - kick off the background image load asap.
         this.requestUpdate();
@@ -290,6 +287,7 @@ export class PrintControlCard extends LitElement {
             elementHTML = `<img class="entity" id="${key}" style="${style}" src="${this._getImageUrl()}" alt="Cover Image" />`;
             break;
           case 'chamber_light':
+            style += `background-color: rgba(0, 0, 0, 0.5); border-radius: ${2 + e.height/2}px; padding: 4px;`;
             elementHTML = `<ha-icon class="entity" id="${key}" icon="mdi:lightbulb-outline" style="${style} color: ${text=='on'?'#ff0':'#fff'};"></ha-icon>`;
             break;
           default:
