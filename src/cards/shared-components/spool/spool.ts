@@ -92,7 +92,6 @@ export class Spool extends LitElement {
       stringRoll.appendChild(layer);
     }
   }
-  
 
   getRemainingValue() {
     if (this.isAllZeros(this.tag_uid)) {
@@ -112,27 +111,32 @@ export class Spool extends LitElement {
     const minHeightPercentage = 12;
 
     // If not a Bambu Spool or remaining is less than 0
-    if (this.isAllZeros(this.tag_uid) || this.remaining < 0) { 
-        this.remainHeight = maxHeightPercentage;
+    if (this.isAllZeros(this.tag_uid) || this.remaining < 0) {
+      this.remainHeight = maxHeightPercentage;
     } else {
-        // Get the container's height
-        const container = this.renderRoot.querySelector(".string-roll-container") as HTMLElement | null;
-        const containerHeight = container?.offsetHeight || 0;
+      // Get the container's height
+      const container = this.renderRoot.querySelector(
+        ".string-roll-container"
+      ) as HTMLElement | null;
+      const containerHeight = container?.offsetHeight || 0;
 
-        // Calculate heights in pixels
-        const maxHeightPx = containerHeight * (maxHeightPercentage / 100);
-        const minHeightPx = containerHeight * (minHeightPercentage / 100);
+      // Calculate heights in pixels
+      const maxHeightPx = containerHeight * (maxHeightPercentage / 100);
+      const minHeightPx = containerHeight * (minHeightPercentage / 100);
 
-        // Calculate remain height based on the remain percentage
-        const remainPercentage = Math.min(Math.max(this.remaining, 0), 100);
-        this.remainHeight = minHeightPx + (maxHeightPx - minHeightPx) * (remainPercentage / 100);
+      // Calculate remain height based on the remain percentage
+      const remainPercentage = Math.min(Math.max(this.remaining, 0), 100);
+      this.remainHeight = minHeightPx + (maxHeightPx - minHeightPx) * (remainPercentage / 100);
 
-        // Convert back to percentage of container
-        this.remainHeight = (this.remainHeight / containerHeight) * 100;
+      // Convert back to percentage of container
+      this.remainHeight = (this.remainHeight / containerHeight) * 100;
     }
 
     // Ensure remainHeight is always a number and doesn't exceed maxHeightPercentage
-    this.remainHeight = Math.min(Number(this.remainHeight) || maxHeightPercentage, maxHeightPercentage);
+    this.remainHeight = Math.min(
+      Number(this.remainHeight) || maxHeightPercentage,
+      maxHeightPercentage
+    );
     this.requestUpdate();
   }
 }

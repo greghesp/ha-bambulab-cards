@@ -68,6 +68,7 @@ export class SpoolCard extends LitElement {
               ?active="${this.states[this._spoolEntityId]?.attributes.active}"
               .color="${this.states[this._spoolEntityId]?.attributes.color}"
               .remaining=${60}
+              .name="${this.states[this._spoolEntityId]?.attributes.name}"
             ></ha-bambulab-spool>
           </div>
           ${this._showType

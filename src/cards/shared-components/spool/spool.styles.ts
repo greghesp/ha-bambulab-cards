@@ -8,15 +8,15 @@ export default css`
   }
 
   .ha-bambulab-spool-container {
-      padding: min(15%, 30px) 0;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-      box-sizing: border-box;
-      border: 2px solid #5a5a5a;
-      border-radius: 3px;
+    padding: min(15%, 30px) 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    box-sizing: border-box;
+    border: 2px solid #5a5a5a;
+    border-radius: 3px;
   }
 
   .ha-bambulab-spool-side {
