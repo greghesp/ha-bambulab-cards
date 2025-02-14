@@ -36,7 +36,7 @@ export class SpoolCard extends LitElement {
   static getStubConfig() {
     return { header: "Header Text", subtitle: "Subtitle Text", show_header: true };
   }
-  
+
   static styles = styles;
 
   setConfig(config) {
@@ -44,6 +44,7 @@ export class SpoolCard extends LitElement {
       this.hass = this._hass;
     }
     this._spool = config.spool;
+    this.getSpool;
   }
 
   set hass(hass) {
@@ -52,24 +53,26 @@ export class SpoolCard extends LitElement {
   }
 
   render() {
-    this.getSpool()
-    console.log("new spool card ")
     return html`
       <ha-card class="card">
-        <div class="spool-card-holder" 
-          style="border-color: ${this.states[this._spoolEntityId]?.attributes.active
-                    ? this.states[this._spoolEntityId]?.attributes.color
-                    : "#808080"}">
-          
-                    <ha-bambulab-spool
-                        ?active="${this.states[this._spoolEntityId]?.attributes.active}"
-                        .color="${this.states[this._spoolEntityId]?.attributes.color}"
-                        .remaining=${60}
-                      ></ha-bambulab-spool>
-               
-                </div>
-              </ha-card>
-          `
+        <div  
+          class="spool-card-holder"
+          style="
+          border-color:
+          ${
+            this.states[this._spoolEntityId]?.attributes.active
+              ? this.states[this._spoolEntityId]?.attributes.color
+              : "#808080"
+          }
+        >
+          <ha-bambulab-spool
+            ?active="${this.states[this._spoolEntityId]?.attributes.active}"
+            .color="${this.states[this._spoolEntityId]?.attributes.color}"
+            .remaining=${60}
+          ></ha-bambulab-spool>
+        </div>
+      </ha-card>
+    `;
   }
 
   private async getSpool() {
@@ -78,11 +81,10 @@ export class SpoolCard extends LitElement {
     for (let key in this._hass.entities) {
       const value = this._hass.entities[key];
       if (value.device_id === this._spool) {
-        entityId = value.entity_id
+        entityId = value.entity_id;
       }
     }
 
-    this._spoolEntityId = entityId
+    this._spoolEntityId = entityId;
   }
-
 }
