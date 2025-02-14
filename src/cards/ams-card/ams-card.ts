@@ -4,7 +4,7 @@ import { html, LitElement, nothing } from "lit";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME, AMS_MODELS } from "./const";
 import styles from "./card.styles";
-import "./components/spool/spool.ts";
+import "./components/spool/spool";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
 
@@ -58,6 +58,10 @@ export class AMS_CARD extends LitElement {
   }
 
   setConfig(config) {
+    if (!config.ams) {
+      throw new Error("You need to select an AMS");
+    }
+    
     this._subtitle = config.subtitle === "" ? nothing : config.subtitle;
     this._entities = config._entities;
     this._deviceId = config.ams;
@@ -67,9 +71,7 @@ export class AMS_CARD extends LitElement {
     this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
     this._customTemperature = config.custom_temperature === "" ? nothing : config.custom_temperature;
 
-    if (!config.ams) {
-      throw new Error("You need to select an AMS");
-    }
+
 
     if (this._hass) {
       this.hass = this._hass;

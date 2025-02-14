@@ -14,6 +14,15 @@ export class EXAMPLE_CARD extends LitElement {
   @state() private _config?;
   @state() private _hass: any;
 
+  public getLayoutOptions() {
+    return {
+      grid_rows: 2,
+      grid_columns: 2,
+      grid_min_rows:  2,
+      grid_min_columns: 2,
+    };
+  }
+
   public static async getConfigElement() {
     await import("./example-card-editor");
     return document.createElement(EXAMPLE_CARD_EDITOR_NAME);
