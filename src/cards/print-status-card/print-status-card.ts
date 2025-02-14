@@ -203,7 +203,7 @@ export class PrintControlCard extends LitElement {
       <ha-card class="card">
         <div class="control-container">
           <div id="alpha-text">Alpha</div>
-          <img id="printer" src="${this._getPrinterImage()}" />
+          <img id="printer" src="${this._getPrinterImage()}" width="466" height="516" />
           <div id="container"></div>
         </div>
       </ha-card>
