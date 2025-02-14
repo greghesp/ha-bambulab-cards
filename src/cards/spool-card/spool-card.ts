@@ -44,26 +44,22 @@ export class SpoolCard extends LitElement {
       this.hass = this._hass;
     }
     this._spool = config.spool;
-    this.getSpool;
   }
 
   set hass(hass) {
     this._hass = hass;
     this.states = hass.states;
+    this.getSpool();
   }
 
   render() {
     return html`
       <ha-card class="card">
-        <div  
+        <div
           class="spool-card-holder"
-          style="
-          border-color:
-          ${
-            this.states[this._spoolEntityId]?.attributes.active
-              ? this.states[this._spoolEntityId]?.attributes.color
-              : "#808080"
-          }
+          style="border-color: ${this.states[this._spoolEntityId]?.attributes.active
+            ? this.states[this._spoolEntityId]?.attributes.color
+            : "#808080"}"
         >
           <ha-bambulab-spool
             ?active="${this.states[this._spoolEntityId]?.attributes.active}"
