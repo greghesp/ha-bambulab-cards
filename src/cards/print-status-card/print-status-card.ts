@@ -81,10 +81,10 @@ export class PrintControlCard extends LitElement {
     stage:                { x: 15, y:10, width:100, height:60 },  // sensor
 //    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
     chamber_light:        { x: 20, y:25, width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 80, y:25, width:20,  height:20 },  // fan
+    chamber_fan_speed:    { x: 80, y:25, width:70,  height:25 },  // fan
     nozzle_temp:          { x: 50, y:31, width:25,  height:20 },  // sensor
     chamber_temp:         { x: 80, y:32, width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 20, y:52, width:20,  height:20 },  // fan
+    aux_fan_speed:        { x: 20, y:52, width:70,  height:25 },  // fan
     cover_image:          { x: 50, y:53, width:150, height:150 }, // image
     bed_temp:             { x: 50, y:75, width:25,  height:20 },  // sensor
     print_progress:       { x: 50, y:85, width:25,  height:20 },  // sensor
@@ -95,10 +95,10 @@ export class PrintControlCard extends LitElement {
     stage:                { x: 15, y:10, width:100, height:60 },  // sensor
 //    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
     chamber_light:        { x: 20, y:25, width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 80, y:25, width:20,  height:20 },  // fan
+    chamber_fan_speed:    { x: 80, y:25, width:70,  height:25 },  // fan
     nozzle_temp:          { x: 50, y:31, width:25,  height:20 },  // sensor
     chamber_temp:         { x: 80, y:32, width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 20, y:52, width:20,  height:20 },  // fan
+    aux_fan_speed:        { x: 20, y:52, width:70,  height:25 },  // fan
     cover_image:          { x: 50, y:53, width:150, height:150 }, // image
     bed_temp:             { x: 50, y:75, width:25,  height:20 },  // sensor
     print_progress:       { x: 50, y:85, width:25,  height:20 },  // sensor
@@ -110,10 +110,10 @@ export class PrintControlCard extends LitElement {
     stage:                { x: 25.5, y:9.5, width:100, height:60 }, // sensor
 //    hms:                  { x: 90,   y:10,  width:20,  height:20 },  // binary_sensor
     chamber_light:        { x: 20,   y:25,  width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 80,   y:25,  width:20,  height:20 },  // fan
+    chamber_fan_speed:    { x: 80,   y:25,  width:70,  height:25 },  // fan
     nozzle_temp:          { x: 50,   y:31,  width:25,  height:20 },  // sensor
     chamber_temp:         { x: 80,   y:32,  width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 20,   y:52,  width:20,  height:20 },  // fan
+    aux_fan_speed:        { x: 20,   y:52,  width:70,  height:25 },  // fan
     cover_image:          { x: 50,   y:53,  width:150, height:150 }, // image
     bed_temp:             { x: 50,   y:75,  width:25,  height:20 },  // sensor
     print_progress:       { x: 50,   y:85,  width:25,  height:20 },  // sensor
@@ -124,10 +124,10 @@ export class PrintControlCard extends LitElement {
     stage:                { x: 27, y:6.5, width:100, height:60 },  // sensor
 //    hms:                  { x: 90, y:10,  width:20,  height:20 },  // binary_sensor
     chamber_light:        { x: 20, y:25,  width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 80, y:25,  width:20,  height:20 },  // fan
+    chamber_fan_speed:    { x: 80, y:25,  width:70,  height:25 },  // fan
     nozzle_temp:          { x: 50, y:31,  width:25,  height:20 },  // sensor
     chamber_temp:         { x: 80, y:32,  width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 20, y:52,  width:20,  height:20 },  // fan
+    aux_fan_speed:        { x: 20, y:52,  width:70,  height:25 },  // fan
     cover_image:          { x: 50, y:53,  width:150, height:150 }, // image
     bed_temp:             { x: 50, y:75,  width:25,  height:20 },  // sensor
     print_progress:       { x: 50, y:85,  width:25,  height:20 },  // sensor
@@ -138,10 +138,10 @@ export class PrintControlCard extends LitElement {
     stage:                { x: 33, y:9,  width:100, height:60 },  // sensor
 //    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
     chamber_light:        { x: 20, y:25, width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 80, y:25, width:20,  height:20 },  // fan
+    chamber_fan_speed:    { x: 80, y:25, width:70,  height:25 },  // fan
     nozzle_temp:          { x: 50, y:31, width:25,  height:20 },  // sensor
     chamber_temp:         { x: 80, y:32, width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 20, y:52, width:20,  height:20 },  // fan
+    aux_fan_speed:        { x: 20, y:52, width:70,  height:25 },  // fan
     cover_image:          { x: 50, y:53, width:150, height:150 }, // image
     bed_temp:             { x: 50, y:75, width:25,  height:20 },  // sensor
     print_progress:       { x: 50, y:85, width:25,  height:20 },  // sensor
