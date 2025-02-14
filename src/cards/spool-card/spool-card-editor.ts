@@ -16,12 +16,12 @@ export class SpoolCardEditor extends LitElement {
     {
       name: "spool",
       label: "Spool",
-      selector: { device: { }}
+      selector: { device: {} },
     },
+    { name: "show_type", label: "Show Filament Types", selector: { boolean: true } },
   ];
 
   render() {
-
     return html`
       <div>
         <ha-form
