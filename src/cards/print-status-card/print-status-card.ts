@@ -4,13 +4,20 @@ import styles from "./card.styles";
 
 import { registerCustomCard } from "../../utils/custom-cards";
 import { PRINT_STATUS_CARD_EDITOR_NAME, PRINT_STATUS_CARD_NAME } from "./const";
+import { formatMinutes } from "../../utils/helpers"
 
-import P1PONIMAGE  from "../../images/P1P_on.png";
-import P1POFFIMAGE from "../../images/P1P_off.png";
-import P1SONIMAGE  from "../../images/P1S_on.png";
-import P1SOFFIMAGE from "../../images/P1S_off.png";
-import X1CONIMAGE  from "../../images/X1C_on.png";
-import X1COFFIMAGE from "../../images/X1C_off.png";
+import A1_ON_IMAGE  from "../../images/A1_on.png";
+import A1_OFF_IMAGE from "../../images/A1_off.png";
+import A1MINI_ON_IMAGE  from "../../images/A1_on.png";
+import A1MINI_OFF_IMAGE from "../../images/A1_off.png";
+import P1P_ON_IMAGE  from "../../images/P1P_on.png";
+import P1P_OFF_IMAGE from "../../images/P1P_off.png";
+import P1S_ON_IMAGE  from "../../images/P1S_on.png";
+import P1S_OFF_IMAGE from "../../images/P1S_off.png";
+import X1C_ON_IMAGE  from "../../images/X1C_on.png";
+import X1C_OFF_IMAGE from "../../images/X1C_off.png";
+import X1E_ON_IMAGE  from "../../images/X1E_on.png";
+import X1E_OFF_IMAGE from "../../images/X1E_off.png";
 
 registerCustomCard({
   type: PRINT_STATUS_CARD_NAME,
@@ -34,6 +41,24 @@ interface EntityUX {
   height: number;
 }
 
+const _onImages: { [key: string]: any } =  {
+  A1:     A1_ON_IMAGE,
+  A1MINI: A1MINI_ON_IMAGE,
+  P1P:    P1P_ON_IMAGE,
+  P1S:    P1S_ON_IMAGE,
+  X1C:    X1C_ON_IMAGE,
+  X1E:    X1E_ON_IMAGE,
+}
+
+const _offImages: { [key: string]: any } =  {
+  A1:     A1_OFF_IMAGE,
+  A1MINI: A1MINI_OFF_IMAGE,
+  P1P:    P1P_OFF_IMAGE,
+  P1S:    P1S_OFF_IMAGE,
+  X1C:    X1C_OFF_IMAGE,
+  X1E:    X1E_OFF_IMAGE,
+}
+
 @customElement(PRINT_STATUS_CARD_NAME)
 export class PrintControlCard extends LitElement {
   
@@ -48,12 +73,13 @@ export class PrintControlCard extends LitElement {
   //@state() private _entities: any[];
   //@state() private _lightbulb: any;
 
-  private _entityList: { [key: string]: Entity }
-  private _entityUX: { [key: string]: EntityUX }
+  private _entityList: { [key: string]: Entity };
+  private _entityUX: { [key: string]: EntityUX } | undefined;
+  private _model: string;
 
-  private X1CEntityUX: { [key: string]: EntityUX } = {
-    stage:                { x: 33, y:9,  width:100, height:60 },  // sensor
-    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
+  private A1EntityUX: { [key: string]: EntityUX } = {
+    stage:                { x: 15, y:10, width:100, height:60 },  // sensor
+//    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
     chamber_light:        { x: 20, y:25, width:20,  height:20 },  // light
     chamber_fan_speed:    { x: 80, y:25, width:20,  height:20 },  // fan
     nozzle_temp:          { x: 50, y:31, width:25,  height:20 },  // sensor
@@ -64,11 +90,79 @@ export class PrintControlCard extends LitElement {
     print_progress:       { x: 50, y:85, width:25,  height:20 },  // sensor
     remaining_time:       { x: 50, y:92, width:100, height:20 },  // sensor
   };
+
+  private A1MiniEntityUX: { [key: string]: EntityUX } = {
+    stage:                { x: 15, y:10, width:100, height:60 },  // sensor
+//    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
+    chamber_light:        { x: 20, y:25, width:20,  height:20 },  // light
+    chamber_fan_speed:    { x: 80, y:25, width:20,  height:20 },  // fan
+    nozzle_temp:          { x: 50, y:31, width:25,  height:20 },  // sensor
+    chamber_temp:         { x: 80, y:32, width:20,  height:20 },  // sensor
+    aux_fan_speed:        { x: 20, y:52, width:20,  height:20 },  // fan
+    cover_image:          { x: 50, y:53, width:150, height:150 }, // image
+    bed_temp:             { x: 50, y:75, width:25,  height:20 },  // sensor
+    print_progress:       { x: 50, y:85, width:25,  height:20 },  // sensor
+    remaining_time:       { x: 50, y:92, width:100, height:20 },  // sensor
+  };
+
+
+  private P1PEntityUX: { [key: string]: EntityUX } = {
+    stage:                { x: 25.5, y:9.5, width:100, height:60 }, // sensor
+//    hms:                  { x: 90,   y:10,  width:20,  height:20 },  // binary_sensor
+    chamber_light:        { x: 20,   y:25,  width:20,  height:20 },  // light
+    chamber_fan_speed:    { x: 80,   y:25,  width:20,  height:20 },  // fan
+    nozzle_temp:          { x: 50,   y:31,  width:25,  height:20 },  // sensor
+    chamber_temp:         { x: 80,   y:32,  width:20,  height:20 },  // sensor
+    aux_fan_speed:        { x: 20,   y:52,  width:20,  height:20 },  // fan
+    cover_image:          { x: 50,   y:53,  width:150, height:150 }, // image
+    bed_temp:             { x: 50,   y:75,  width:25,  height:20 },  // sensor
+    print_progress:       { x: 50,   y:85,  width:25,  height:20 },  // sensor
+    remaining_time:       { x: 50,   y:92,  width:100, height:20 },  // sensor
+  };
+
+  private P1SEntityUX: { [key: string]: EntityUX } = {
+    stage:                { x: 27, y:6.5, width:100, height:60 },  // sensor
+//    hms:                  { x: 90, y:10,  width:20,  height:20 },  // binary_sensor
+    chamber_light:        { x: 20, y:25,  width:20,  height:20 },  // light
+    chamber_fan_speed:    { x: 80, y:25,  width:20,  height:20 },  // fan
+    nozzle_temp:          { x: 50, y:31,  width:25,  height:20 },  // sensor
+    chamber_temp:         { x: 80, y:32,  width:20,  height:20 },  // sensor
+    aux_fan_speed:        { x: 20, y:52,  width:20,  height:20 },  // fan
+    cover_image:          { x: 50, y:53,  width:150, height:150 }, // image
+    bed_temp:             { x: 50, y:75,  width:25,  height:20 },  // sensor
+    print_progress:       { x: 50, y:85,  width:25,  height:20 },  // sensor
+    remaining_time:       { x: 50, y:92,  width:100, height:20 },  // sensor
+  };
+
+  private X1CEntityUX: { [key: string]: EntityUX } = {
+    stage:                { x: 33, y:9,  width:100, height:60 },  // sensor
+//    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
+    chamber_light:        { x: 20, y:25, width:20,  height:20 },  // light
+    chamber_fan_speed:    { x: 80, y:25, width:20,  height:20 },  // fan
+    nozzle_temp:          { x: 50, y:31, width:25,  height:20 },  // sensor
+    chamber_temp:         { x: 80, y:32, width:20,  height:20 },  // sensor
+    aux_fan_speed:        { x: 20, y:52, width:20,  height:20 },  // fan
+    cover_image:          { x: 50, y:53, width:150, height:150 }, // image
+    bed_temp:             { x: 50, y:75, width:25,  height:20 },  // sensor
+    print_progress:       { x: 50, y:85, width:25,  height:20 },  // sensor
+    remaining_time:       { x: 50, y:92, width:100, height:20 },  // sensor
+  };
+
+  private EntityUX: { [key: string]: any } = {
+    A1:     this.A1EntityUX,
+    A1MINI: this.A1MiniEntityUX,
+    P1P:    this.P1PEntityUX,
+    P1S:    this.P1SEntityUX,
+    X1:     this.X1CEntityUX,
+    X1C:    this.X1CEntityUX,
+    X1E:    this.X1CEntityUX,
+  }
   
   constructor() {
     super();
+    this._model = "";
     this._entityList = {};
-    this._entityUX = this.X1CEntityUX;
+    this._entityUX = undefined; // Initialized once we know what model printer it is.
     //this._entities = [];
     //this._lightbulb = "";
 }
@@ -108,6 +202,7 @@ export class PrintControlCard extends LitElement {
     return html`
       <ha-card class="card">
         <div class="control-container">
+          <div id="alpha-text">Alpha</div>
           <img id="printer" src="${this._getPrinterImage()}" />
           <div id="container"></div>
         </div>
@@ -116,42 +211,55 @@ export class PrintControlCard extends LitElement {
   }
 
   firstUpdated() {
-      this._asyncFilterBambuDevices(Object.keys(this._entityUX)).then(
-        result => {
-          this._entityList = result;
-          // Object.keys(result).forEach((key) => {
-          //   this._entities.push(this._states[result[key].entity_id]);
-          // });
-          //this._lightbulb = this._states[result['chamber_light'].entity_id].state;
-          //console.log(this._lightbulb)
-          this._createEntityElements();
-        })
+    this._asyncGetDeviceInfo(this._device_id).then(
+      result => {
+        this._model = result['model'];
+        this._entityUX = this.EntityUX[this._model];
+        this._asyncFilterBambuDevices(Object.keys(this._entityUX!)).then(
+          result => {
+            this._entityList = result;
+            // Object.keys(result).forEach((key) => {
+            //   this._entities.push(this._states[result[key].entity_id]);
+            // });
+            //this._lightbulb = this._states[result['chamber_light'].entity_id].state;
+            //console.log(this._lightbulb)
+            this._createEntityElements();
+          })
+    })
   }
 
   private _getPrinterImage() {
     const lightOn = this._getEntityState('chamber_light') == 'on'
     if (lightOn) {
-      return X1CONIMAGE;
+      return _onImages[this._model]
     }
     else {
-      return X1COFFIMAGE;
+      return _offImages[this._model]
     }
   }
 
   private _createEntityElements() {
     const container = this.shadowRoot?.getElementById('container')!;
     const backgroundImage = this.shadowRoot?.getElementById('printer') as HTMLImageElement;
+    if (!backgroundImage.src.startsWith("data:")) {
+      // Image isn't loaded yet.
+      return
+    }
 
     if (backgroundImage.complete) {
-        this._addElements(container, backgroundImage);
+      this._addElements(container, backgroundImage);
     } else {
-        backgroundImage.onload = () => {
-            this._addElements(container, backgroundImage);
-        };
+      backgroundImage.onload = () => {
+        this._addElements(container, backgroundImage);
+      };
     }
   }
 
   private _addElements(container: HTMLElement, backgroundImage: HTMLImageElement) {
+    console.log("Adding entities.")
+    if (this._entityUX == undefined)
+      return;
+    
     const imageWidth = backgroundImage.width;
     const imageHeight = backgroundImage.height;
   
@@ -166,7 +274,8 @@ export class PrintControlCard extends LitElement {
   
         const left = (e.x / 100) * imageWidth;
         const top = (e.y / 100) * imageHeight;
-        const style = `left:${left}px; top:${top}px; width:${e.width}px; height:${e.height}px;`
+
+        let style = `left:${left}px; top:${top}px; width:${e.width}px; height:${e.height}px;`
   
         // Build the HTML string for each element
         let elementHTML = ""
@@ -179,6 +288,7 @@ export class PrintControlCard extends LitElement {
             elementHTML = `<ha-icon class="entity" id="${key}" icon="mdi:lightbulb-outline" style="${style} color: ${text=='on'?'#ff0':'#fff'};"></ha-icon>`;
             break;
           default:
+            style += `background-color: rgba(0, 0, 0, 0.2); border-radius: ${e.height/2}px; padding: 0px;`;
             if (key.includes('fan') || key.includes('print_progress')) {
               text += '%'
             }
@@ -186,6 +296,9 @@ export class PrintControlCard extends LitElement {
               // FIXME - Check if display for sensor is configured as C or F
               const temp = Math.round((Number(text)-32)/1.8);
               text = `${temp}&deg`
+            }
+            else if (key == 'remaining_time') {
+              text = formatMinutes(Number(text))
             }
             elementHTML = `<div class="entity" id="${key}" style="${style}">${text}</div>`;
             break;
@@ -231,6 +344,18 @@ export class PrintControlCard extends LitElement {
     else {
       return "";
     }
+  }
+
+  private async _asyncGetDeviceInfo(device_id: string): Promise<{any}> {
+    // const deviceInfo = await this._hass.connection.sendMessage({
+    //   type: "device_registry/get",
+    //   device_id: device_id,
+    // });
+    const devices = await this._hass.callWS({
+      type: "config/device_registry/list",
+    });
+    const deviceInfo = devices.find((device) => device.id === device_id);
+    return deviceInfo;
   }
 
   private async _asyncFilterBambuDevices(entities: string[]): Promise<{ [key: string]: Entity }> {

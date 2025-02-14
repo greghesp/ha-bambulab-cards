@@ -3,12 +3,12 @@ import { css } from "lit";
 export default css`
   /* Styling for the 'alpha' text */
   #alpha-text {
-    position: absolute;  /* Position it absolutely within the card */
-    top: 10px;           /* 10px from the top */
-    right: 10px;         /* 10px from the right */
-    color: red;          /* Red text */
-    font-size: 18px;     /* Adjust font size */
-    font-weight: bold;   /* Optional: make the text bold */
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    color: red;
+    font-size: 12px;
+    font-weight: bold;
   }
   .card {
     display: flex;
@@ -27,6 +27,8 @@ export default css`
   .control-container {
       position: relative;
       display: inline-block;
+      width: 100%;
+      height: 100%;
   }
   .entity {
       position: absolute;
@@ -40,5 +42,6 @@ export default css`
     display: block;
     width: 100%;
     height: auto;
+    object-fit: contain;
   }
 `;
