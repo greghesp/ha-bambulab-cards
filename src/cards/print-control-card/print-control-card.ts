@@ -16,11 +16,14 @@ registerCustomCard({
 });
 
 const ENTITYLIST: string[] = [
-  "pick_image",
-  "skipped_objects",
-  "printable_objects",
   "pause",
+  "pick_image",
+  "printable_objects",
+  "printing_speed",
   "resume",
+  "skipped_objects",
+  "Speed",
+  "speed_profile",
   "stop",
 ];
 
