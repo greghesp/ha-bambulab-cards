@@ -62,6 +62,7 @@ export class SpoolCard extends LitElement {
           .color="${this.states[this._spoolEntityId]?.attributes.color}"
           .name="${this.states[this._spoolEntityId]?.attributes.name}"
           .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
+          .show_type=${this._showType}
         ></ha-bambulab-spool>
       </ha-card>
     `;

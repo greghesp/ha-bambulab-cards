@@ -64,6 +64,7 @@ export class VectorAmsCard extends LitElement {
   }
 
   render() {
+    console.log(this.showType);
     return html`
       <ha-card class="ha-bambulab-vector-ams-card">
         <div class="v-wrapper">
@@ -86,6 +87,7 @@ export class VectorAmsCard extends LitElement {
                   .remaining="${this.remainingModifier(
                     this.states[spool.entity_id]?.attributes.remain
                   )}"
+                  .show_type=${this.showType}
                 ></ha-bambulab-spool>
               `
             )}

@@ -9,6 +9,7 @@ export class Spool extends LitElement {
   @property({ type: String }) public tag_uid;
   @property({ type: String }) public name;
   @property({ type: Number }) public remaining;
+  @property({ type: Boolean }) public show_type: boolean = false;
   @property({ type: Number }) private remainHeight: number = 95;
   @property({ type: Number }) private resizeObserver: ResizeObserver | null = null;
 
@@ -69,12 +70,13 @@ export class Spool extends LitElement {
             <div class="ha-bambulab-spool-side"></div>
           </div>
         </div>
-
-        <div class="ha-bambulab-spool-info-container">
-          <div class="ha-bambulab-spool-info-wrapper">
-            <div class="ha-bambulab-spool-info">${this.name}</div>
-          </div>
-        </div>
+        ${this.show_type
+          ? html` <div class="ha-bambulab-spool-info-container">
+              <div class="ha-bambulab-spool-info-wrapper">
+                <div class="ha-bambulab-spool-info">${this.name}</div>
+              </div>
+            </div>`
+          : nothing}
       </div>
     `;
   }

@@ -11,6 +11,9 @@ export default css`
 
   .ha-bambulab-vector-ams-card {
     align-items: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 
   .v-extra-info {
@@ -23,6 +26,9 @@ export default css`
 
   .v-wrapper {
     width: 100%;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   .v-info {
@@ -37,6 +43,7 @@ export default css`
     display: flex;
     flex-wrap: nowrap;
     justify-content: space-evenly;
+    flex-grow: 1;
   }
 
   .v-spool-holder {
