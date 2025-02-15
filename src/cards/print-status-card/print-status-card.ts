@@ -90,9 +90,9 @@ export class PrintControlCard extends LitElement {
 
   private A1MiniEntityUX: { [key: string]: EntityUX } = {
 //    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
-    chamber_light:        { x: 88, y:31, width:20,  height:20 },  // light
-    nozzle_temp:          { x: 41, y:40, width:25,  height:20 },  // sensor
-    cover_image:          { x: 41, y:60, width:150, height:150 }, // image
+    chamber_light:        { x: 88, y:29, width:20,  height:20 },  // light
+    nozzle_temp:          { x: 41, y:38, width:25,  height:20 },  // sensor
+    cover_image:          { x: 41, y:58, width:150, height:150 }, // image
     bed_temp:             { x: 41, y:80, width:25,  height:20 },  // sensor
     print_progress:       { x: 74, y:89, width:25,  height:20 },  // sensor
     remaining_time:       { x: 74, y:93, width:100, height:20 },  // sensor
@@ -190,7 +190,6 @@ export class PrintControlCard extends LitElement {
         if (this._model == 'A1 MINI') {
           this._model = 'A1MINI';
         }
-        this._model = 'A1';
         this._entityUX = this.EntityUX[this._model];
         // We have the model - kick off the background image load asap.
         this.requestUpdate();
