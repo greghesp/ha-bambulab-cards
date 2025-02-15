@@ -335,12 +335,10 @@ export class PrintControlCard extends LitElement {
     const entityId = this._entityList[entity]?.entity_id;
     const entityState = this._states[entityId]?.state;
     if (entityId && entityState) {
-      // entity.sensor.stage.state.
-      let localizedString = this._hass.localize(`state.${entityId}.${entityState}`);
       // Example localization key:
       // "component.bambu_lab.entity.sensor.stage.state.idle"
       // FIXME - Work out how to craft this string generically. We have 'stage' as the translation_key - how do we determine 'sensor'?
-      localizedString = this._hass.localize(`component.bambu_lab.entity.sensor.stage.state.${entityState}`);
+      let localizedString = this._hass.localize(`component.bambu_lab.entity.sensor.stage.state.${entityState}`);
       return localizedString || entityState;
     }
     else {

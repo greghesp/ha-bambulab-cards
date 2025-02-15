@@ -384,26 +384,47 @@ export class PrintControlCard extends LitElement {
     this._confirmationDialogVisible = true;
   }
 
+  private _getEntityState(hass, entity: helpers.Entity) {
+    const entityId = entity.entity_id;
+    const entityState = this._states[entityId]?.state;
+    if (entityId && entityState) {
+      // Example localization key:
+      // "component.bambu_lab.entity.sensor.stage.state.idle"
+      // FIXME - Work out how to craft this string generically. We have 'stage' as the translation_key - how do we determine 'sensor'?
+      let localizedString = hass.localize(`component.bambu_lab.entity.select.printing_speed.state.${entityState}`);
+      return localizedString || entityState;
+    }
+    else {
+      return "";
+    }
+  }
+
+  private _getSpeedProfile() {
+    return this._getEntityState(this._hass, this._entityList['speed_profile'])
+  }
+
   render() {
     return html`
       <ha-card class="card">
         <div class="control-container">
-          <button class="button" style="text-align: left;" @click="" ?disabled="${this._isEntityUnavailable(this._entityList['stop'])}">
+          <div id="speed">
             <ha-icon icon="mdi:speedometer"></ha-icon>
-            Standard
-          </button>
-          <button class="button" @click="${this._showPopup}" ?disabled="${this._isEntityUnavailable(this._entityList['stop']) || this._isEntityStateUnknown(this._entityList['pick_image'])}">
-            <ha-icon icon="mdi:skip-forward"></ha-icon>
-          </button>
-          <button class="button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['pause'])}">
-            <ha-icon icon="mdi:pause"></ha-icon>
-          </button>
-          <button class="button" @click="${() => { this._clickButton(this._entityList['resume']) }}" ?disabled="${this._isEntityUnavailable(this._entityList['resume'])}">
-            <ha-icon icon="mdi:play"></ha-icon>
-          </button>
-          <button class="button" @click="${this._showStopDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['stop'])}">
-            <ha-icon icon="mdi:stop"></ha-icon>
-          </button>
+            ${this._getSpeedProfile()}
+          </div>
+          <div class="buttons-container">
+            <button class="button" @click="${this._showPopup}" ?disabled="${this._isEntityUnavailable(this._entityList['stop']) || this._isEntityStateUnknown(this._entityList['pick_image'])}">
+              <ha-icon icon="mdi:skip-forward"></ha-icon>
+            </button>
+            <button class="button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['pause'])}">
+              <ha-icon icon="mdi:pause"></ha-icon>
+            </button>
+            <button class="button" @click="${() => { this._clickButton(this._entityList['resume']) }}" ?disabled="${this._isEntityUnavailable(this._entityList['resume'])}">
+              <ha-icon icon="mdi:play"></ha-icon>
+            </button>
+            <button class="button" @click="${this._showStopDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['stop'])}">
+              <ha-icon icon="mdi:stop"></ha-icon>
+            </button>
+          </div>
         </div>
         ${this._confirmationDialogVisible ? html`
           <ha-dialog id="confirmation-popup" open="true" heading="title">
