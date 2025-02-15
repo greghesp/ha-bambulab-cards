@@ -166,7 +166,6 @@ export class PrintControlCard extends LitElement {
   }
 
   setConfig(config) {
-    console.log("setConfig", config)
     if (!config.printer) {
       throw new Error("You need to select a Printer");
     }
@@ -235,7 +234,7 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getPrinterImage() {
-    const lightOn = this._getEntityState('chamber_light') == 'on'
+    const lightOn = helpers.getEntityState(this._hass, this._entityList['chamber_light']) == 'on'
     if (lightOn) {
       return _onImages[this._model]
     }
@@ -284,7 +283,7 @@ export class PrintControlCard extends LitElement {
   
         // Build the HTML string for each element
         let elementHTML = ""
-        let text = this._getEntityState(key);
+        let text = helpers.getLocalizedEntityState(this._hass, this._entityList[key]);
         switch (key) {
           case 'cover_image':
             elementHTML = `<img class="entity" id="${key}" style="${style}" src="${this._getImageUrl()}" alt="Cover Image" />`;
@@ -318,7 +317,7 @@ export class PrintControlCard extends LitElement {
   
     // Inject the constructed HTML string into the container
     container.innerHTML = htmlString;
-  }wa
+  }
 
   private _getImageUrl() {
     const img = this._entityList['cover_image'];
@@ -329,20 +328,5 @@ export class PrintControlCard extends LitElement {
       return imageUrl;
     }
     return '';
-  }
-
-  private _getEntityState(entity: string) {
-    const entityId = this._entityList[entity]?.entity_id;
-    const entityState = this._states[entityId]?.state;
-    if (entityId && entityState) {
-      // Example localization key:
-      // "component.bambu_lab.entity.sensor.stage.state.idle"
-      // FIXME - Work out how to craft this string generically. We have 'stage' as the translation_key - how do we determine 'sensor'?
-      let localizedString = this._hass.localize(`component.bambu_lab.entity.sensor.stage.state.${entityState}`);
-      return localizedString || entityState;
-    }
-    else {
-      return "";
-    }
   }
 }

@@ -384,23 +384,8 @@ export class PrintControlCard extends LitElement {
     this._confirmationDialogVisible = true;
   }
 
-  private _getEntityState(hass, entity: helpers.Entity) {
-    const entityId = entity.entity_id;
-    const entityState = this._states[entityId]?.state;
-    if (entityId && entityState) {
-      // Example localization key:
-      // "component.bambu_lab.entity.sensor.stage.state.idle"
-      // FIXME - Work out how to craft this string generically. We have 'stage' as the translation_key - how do we determine 'sensor'?
-      let localizedString = hass.localize(`component.bambu_lab.entity.select.printing_speed.state.${entityState}`);
-      return localizedString || entityState;
-    }
-    else {
-      return "";
-    }
-  }
-
   private _getSpeedProfile() {
-    return this._getEntityState(this._hass, this._entityList['speed_profile'])
+    return helpers.getLocalizedEntityState(this._hass, this._entityList['speed_profile'])
   }
 
   render() {

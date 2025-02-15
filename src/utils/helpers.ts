@@ -67,7 +67,32 @@ export async function asyncFilterBambuDevices(hass, device_id, entities: string[
   return result;
 }
 
-export function IsEntityUnavailable(hass, entity: Entity): boolean {
+export function isEntityUnavailable(hass, entity: Entity): boolean {
   return hass.states[entity?.entity_id]?.state == 'unavailable';
 }
 
+export function getLocalizedEntityState(hass, entity: Entity) {
+  const entityId = entity.entity_id;
+  const entityClass = entityId.substring(0, entityId.indexOf('.'));
+  const entityState = hass.states[entityId]?.state;
+  if (entityId && entityState) {
+    // Example localization key:
+    // "component.bambu_lab.entity.sensor.stage.state.idle"
+    const key = `component.bambu_lab.entity.${entityClass}.${entity.translation_key}.state.${entityState}`;
+    return hass.localize(key) || entityState;
+  }
+  else {
+    return "";
+  }
+}
+
+export function getEntityState(hass, entity: Entity) {
+  const entityId = entity.entity_id;
+  const entityState = hass.states[entityId]?.state;
+  if (entityState) {
+    return entityState;
+  }
+  else {
+    return "";
+  }
+}
