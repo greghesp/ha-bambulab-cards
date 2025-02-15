@@ -31,3 +31,43 @@ export function formatMinutes(minutes: number): string {
 
   return result.trim();
 }
+
+export async function asyncGetEntity(hass, entity_id) {
+  return await hass.callWS({
+    type: "config/entity_registry/get",
+    entity_id: entity_id,
+  });
+}
+
+
+export interface Entity {
+  entity_id: string;
+  device_id: string;
+  labels: any[];
+  translation_key: string;
+  platform: string;
+  name: string;
+}
+
+export async function asyncFilterBambuDevices(hass, device_id, entities: string[]): Promise<{ [key: string]: Entity }> {
+  const result: { [key: string]: Entity } = {}
+  // Loop through all hass entities, and find those that belong to the selected device
+  for (let k in hass.entities) {
+    const value = hass.entities[k];
+    if (value.device_id === device_id) {
+      const r = await asyncGetEntity(hass, value.entity_id);
+      for (const key of entities) {
+        const regex = new RegExp(`^[^_]+_${key}$`);
+        if (regex.test(r.unique_id)) {
+          result[key] = r
+        }
+      };
+    }
+  }
+  return result;
+}
+
+export function IsEntityUnavailable(hass, entity: Entity): boolean {
+  return hass.states[entity?.entity_id]?.state == 'unavailable';
+}
+

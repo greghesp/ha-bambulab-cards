@@ -1,3 +1,5 @@
+import * as helpers from "../../utils/helpers"
+
 import { customElement, state, property } from "lit/decorators.js";
 import { html, LitElement, nothing, PropertyValues } from "lit";
 import styles from "./card.styles";
@@ -5,7 +7,6 @@ import styles from "./card.styles";
 import { INTEGRATION_DOMAIN, MANUFACTURER, PRINTER_MODELS } from "../../const";
 import { PRINT_STATUS_CARD_EDITOR_NAME, PRINT_STATUS_CARD_NAME } from "./const";
 import { registerCustomCard } from "../../utils/custom-cards";
-import { formatMinutes } from "../../utils/helpers"
 
 import A1_ON_IMAGE  from "../../images/A1_on.png";
 import A1_OFF_IMAGE from "../../images/A1_off.png";
@@ -25,15 +26,6 @@ registerCustomCard({
   name: "Bambu Lab Print Status Card",
   description: "Graphical status card for Bambu Lab Printers",
 });
-
-interface Entity {
-  entity_id: string;
-  device_id: string;
-  labels: any[];
-  translation_key: string;
-  platform: string;
-  name: string;
-}
 
 interface EntityUX {
   x: number;
@@ -74,7 +66,7 @@ export class PrintControlCard extends LitElement {
   //@state() private _entities: any[];
   //@state() private _lightbulb: any;
 
-  private _entityList: { [key: string]: Entity };
+  private _entityList: { [key: string]: helpers.Entity };
   private _entityUX: { [key: string]: EntityUX } | undefined;
   private _model: string;
 
@@ -203,32 +195,25 @@ export class PrintControlCard extends LitElement {
     }
 
     if (firstTime) {
-      this._asyncGetDeviceInfo(this._device_id).then(
-      result => {
-        this._model = result['model'].toUpperCase();
-        if (this._model == 'A1 MINI') {
-          this._model = 'A1MINI';
-        }
-        this._entityUX = this.EntityUX[this._model];
-        // We have the model - kick off the background image load asap.
-        this.requestUpdate();
-        // Now trigger the load of the entity data.
-        this._asyncFilterBambuDevices(Object.keys(this._entityUX!)).then(
-          result => {
-            this._entityList = result;
-            // Object.keys(result).forEach((key) => {
-            //   this._entities.push(this._states[result[key].entity_id]);
-            // });
-            //this._lightbulb = this._states[result['chamber_light'].entity_id].state;
-            //console.log(this._lightbulb)
-            this._createEntityElements();
-          })
-      })
+      this._model = this._hass.devices[this._device_id].model.toUpperCase();
+      if (this._model == 'A1 MINI') {
+        this._model = 'A1MINI';
+      }
+      this._entityUX = this.EntityUX[this._model];
+      // We have the model - kick off the background image load asap.
+      this.requestUpdate();
+      // Now trigger the load of the entity data.
+      helpers.asyncFilterBambuDevices(hass, this._device_id, Object.keys(this._entityUX!)).then(
+        result => {
+          this._entityList = result;
+          // Object.keys(result).forEach((key) => {
+          //   this._entities.push(this._states[result[key].entity_id]);
+          // });
+          //this._lightbulb = this._states[result['chamber_light'].entity_id].state;
+          //console.log(this._lightbulb)
+          this._createEntityElements();
+        })
     }
-  }
-
-  private _isEntityUnavailable(entity: Entity): boolean {
-    return this._states[entity?.entity_id]?.state == 'unavailable';
   }
 
   updated(changedProperties) {
@@ -321,7 +306,7 @@ export class PrintControlCard extends LitElement {
               text = `${temp}&deg`
             }
             else if (key == 'remaining_time') {
-              text = formatMinutes(Number(text))
+              text = helpers.formatMinutes(Number(text))
             }
             elementHTML = `<div class="entity" id="${key}" style="${style}">${text}</div>`;
             break;
@@ -346,13 +331,6 @@ export class PrintControlCard extends LitElement {
     return '';
   }
 
-  private async _getEntity(entity_id) {
-    return await this._hass.callWS({
-      type: "config/entity_registry/get",
-      entity_id: entity_id,
-    });
-  }
-
   private _getEntityState(entity: string) {
     const entityId = this._entityList[entity]?.entity_id;
     const entityState = this._states[entityId]?.state;
@@ -361,41 +339,12 @@ export class PrintControlCard extends LitElement {
       let localizedString = this._hass.localize(`state.${entityId}.${entityState}`);
       // Example localization key:
       // "component.bambu_lab.entity.sensor.stage.state.idle"
+      // FIXME - Work out how to craft this string generically. We have 'stage' as the translation_key - how do we determine 'sensor'?
       localizedString = this._hass.localize(`component.bambu_lab.entity.sensor.stage.state.${entityState}`);
       return localizedString || entityState;
     }
     else {
       return "";
     }
-  }
-
-  private async _asyncGetDeviceInfo(device_id: string): Promise<{any}> {
-    // const deviceInfo = await this._hass.connection.sendMessage({
-    //   type: "device_registry/get",
-    //   device_id: device_id,
-    // });
-    const devices = await this._hass.callWS({
-      type: "config/device_registry/list",
-    });
-    const deviceInfo = devices.find((device) => device.id === device_id);
-    return deviceInfo;
-  }
-
-  private async _asyncFilterBambuDevices(entities: string[]): Promise<{ [key: string]: Entity }> {
-    const result: { [key: string]: Entity } = {}
-    // Loop through all hass entities, and find those that belong to the selected device
-    for (let k in this._hass.entities) {
-      const value = this._hass.entities[k];
-      if (value.device_id === this._device_id) {
-        const r = await this._getEntity(value.entity_id);
-        for (const key of entities) {
-          const regex = new RegExp(`^[^_]+_${key}$`);
-          if (regex.test(r.unique_id)) {
-            result[key] = r
-          }
-        };
-      }
-    }
-    return result;
   }
 }

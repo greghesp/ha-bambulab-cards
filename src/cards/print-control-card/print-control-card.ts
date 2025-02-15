@@ -1,3 +1,5 @@
+import * as helpers from "../../utils/helpers"
+
 import { customElement, state, property } from "lit/decorators.js";
 import { html, LitElement, nothing, PropertyValues } from "lit";
 import styles from "./card.styles";
@@ -6,7 +8,6 @@ import { INTEGRATION_DOMAIN, MANUFACTURER } from "../../const";
 import { PRINTER_MODELS } from "./const";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { PRINT_CONTROL_CARD_EDITOR_NAME, PRINT_CONTROL_CARD_NAME, PRINT_CONTROL_CARD_NAME_LEGACY } from "./const";
-import { rgbaToInt } from "../../utils/helpers"
 
 registerCustomCard({
   type: PRINT_CONTROL_CARD_NAME,
@@ -14,23 +15,14 @@ registerCustomCard({
   description: "Control card for Bambu Lab Printers",
 });
 
-interface Entity {
-  entity_id: string;
-  device_id: string;
-  labels: any[];
-  translation_key: string;
-  platform: string;
-  name: string;
-}
-
-interface Result {
-  pickImage: Entity | null;
-  skippedObjects: Entity | null;
-  printableObjects: Entity | null;
-  pause: Entity | null;
-  resume: Entity | null;
-  stop: Entity | null;
-}
+const ENTITYLIST: string[] = [
+  "pick_image",
+  "skipped_objects",
+  "printable_objects",
+  "pause",
+  "resume",
+  "stop",
+];
 
 interface PrintableObject {
   name: string;
@@ -60,10 +52,13 @@ export class PrintControlCard extends LitElement {
   @state() private _pickImageState: any;
   @state() private _skippedObjectsState = new Map<string, Object>();
 
+  private _entityList: { [key: string]: helpers.Entity };
+
   private _hiddenCanvas;
   private _hiddenContext;
   private _visibleContext;
   private _confirmationAction;
+
 
   constructor() {
     super()
@@ -72,6 +67,7 @@ export class PrintControlCard extends LitElement {
     this._hiddenCanvas.height = 512;
     this._hiddenContext = this._hiddenCanvas.getContext('2d', { willReadFrequently: true });
     this._hoveredObject = 0;
+    this._entityList = {};
   }
 
   public static async getConfigElement() {
@@ -113,7 +109,13 @@ export class PrintControlCard extends LitElement {
         })
       }
 
-      this._asyncFilterBambuDevices();
+      helpers.asyncFilterBambuDevices(hass, this._device_id, ENTITYLIST).then(
+        result => {
+          this._entityList = result;
+          // Keep a reference to the skippedObjects state for Lit reactivity to trigger off when it changes.
+          this._pickImageState = this._states[result['pick_image'].entity_id].state;
+          this._skippedObjectsState = this._states[result['skipped_objects'].entity_id].state;
+        })
     }
   }
 
@@ -142,7 +144,7 @@ export class PrintControlCard extends LitElement {
     const imageData = this._hiddenContext.getImageData(x, y, 1, 1).data;
     const [r, g, b, a] = imageData;
 
-    const key = rgbaToInt(r, g, b, 0); // For integer comparisons we set the alpha to 0.
+    const key = helpers.rgbaToInt(r, g, b, 0); // For integer comparisons we set the alpha to 0.
     if (key != 0)
     {
       if (!this._objects.get(key)!.skipped) {
@@ -177,8 +179,8 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getPickImageUrl() {
-    if (this._entities.pickImage) {
-      const entity = this._entities.pickImage;
+    if (this._entityList['pick_image']) {
+      const entity = this._entityList['pick_image'];
       const timestamp = this._states[entity.entity_id].state;
       const accessToken = this._states[entity.entity_id].attributes?.access_token
       const imageUrl = `/api/image_proxy/${entity.entity_id}?token=${accessToken}&time=${timestamp}`;
@@ -188,8 +190,8 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getSkippedObjects() {
-    if (this._entities?.skippedObjects) {
-      const entity = this._entities.skippedObjects;
+    if (this._entityList['skipped_objects']) {
+      const entity = this._entityList['skipped_objects'];
       const value = this._states[entity.entity_id].attributes['objects'];
       return value
     }
@@ -197,23 +199,23 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getPrintableObjects() {
-    if (this._entities?.printableObjects) {
-      const entity = this._entities.printableObjects;
+    if (this._entityList['printable_objects']) {
+      const entity = this._entityList['printable_objects'];
       const value = this._states[entity.entity_id].attributes['objects'];
       return value
     }
     return null;
   }
 
-  private _isEntityUnavailable(entity: Entity): boolean {
+  private _isEntityUnavailable(entity: helpers.Entity): boolean {
     return this._states[entity?.entity_id]?.state == 'unavailable';
   }
 
-  private _isEntityStateUnknown(entity: Entity): boolean {
+  private _isEntityStateUnknown(entity: helpers.Entity): boolean {
     return this._states[entity?.entity_id]?.state == undefined;
   }
 
-  private _clickButton(entity: Entity) {
+  private _clickButton(entity: helpers.Entity) {
     const data = {
       entity_id: entity.entity_id
     }
@@ -242,15 +244,15 @@ export class PrintControlCard extends LitElement {
     const writeData = writeImageData.data;
     const writeDataView = new DataView(writeData.buffer);
 
-    const red = rgbaToInt(255, 0, 0, 255);   // For writes we set alpha to 255 (fully opaque).
-    const green = rgbaToInt(0, 255, 0, 255); // For writes we set alpha to 255 (fully opaque).
-    const blue = rgbaToInt(0, 0, 255, 255);  // For writes we set alpha to 255 (fully opaque).
+    const red = helpers.rgbaToInt(255, 0, 0, 255);   // For writes we set alpha to 255 (fully opaque).
+    const green = helpers.rgbaToInt(0, 255, 0, 255); // For writes we set alpha to 255 (fully opaque).
+    const blue = helpers.rgbaToInt(0, 0, 255, 255);  // For writes we set alpha to 255 (fully opaque).
 
     let lastPixelWasHoveredObject = false
     for (let y = 0; y < HEIGHT; y++) {
       for (let x = 0; x < WIDTH; x++) {
         const i = (y * 4 * HEIGHT) + x * 4;
-        const key = rgbaToInt(readData[i], readData[i + 1], readData[i + 2], 0); // For integer comparisons we set the alpha to 0.
+        const key = helpers.rgbaToInt(readData[i], readData[i + 1], readData[i + 2], 0); // For integer comparisons we set the alpha to 0.
 
         // If the pixel is not clear we need to change it.
         if (key != 0) {
@@ -266,7 +268,7 @@ export class PrintControlCard extends LitElement {
             // Check to see if we need to render the left border if the pixel to the left is not the hovered object.
             if (x > 0) {
               const j = i - 4
-              const left = rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
+              const left = helpers.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
               if (left != key)
               {
                 writeDataView.setUint32(i, blue, true);
@@ -275,7 +277,7 @@ export class PrintControlCard extends LitElement {
             // And the next pixel out too for a 2 pixel border.
             if (x > 1) {
               const j = i - 4 * 2
-              const left = rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
+              const left = helpers.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
               if (left != key)
               {
                 writeDataView.setUint32(i, blue, true);
@@ -285,7 +287,7 @@ export class PrintControlCard extends LitElement {
             // Check to see if we need to render the top border if the pixel above is not the hovered object.
             if (y > 0) {
               const j = i - WIDTH * 4
-              const top = rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
+              const top = helpers.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
               if (top != key)
               {
                 writeDataView.setUint32(i, blue, true);
@@ -294,7 +296,7 @@ export class PrintControlCard extends LitElement {
             // And the next pixel out too for a 2 pixel border.
             if (y > 1) {
               const j = i - WIDTH * 4 * 2
-              const top = rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
+              const top = helpers.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
               if (top != key)
               {
                 writeDataView.setUint32(i, blue, true);
@@ -304,7 +306,7 @@ export class PrintControlCard extends LitElement {
             // Check to see if pixel to the right is not the hovered object to draw right border.
             if (x < (WIDTH - 1)) {
               const j = i + 4
-              const right = rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
+              const right = helpers.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
               if (right != this._hoveredObject)
               {
                 writeDataView.setUint32(i, blue, true);
@@ -313,7 +315,7 @@ export class PrintControlCard extends LitElement {
             // And the next pixel out too for a 2 pixel border.
             if (x < (WIDTH - 2)) {
               const j = i + 4 * 2
-              const right = rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
+              const right = helpers.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
               if (right != this._hoveredObject)
               {
                 writeDataView.setUint32(i, blue, true);
@@ -323,7 +325,7 @@ export class PrintControlCard extends LitElement {
             // Check to see if pixel above was the hovered object to draw bottom border.
             if (y < (HEIGHT - 1)) {
               const j = i + WIDTH * 4
-              const below = rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
+              const below = helpers.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
               if (below != this._hoveredObject)
               {
                 writeDataView.setUint32(i, blue, true);
@@ -332,7 +334,7 @@ export class PrintControlCard extends LitElement {
             // And the next pixel out too for a 2 pixel border.
             if (y < (HEIGHT - 2)) {
               const j = i + WIDTH * 4 * 2
-              const below = rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
+              const below = helpers.rgbaToInt(readData[j], readData[j+1], readData[j+2], 0);
               if (below != this._hoveredObject)
               {
                 writeDataView.setUint32(i, blue, true);
@@ -368,13 +370,13 @@ export class PrintControlCard extends LitElement {
   }
 
   private _showPauseDialog() {
-    this._confirmationAction = () => { this._clickButton(this._entities?.pause) }
+    this._confirmationAction = () => { this._clickButton(this._entityList['pause']) }
     this._confirmationDialogBody = "Are you sure you want to pause the print. This may cause quality issues.";
     this._confirmationDialogVisible = true;
   }
 
   private _showStopDialog() {
-    this._confirmationAction = () => { this._clickButton(this._entities?.stop) };
+    this._confirmationAction = () => { this._clickButton(this._entityList['stop']) };
     this._confirmationDialogBody = "Are you sure you want to stop the print. This cannot be reversed.";
     this._confirmationDialogVisible = true;
   }
@@ -383,17 +385,21 @@ export class PrintControlCard extends LitElement {
     return html`
       <ha-card class="card">
         <div class="control-container">
-          <button class="button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this._entities?.pause)}">
-            Pause
+          <button class="button" style="text-align: left;" @click="" ?disabled="${this._isEntityUnavailable(this._entityList['stop'])}">
+            <ha-icon icon="mdi:speedometer"></ha-icon>
+            Standard
           </button>
-          <button class="button" @click="${() => { this._clickButton(this._entities?.resume) }}" ?disabled="${this._isEntityUnavailable(this._entities?.resume)}">
-            Resume
+          <button class="button" @click="${this._showPopup}" ?disabled="${this._isEntityUnavailable(this._entityList['stop']) || this._isEntityStateUnknown(this._entityList['pick_image'])}">
+            <ha-icon icon="mdi:skip-forward"></ha-icon>
           </button>
-          <button class="button" @click="${this._showStopDialog}" ?disabled="${this._isEntityUnavailable(this._entities?.stop)}">
-            Stop
+          <button class="button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['pause'])}">
+            <ha-icon icon="mdi:pause"></ha-icon>
           </button>
-          <button class="button" @click="${this._showPopup}" ?disabled="${this._isEntityUnavailable(this._entities?.stop) || this._isEntityStateUnknown(this._entities?.pick_image)}">
-            Skip
+          <button class="button" @click="${() => { this._clickButton(this._entityList['resume']) }}" ?disabled="${this._isEntityUnavailable(this._entityList['resume'])}">
+            <ha-icon icon="mdi:play"></ha-icon>
+          </button>
+          <button class="button" @click="${this._showStopDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['stop'])}">
+            <ha-icon icon="mdi:stop"></ha-icon>
           </button>
         </div>
         ${this._confirmationDialogVisible ? html`
@@ -536,47 +542,6 @@ export class PrintControlCard extends LitElement {
       type: "config/entity_registry/get",
       entity_id: entity_id,
     });
-  }
-
-  private async _asyncFilterBambuDevices() {
-    const result: Result = {
-      pickImage: null,
-      skippedObjects: null,
-      printableObjects: null,
-      pause: null,
-      resume: null,
-      stop: null,
-    };
-    // Loop through all hass entities, and find those that belong to the selected device
-    for (let key in this._hass.entities) {
-      const value = this._hass.entities[key];
-      if (value.device_id === this._device_id) {
-        const r = await this._getEntity(value.entity_id);
-        if (r.unique_id.includes("pick_image")) {
-          result.pickImage = value;
-        }
-        else if (r.unique_id.includes("skipped_objects")) {
-          result.skippedObjects = value;
-        }
-        else if (r.unique_id.includes("printable_objects")) {
-          result.printableObjects = value;
-        }
-        else if (r.unique_id.includes("pause")) {
-          result.pause = value
-        }
-        else if (r.unique_id.includes("resume")) {
-          result.resume = value
-        }
-        else if (r.unique_id.includes("stop")) {
-          result.stop = value
-        }
-      }
-    }
-
-    this._entities = result;
-    // Keep a reference to the skippedObjects state for Lit reactivity to trigger off when it changes.
-    this._pickImageState = this._states[result.pickImage!.entity_id].state
-    this._skippedObjectsState = this._states[result.skippedObjects!.entity_id].state
   }
 }
 
