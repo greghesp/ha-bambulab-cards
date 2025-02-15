@@ -65,7 +65,7 @@ export class AmsCardEditor extends LitElement {
 
 
   render() {
-    const schema = this._schema(this._config.show_info_bar, this._config.style);
+    const schema = this._schema(this._config?.show_info_bar, this._config?.style);
 
     return html`
       <div>

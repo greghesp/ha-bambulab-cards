@@ -64,7 +64,6 @@ export class VectorAmsCard extends LitElement {
   }
 
   render() {
-    console.log(this.showType);
     return html`
       <ha-card class="ha-bambulab-vector-ams-card">
         <div class="v-wrapper">
