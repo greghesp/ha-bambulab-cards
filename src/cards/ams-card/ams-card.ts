@@ -4,7 +4,6 @@ import { html, LitElement, nothing } from "lit";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME, AMS_MODELS } from "./const";
 import styles from "./card.styles";
-import "./components/spool/spool";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
 
@@ -27,7 +26,7 @@ interface Result {
   humidity: Sensor | null;
   temperature: Sensor | null;
   spools: Sensor[];
-  type: typeof AMS_MODELS[number] | null;
+  type: (typeof AMS_MODELS)[number] | null;
 }
 
 @customElement(AMS_CARD_NAME)
@@ -61,7 +60,7 @@ export class AMS_CARD extends LitElement {
     if (!config.ams) {
       throw new Error("You need to select an AMS");
     }
-    
+
     this._subtitle = config.subtitle === "" ? nothing : config.subtitle;
     this._entities = config._entities;
     this._deviceId = config.ams;
@@ -69,9 +68,8 @@ export class AMS_CARD extends LitElement {
     this._showInfoBar = config.show_info_bar ? true : false;
     this._showType = config.show_type ? true : false;
     this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
-    this._customTemperature = config.custom_temperature === "" ? nothing : config.custom_temperature;
-
-
+    this._customTemperature =
+      config.custom_temperature === "" ? nothing : config.custom_temperature;
 
     if (this._hass) {
       this.hass = this._hass;
@@ -137,7 +135,7 @@ export class AMS_CARD extends LitElement {
       humidity: null,
       temperature: null,
       spools: [],
-      type: await this.getDeviceModel() ?? null,
+      type: (await this.getDeviceModel()) ?? null,
     };
     // Loop through all hass entities, and find those that belong to the selected device
     for (let key in this._hass.entities) {
@@ -159,13 +157,13 @@ export class AMS_CARD extends LitElement {
 
   private async getDeviceModel() {
     if (!this._deviceId) return;
-    
+
     try {
       interface Device {
         id: string;
         model?: string;
       }
-      
+
       const deviceInfo = Object.values(this._hass.devices as Record<string, Device>).find(
         (device: Device) => device.id === this._deviceId
       );
