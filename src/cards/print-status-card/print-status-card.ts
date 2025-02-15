@@ -79,20 +79,20 @@ export class PrintControlCard extends LitElement {
 
   private A1EntityUX: { [key: string]: EntityUX } = {
 //    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
-    chamber_light:        { x: 46.5, y:28,   width:20,  height:20 },  // light
-    nozzle_temp:          { x: 46.5, y:38,   width:25,  height:20 },  // sensor
-    cover_image:          { x: 46.5, y:58,   width:150, height:150 }, // image
-    bed_temp:             { x: 46.5, y:82,   width:25,  height:20 },  // sensor
-    print_progress:       { x: 78, y:81,     width:25,  height:20 },  // sensor
-    remaining_time:       { x: 78, y:85,     width:100, height:20 },  // sensor
-    stage:                { x: 46.5, y:92.5, width:300, height:20 },  // sensor
+    chamber_light:        { x: 46, y:30,   width:20,  height:20 },  // light
+    nozzle_temp:          { x: 46, y:42,   width:25,  height:20 },  // sensor
+    cover_image:          { x: 46, y:60,   width:150, height:150 }, // image
+    bed_temp:             { x: 46, y:81,   width:25,  height:20 },  // sensor
+    print_progress:       { x: 85, y:81,   width:25,  height:20 },  // sensor
+    remaining_time:       { x: 85, y:85,   width:100, height:20 },  // sensor
+    stage:                { x: 46, y:92.5, width:300, height:20 },  // sensor
   };
 
   private A1MiniEntityUX: { [key: string]: EntityUX } = {
 //    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
-    chamber_light:        { x: 88, y:29, width:20,  height:20 },  // light
-    nozzle_temp:          { x: 41, y:38, width:25,  height:20 },  // sensor
-    cover_image:          { x: 41, y:58, width:150, height:150 }, // image
+    chamber_light:        { x: 88, y:31, width:20,  height:20 },  // light
+    nozzle_temp:          { x: 41, y:40, width:25,  height:20 },  // sensor
+    cover_image:          { x: 41, y:60, width:150, height:150 }, // image
     bed_temp:             { x: 41, y:80, width:25,  height:20 },  // sensor
     print_progress:       { x: 74, y:89, width:25,  height:20 },  // sensor
     remaining_time:       { x: 74, y:93, width:100, height:20 },  // sensor
@@ -101,42 +101,42 @@ export class PrintControlCard extends LitElement {
 
 
   private P1PEntityUX: { [key: string]: EntityUX } = {
-    print_progress:       { x: 27, y:9.5, width:25,  height:20 },  // sensor
-    remaining_time:       { x: 60, y:10,  width:100, height:20 },  // sensor
+    print_progress:       { x: 23, y:9.5, width:25,  height:20 },  // sensor
+    remaining_time:       { x: 59, y:10,  width:100, height:20 },  // sensor
 //    hms:                  { x: 90,   y:10,  width:20,  height:20 },  // binary_sensor
-    chamber_light:        { x: 20, y:25,  width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 80, y:25,  width:70,  height:25 },  // fan
-    nozzle_temp:          { x: 50, y:31,  width:25,  height:20 },  // sensor
+    chamber_light:        { x: 10, y:24,  width:20,  height:20 },  // light
+    chamber_fan_speed:    { x: 90, y:24,  width:70,  height:25 },  // fan
+    nozzle_temp:          { x: 50, y:35,  width:25,  height:20 },  // sensor
     chamber_temp:         { x: 80, y:32,  width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 20, y:52,  width:70,  height:25 },  // fan
-    cover_image:          { x: 50, y:53,  width:150, height:150 }, // image
-    bed_temp:             { x: 50, y:75,  width:25,  height:20 },  // sensor
+    aux_fan_speed:        { x: 9,  y:60,  width:70,  height:25 },  // fan
+    cover_image:          { x: 50, y:57,  width:150, height:150 }, // image
+    bed_temp:             { x: 50, y:76,  width:25,  height:20 },  // sensor
     stage:                { x: 50, y:93,  width:300, height:20 },  // sensor
   };
 
   private P1SEntityUX: { [key: string]: EntityUX } = {
 //    hms:                  { x: 90, y:10,  width:20,  height:20 },  // binary_sensor
-    print_progress:       { x: 27, y:6,   width:25,  height:20 },  // sensor
-    remaining_time:       { x: 60, y:6.5, width:100, height:20 },  // sensor
-    chamber_light:        { x: 20, y:25,  width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 80, y:25,  width:70,  height:25 },  // fan
-    nozzle_temp:          { x: 50, y:31,  width:25,  height:20 },  // sensor
+    print_progress:       { x: 23, y:6,   width:25,  height:20 },  // sensor
+    remaining_time:       { x: 59, y:6.5, width:100, height:20 },  // sensor
+    chamber_light:        { x: 10, y:24,  width:20,  height:20 },  // light
+    chamber_fan_speed:    { x: 90, y:24,  width:70,  height:25 },  // fan
+    nozzle_temp:          { x: 50, y:35,  width:25,  height:20 },  // sensor
     chamber_temp:         { x: 80, y:32,  width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 20, y:52,  width:70,  height:25 },  // fan
+    aux_fan_speed:        { x: 9,  y:52,  width:70,  height:25 },  // fan
     cover_image:          { x: 50, y:53,  width:150, height:150 }, // image
-    bed_temp:             { x: 50, y:75,  width:25,  height:20 },  // sensor
+    bed_temp:             { x: 50, y:72,  width:25,  height:20 },  // sensor
     stage:                { x: 50, y:91,  width:300, height:20 },  // sensor
   };
 
   private X1CEntityUX: { [key: string]: EntityUX } = {
 //    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
-    print_progress:       { x: 33, y:6,  width:25,  height:20 },  // sensor
-    remaining_time:       { x: 33, y:11, width:100, height:20 },  // sensor
-    chamber_light:        { x: 20, y:25, width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 80, y:25, width:70,  height:25 },  // fan
+    print_progress:       { x: 29, y:6,  width:25,  height:20 },  // sensor
+    remaining_time:       { x: 29, y:11, width:100, height:20 },  // sensor
+    chamber_light:        { x: 10, y:25, width:20,  height:20 },  // light
+    chamber_fan_speed:    { x: 90, y:25, width:70,  height:25 },  // fan
     nozzle_temp:          { x: 50, y:31, width:25,  height:20 },  // sensor
-    chamber_temp:         { x: 80, y:32, width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 20, y:52, width:70,  height:25 },  // fan
+    chamber_temp:         { x: 90, y:32, width:20,  height:20 },  // sensor
+    aux_fan_speed:        { x: 10, y:52, width:70,  height:25 },  // fan
     cover_image:          { x: 50, y:53, width:150, height:150 }, // image
     bed_temp:             { x: 50, y:75, width:25,  height:20 },  // sensor
     stage:                { x: 50, y:93, width:300, height:20 },  // sensor
@@ -190,6 +190,7 @@ export class PrintControlCard extends LitElement {
         if (this._model == 'A1 MINI') {
           this._model = 'A1MINI';
         }
+        this._model = 'A1';
         this._entityUX = this.EntityUX[this._model];
         // We have the model - kick off the background image load asap.
         this.requestUpdate();
