@@ -5,10 +5,8 @@ import styles from "./info-bar.styles";
 @customElement("info-bar")
 export class InfoBar extends LitElement {
   @property({ type: String }) public subtitle;
-  @property({ type: String }) public humidity;
+  @property({ type: Object }) public humidity;
   @property({ type: Object }) public temperature;
-  @property({ type: String }) public customHumidity;
-  @property({ type: Object }) public customTemperature;
 
   static styles = styles;
 
@@ -58,7 +56,6 @@ export class InfoBar extends LitElement {
     }
   }
 
-
   render() {
     return html`
       <div class="extra-info">
@@ -67,7 +64,11 @@ export class InfoBar extends LitElement {
           ${this.humidity
             ? html` <div class="info">
                 <span><ha-icon icon="mdi:water" style="color: ${this.getHumidityColor()}" /></span>
-                <span>${this.customHumidity ? (this.customHumidity + "%") : this.humidity}</span>
+                <span
+                  >${this.humidity.type == "custom"
+                    ? this.humidity.value + "%"
+                    : this.humidity.value}</span
+                >
               </div>`
             : nothing}
           ${this.temperature
@@ -76,7 +77,12 @@ export class InfoBar extends LitElement {
                   <span>
                     <ha-icon icon="mdi:thermometer" style="color: ${this.getTemperatureColor()}" />
                   </span>
-                  <span>${this.customTemperature ? this.customTemperature.value : this.temperature.value} ${this.temperature.unit_of_measurement}</span>
+                  <span
+                    >${this.temperature.type == "custom"
+                      ? this.temperature.value
+                      : this.temperature.value}
+                    ${this.temperature.unit_of_measurement}</span
+                  >
                 </div>
               `
             : nothing}

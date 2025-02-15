@@ -189,6 +189,11 @@ export class PrintControlCard extends LitElement {
     return this._states[entity?.entity_id]?.state == 'unavailable';
   }
 
+  private _isEntityStateUnknown(entity: Entity): boolean {
+    console.log(this._states[entity?.entity_id]?.state)
+    return this._states[entity?.entity_id]?.state == undefined;
+  }
+
   private _clickButton(entity: Entity) {
     const data = {
       entity_id: entity.entity_id
@@ -368,7 +373,7 @@ export class PrintControlCard extends LitElement {
           <button class="button" @click="${this._showStopDialog}" ?disabled="${this._isEntityUnavailable(this._entities?.stop)}">
             Stop
           </button>
-          <button class="button" @click="${this._showPopup}" ?disabled="${this._isEntityUnavailable(this._entities?.stop)}">
+          <button class="button" @click="${this._showPopup}" ?disabled="${this._isEntityUnavailable(this._entities?.stop) || this._isEntityStateUnknown(this._entities?.pick_image)}">
             Skip
           </button>
         </div>
@@ -425,6 +430,7 @@ export class PrintControlCard extends LitElement {
   private _showPopup() {
     this._popupVisible = true;
   }
+
   private _cancelPopup() {
     this._popupVisible = false;
     // Now reset all the to_skip to the existing skipped state.

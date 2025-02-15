@@ -8,22 +8,23 @@ export class GraphicAmsCard extends LitElement {
   @property() public subtitle;
   @property() public showInfoBar;
   @property({ type: Object }) public entities;
-  @property({ type: Object }) public states;  
+  @property({ type: Object }) public states;
   @property() public customHumidity;
   @property() public customTemperature;
 
-
   static styles = styles;
-
   temperature() {
-    if (this?.entities?.temperature) {
-      if(this.customTemperature) {
-        return {
-          value: this.states[this.customTemperature]?.state,
-          unit_of_measurement:  this.states[this.entities.temperature.entity_id]?.attributes.unit_of_measurement,
-        };
-      }
+    if (this.customTemperature) {
       return {
+        type: "custom",
+        value: this.states[this.customTemperature]?.state,
+        unit_of_measurement:
+          this.states[this.entities.temperature.entity_id]?.attributes.unit_of_measurement,
+      };
+    }
+    if (this?.entities?.temperature) {
+      return {
+        type: "default",
         value: this.states[this.entities.temperature.entity_id]?.state,
         unit_of_measurement:
           this.states[this.entities.temperature.entity_id]?.attributes.unit_of_measurement,
@@ -33,11 +34,17 @@ export class GraphicAmsCard extends LitElement {
   }
 
   humidity() {
+    if (this.customHumidity) {
+      return {
+        type: "custom",
+        value: this.states[this.customHumidity]?.state,
+      };
+    }
     if (this?.entities?.humidity) {
-      if(this.customHumidity) {
-        return this.states[this.customHumidity]?.state;
-      }
-      return this.states[this.entities.humidity]?.state;
+      return {
+        type: "default",
+        value: this.states[this.entities.humidity.entity_id]?.state,
+      };
     }
     return nothing;
   }
@@ -47,12 +54,10 @@ export class GraphicAmsCard extends LitElement {
       <div class="v-wrapper">
         ${this.showInfoBar
           ? html`<info-bar
-                subtitle="${this.subtitle}"
-                customHumidity="${this.humidity()}"
-                customTemperature="${this.temperature()}"
-                humidity="${this.humidity()}"
-                .temperature="${this.temperature()}"
-              ></info-bar>`
+              subtitle="${this.subtitle}"
+              .humidity="${this.humidity()}"
+              .temperature="${this.temperature()}"
+            ></info-bar>`
           : nothing}
         <div class="ams-container">
           <img src=${AMSImage} alt="" />
