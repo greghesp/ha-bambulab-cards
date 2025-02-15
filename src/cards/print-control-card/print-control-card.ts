@@ -2,6 +2,8 @@ import { customElement, state, property } from "lit/decorators.js";
 import { html, LitElement, nothing, PropertyValues } from "lit";
 import styles from "./card.styles";
 
+import { INTEGRATION_DOMAIN, MANUFACTURER } from "../../const";
+import { PRINTER_MODELS } from "./const";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { PRINT_CONTROL_CARD_EDITOR_NAME, PRINT_CONTROL_CARD_NAME, PRINT_CONTROL_CARD_NAME_LEGACY } from "./const";
 import { rgbaToInt } from "../../utils/helpers"
@@ -77,6 +79,12 @@ export class PrintControlCard extends LitElement {
     return document.createElement(PRINT_CONTROL_CARD_EDITOR_NAME);
   }
 
+  static getStubConfig() {
+    return {
+      printer: "MOCK",
+    };
+  }
+
   setConfig(config) {
     this._device_id = config.printer;
 
@@ -93,6 +101,18 @@ export class PrintControlCard extends LitElement {
     if (hass) {
       this._hass = hass;
       this._states = hass.states;
+
+      if (this._device_id == 'MOCK') {
+        Object.keys(this._hass.devices).forEach((key) => {
+          const device = this._hass.devices[key];
+          if (device.manufacturer == MANUFACTURER) {
+            if (PRINTER_MODELS.includes(device.model)) {
+              this._device_id = key;
+            }
+          }
+        })
+      }
+
       this._asyncFilterBambuDevices();
     }
   }
@@ -190,7 +210,6 @@ export class PrintControlCard extends LitElement {
   }
 
   private _isEntityStateUnknown(entity: Entity): boolean {
-    console.log(this._states[entity?.entity_id]?.state)
     return this._states[entity?.entity_id]?.state == undefined;
   }
 

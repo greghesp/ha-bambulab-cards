@@ -19,7 +19,7 @@ export class GraphicAmsCard extends LitElement {
         type: "custom",
         value: this.states[this.customTemperature]?.state,
         unit_of_measurement:
-          this.states[this.customTemperature]?.attributes.unit_of_measurement,
+          this.states[this.customTemperature]?.attributes?.unit_of_measurement || "",
       };
     }
     if (this?.entities?.temperature) {

@@ -2,8 +2,9 @@ import { customElement, state, property } from "lit/decorators.js";
 import { html, LitElement, nothing, PropertyValues } from "lit";
 import styles from "./card.styles";
 
-import { registerCustomCard } from "../../utils/custom-cards";
+import { INTEGRATION_DOMAIN, MANUFACTURER, PRINTER_MODELS } from "../../const";
 import { PRINT_STATUS_CARD_EDITOR_NAME, PRINT_STATUS_CARD_NAME } from "./const";
+import { registerCustomCard } from "../../utils/custom-cards";
 import { formatMinutes } from "../../utils/helpers"
 
 import A1_ON_IMAGE  from "../../images/A1_on.png";
@@ -166,12 +167,19 @@ export class PrintControlCard extends LitElement {
     return document.createElement(PRINT_STATUS_CARD_EDITOR_NAME);
   }
 
-  setConfig(config) {
-    this._device_id = config.printer;
+  static getStubConfig() {
+    return {
+      printer: "MOCK"
+    };
+  }
 
+  setConfig(config) {
+    console.log("setConfig", config)
     if (!config.printer) {
       throw new Error("You need to select a Printer");
     }
+
+    this._device_id = config.printer;
   }
 
   set hass(hass) {
@@ -181,6 +189,17 @@ export class PrintControlCard extends LitElement {
     if (hass) {
       this._hass = hass;
       this._states = hass.states;
+    }
+
+    if (this._device_id == 'MOCK') {
+      Object.keys(this._hass.devices).forEach((key) => {
+        const device = this._hass.devices[key];
+        if (device.manufacturer == MANUFACTURER) {
+          if (PRINTER_MODELS.includes(device.model)) {
+            this._device_id = key;
+          }
+        }
+      })
     }
 
     if (firstTime) {
