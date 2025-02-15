@@ -1,5 +1,5 @@
-import { AMS_CARD_EDITOR_NAME, AMS_MODELS } from "./const";
-import { INTEGRATION_DOMAIN, MANUFACTURER } from "../../const";
+import { AMS_CARD_EDITOR_NAME } from "./const";
+import { INTEGRATION_DOMAIN, MANUFACTURER, AMS_MODELS } from "../../const";
 import { customElement, state } from "lit/decorators.js";
 import { LitElement, html, nothing } from "lit";
 import memoizeOne from "memoize-one";

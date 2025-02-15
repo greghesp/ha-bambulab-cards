@@ -2,7 +2,8 @@ import { customElement, state } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 
 import { registerCustomCard } from "../../utils/custom-cards";
-import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME, AMS_MODELS } from "./const";
+import { INTEGRATION_DOMAIN, MANUFACTURER, AMS_MODELS } from "../../const";
+import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME  } from "./const";
 import styles from "./card.styles";
 import "./components/spool/spool.ts";
 import "./vector-ams-card/vector-ams-card";
@@ -79,6 +80,19 @@ export class AMS_CARD extends LitElement {
   set hass(hass) {
     this._hass = hass;
     this._states = hass.states;
+
+    if (this._deviceId == 'MOCK') {
+      Object.keys(this._hass.devices).forEach((key) => {
+        const device = this._hass.devices[key];
+        if (device.manufacturer == MANUFACTURER) {
+          if (AMS_MODELS.includes(device.model)) {
+            this._style = "graphic";
+            this._deviceId = key;
+          }
+        }
+      })
+    }
+    
     this.filterBambuDevices();
   }
 
@@ -120,6 +134,7 @@ export class AMS_CARD extends LitElement {
       header: "",
       subtitle: "",
       style: "vector",
+      ams: "MOCK",
     };
   }
 

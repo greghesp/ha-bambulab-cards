@@ -1,5 +1,5 @@
-import { PRINT_STATUS_CARD_EDITOR_NAME, PRINTER_MODELS } from "./const";
-import { INTEGRATION_DOMAIN, MANUFACTURER } from "../../const";
+import { PRINT_STATUS_CARD_EDITOR_NAME } from "./const";
+import { INTEGRATION_DOMAIN, MANUFACTURER, PRINTER_MODELS } from "../../const";
 import { customElement, state } from "lit/decorators.js";
 import { LitElement, html } from "lit";
 
