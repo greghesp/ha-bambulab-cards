@@ -179,32 +179,23 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getPickImageUrl() {
-    if (this._entityList['pick_image']) {
-      const entity = this._entityList['pick_image'];
-      const timestamp = this._states[entity.entity_id].state;
-      const accessToken = this._states[entity.entity_id].attributes?.access_token
-      const imageUrl = `/api/image_proxy/${entity.entity_id}?token=${accessToken}&time=${timestamp}`;
-      return imageUrl;
-    }
-    return '';
+    const entity = this._entityList['pick_image'];
+    const timestamp = this._states[entity.entity_id].state;
+    const accessToken = this._states[entity.entity_id].attributes?.access_token
+    const imageUrl = `/api/image_proxy/${entity.entity_id}?token=${accessToken}&time=${timestamp}`;
+    return imageUrl;
   }
 
   private _getSkippedObjects() {
-    if (this._entityList['skipped_objects']) {
-      const entity = this._entityList['skipped_objects'];
-      const value = this._states[entity.entity_id].attributes['objects'];
-      return value
-    }
-    return null;
+    const entity = this._entityList['skipped_objects'];
+    const value = this._states[entity.entity_id].attributes['objects'];
+    return value
   }
 
   private _getPrintableObjects() {
-    if (this._entityList['printable_objects']) {
-      const entity = this._entityList['printable_objects'];
-      const value = this._states[entity.entity_id].attributes['objects'];
-      return value
-    }
-    return null;
+    const entity = this._entityList['printable_objects'];
+    const value = this._states[entity.entity_id].attributes['objects'];
+    return value
   }
 
   private _isEntityUnavailable(entity: helpers.Entity): boolean {
@@ -382,11 +373,7 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getSpeedProfile() {
-    if (this._entityList['speed_profile']) {
-      return helpers.getLocalizedEntityState(this._hass, this._entityList['speed_profile'])
-    } else {
-      return '';
-    }
+    return helpers.getLocalizedEntityState(this._hass, this._entityList['speed_profile'])
   }
 
   render() {
