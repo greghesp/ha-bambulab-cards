@@ -3,6 +3,7 @@ import { html, LitElement, nothing } from "lit";
 import styles from "./spool.styles";
 import "../dialog/dialog";
 import { getContrastingTextColor } from "../../../utils/helpers";
+import { mdiClose } from "@mdi/js";
 
 @customElement("ha-bambulab-spool")
 export class Spool extends LitElement {
@@ -100,6 +101,11 @@ export class Spool extends LitElement {
     return html`
       <ha-dialog id="confirmation-popup" ?open=${this._dialogOpen} heading="title">
         <ha-dialog-header slot="heading">
+          <ha-icon-button
+            slot="navigationIcon"
+            dialogAction="cancel"
+            .path="${mdiClose}"
+          ></ha-icon-button>
           <div slot="title">${this.state.attributes.friendly_name}</div>
         </ha-dialog-header>
         <div class="ha-bambulab-spool-modal-container">
