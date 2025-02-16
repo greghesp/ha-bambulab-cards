@@ -195,12 +195,11 @@ export class PrintControlCard extends LitElement {
 
     if (firstTime) {
       this._model = this._hass.devices[this._device_id].model.toUpperCase();
+      console.log("Model is", this._model)
       if (this._model == 'A1 MINI') {
         this._model = 'A1MINI';
       }
       this._entityUX = this.EntityUX[this._model];
-      // We have the model - kick off the background image load asap.
-      this.requestUpdate();
       // Now trigger the load of the entity data.
       helpers.asyncFilterBambuDevices(hass, this._device_id, Object.keys(this._entityUX!)).then(
         result => {
@@ -211,6 +210,9 @@ export class PrintControlCard extends LitElement {
           //this._lightbulb = this._states[result['chamber_light'].entity_id].state;
           //console.log(this._lightbulb)
           this._createEntityElements();
+
+          // We have the model and the chamber light entity - kick off the background image load.
+          this.requestUpdate();
         })
     }
   }
@@ -234,12 +236,16 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getPrinterImage() {
-    const lightOn = helpers.getEntityState(this._hass, this._entityList['chamber_light']) == 'on'
-    if (lightOn) {
-      return _onImages[this._model]
-    }
-    else {
-      return _offImages[this._model]
+    if (this._entityList['chamber_light']) {
+      const lightOn = helpers.getEntityState(this._hass, this._entityList['chamber_light']) == 'on'
+      if (lightOn) {
+        return _onImages[this._model]
+      }
+      else {
+        return _offImages[this._model]
+      }
+    } else {
+      return '';
     }
   }
 

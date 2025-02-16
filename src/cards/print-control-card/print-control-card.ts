@@ -385,7 +385,11 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getSpeedProfile() {
-    return helpers.getLocalizedEntityState(this._hass, this._entityList['speed_profile'])
+    if (this._entityList['speed_profile']) {
+      return helpers.getLocalizedEntityState(this._hass, this._entityList['speed_profile'])
+    } else {
+      return '';
+    }
   }
 
   render() {
