@@ -87,6 +87,7 @@ export class VectorAmsCard extends LitElement {
                     this.states[spool.entity_id]?.attributes.remain
                   )}"
                   .show_type=${this.showType}
+                  .state=${this.states[spool.entity_id]}
                 ></ha-bambulab-spool>
               `
             )}

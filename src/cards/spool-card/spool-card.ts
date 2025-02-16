@@ -19,7 +19,7 @@ export class SpoolCard extends LitElement {
   @property() public states;
   @property() public _spoolEntityId;
   @property() public _showType;
-
+  @property() public _state;
   public getLayoutOptions() {
     return {
       grid_rows: this._showType ? 3 : 2,
@@ -62,6 +62,7 @@ export class SpoolCard extends LitElement {
           .color="${this.states[this._spoolEntityId]?.attributes.color}"
           .name="${this.states[this._spoolEntityId]?.attributes.name}"
           .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
+          .state=${this.states[this._spoolEntityId]}
           .show_type=${this._showType}
         ></ha-bambulab-spool>
       </ha-card>

@@ -1,6 +1,8 @@
 import { customElement, property } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./spool.styles";
+import "../dialog/dialog";
+import { getContrastingTextColor } from "../../../utils/helpers";
 
 @customElement("ha-bambulab-spool")
 export class Spool extends LitElement {
@@ -12,6 +14,8 @@ export class Spool extends LitElement {
   @property({ type: Boolean }) public show_type: boolean = false;
   @property({ type: Number }) private remainHeight: number = 95;
   @property({ type: Number }) private resizeObserver: ResizeObserver | null = null;
+  @property({ type: Object }) private state;
+  @property({ type: Boolean }) private _dialogOpen: boolean = false;
 
   static styles = styles;
 
@@ -42,12 +46,23 @@ export class Spool extends LitElement {
     this.updateLayers();
   }
 
+  private _handleClick() {
+    this._dialogOpen = true;
+  }
+
+  private _closeDialog() {
+    this._dialogOpen = false;
+  }
+
   render() {
+    console.log("state", this.state);
     return html`
+      ${this.modal()}
       <div class="ha-bambulab-spool-card-container">
         <div
           class="ha-bambulab-spool-card-holder"
           style="border-color: ${this.active ? this.color : "#808080"}"
+          @click=${this._handleClick}
         >
           <div class="ha-bambulab-spool-container">
             <div class="ha-bambulab-spool-side"></div>
@@ -78,6 +93,40 @@ export class Spool extends LitElement {
             </div>`
           : nothing}
       </div>
+    `;
+  }
+
+  modal() {
+    return html`
+      <ha-dialog id="confirmation-popup" ?open=${this._dialogOpen} heading="title">
+        <ha-dialog-header slot="heading">
+          <div slot="title">${this.state.attributes.friendly_name}</div>
+        </ha-dialog-header>
+        <div class="ha-bambulab-spool-modal-container">
+          <div class="filament-title section-title">Filament Information</div>
+          <div class="div2 item-title">Filament</div>
+          <div class="div3 item-value">${this.state.attributes.name}</div>
+          <div class="div4 item-value">
+            <span
+              style="background-color: ${this.state.attributes
+                .color}; color: ${getContrastingTextColor(
+                this.state.attributes.color
+              )}; padding: 5px 10px; border-radius: 5px;"
+              >${this.state.attributes.color}</span
+            >
+          </div>
+          <div class="div5 item-title">Color</div>
+          <div class="div6 section-title">Nozzle Temperature</div>
+          <div class="div7 item-title">Minimum</div>
+          <div class="div8 item-value">${this.state.attributes.nozzle_temp_min}</div>
+          <div class="div9 item-value ">${this.state.attributes.nozzle_temp_max}</div>
+          <div class="div10 item-title">Maximum</div>
+          <div class="action-buttons">
+            <mwc-button class="action-button" @click=${this._closeDialog}>Load</mwc-button>
+            <mwc-button class="action-button" @click=${this._closeDialog}>Unload</mwc-button>
+          </div>
+        </div>
+      </ha-dialog>
     `;
   }
 
