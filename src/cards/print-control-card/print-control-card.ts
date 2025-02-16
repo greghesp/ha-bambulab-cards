@@ -376,6 +376,25 @@ export class PrintControlCard extends LitElement {
     return helpers.getLocalizedEntityState(this._hass, this._entityList['speed_profile'])
   }
 
+  private _showSkipButton() {
+    const countOfPrintableObjects = Object.keys(this._getPrintableObjects()).length;
+    if ((countOfPrintableObjects < 2) ||
+        (countOfPrintableObjects > 64))
+    {
+      return false;      
+    }
+    return true;
+  }
+
+  private _enableSkipButton() {
+    if (this._isEntityUnavailable(this._entityList['stop']) ||
+        this._isEntityStateUnknown(this._entityList['pick_image']))
+    {
+      return false;
+    }
+    return true;
+  }
+
   render() {
     return html`
       <ha-card class="card">
@@ -385,7 +404,7 @@ export class PrintControlCard extends LitElement {
             ${this._getSpeedProfile()}
           </div>
           <div class="buttons-container">
-            <button class="button" @click="${this._showPopup}" ?disabled="${this._isEntityUnavailable(this._entityList['stop']) || this._isEntityStateUnknown(this._entityList['pick_image'])}">
+            <button class="button" @click="${this._showPopup}" ?disabled="${!this._enableSkipButton()}" style="display: ${this._showSkipButton() ? 'block' : 'none'};">
               <ha-icon icon="mdi:skip-forward"></ha-icon>
             </button>
             <button class="button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['pause'])}">
