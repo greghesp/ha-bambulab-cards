@@ -195,7 +195,6 @@ export class PrintControlCard extends LitElement {
 
     if (firstTime) {
       this._model = this._hass.devices[this._device_id].model.toUpperCase();
-      console.log("Model is", this._model)
       if (this._model == 'A1 MINI') {
         this._model = 'A1MINI';
       }
@@ -229,18 +228,14 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getPrinterImage() {
-    if (this._entityList['chamber_light']) {
-      const lightOn = helpers.getEntityState(this._hass, this._entityList['chamber_light']) == 'on'
-      if (lightOn) {
-        return _onImages[this._model]
-      }
-      else {
-        return _offImages[this._model]
-      }
-    } else {
-      return '';
+    const lightOn = helpers.getEntityState(this._hass, this._entityList['chamber_light']) == 'on'
+    if (lightOn) {
+      return _onImages[this._model]
     }
-  }
+    else {
+      return _offImages[this._model]
+    }
+}
 
   private _createEntityElements() {
     const container = this.shadowRoot?.getElementById('container')!;
