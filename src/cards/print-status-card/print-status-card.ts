@@ -200,20 +200,13 @@ export class PrintControlCard extends LitElement {
         this._model = 'A1MINI';
       }
       this._entityUX = this.EntityUX[this._model];
-      // Now trigger the load of the entity data.
-      helpers.asyncFilterBambuDevices(hass, this._device_id, Object.keys(this._entityUX!)).then(
-        result => {
-          this._entityList = result;
-          // Object.keys(result).forEach((key) => {
-          //   this._entities.push(this._states[result[key].entity_id]);
-          // });
-          //this._lightbulb = this._states[result['chamber_light'].entity_id].state;
-          //console.log(this._lightbulb)
-          this._createEntityElements();
+      this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, Object.keys(this._entityUX!));
 
-          // We have the model and the chamber light entity - kick off the background image load.
-          this.requestUpdate();
-        })
+      // We have the model and the chamber light entity - kick off the background image load asap.
+      this.requestUpdate();
+
+      // Now we create the html elements for the entities.
+      this._createEntityElements();
     }
   }
 

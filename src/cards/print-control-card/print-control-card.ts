@@ -112,13 +112,10 @@ export class PrintControlCard extends LitElement {
         })
       }
 
-      helpers.asyncFilterBambuDevices(hass, this._device_id, ENTITYLIST).then(
-        result => {
-          this._entityList = result;
-          // Keep a reference to the skippedObjects state for Lit reactivity to trigger off when it changes.
-          this._pickImageState = this._states[result['pick_image'].entity_id].state;
-          this._skippedObjectsState = this._states[result['skipped_objects'].entity_id].state;
-        })
+      this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, ENTITYLIST);
+      // Keep a reference to the skippedObjects state for Lit reactivity to trigger off when it changes.
+      this._pickImageState = this._states[this._entityList['pick_image'].entity_id].state;
+      this._skippedObjectsState = this._states[this._entityList['skipped_objects'].entity_id].state;
     }
   }
 

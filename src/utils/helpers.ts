@@ -49,17 +49,15 @@ export interface Entity {
   name: string;
 }
 
-export async function asyncFilterBambuDevices(hass, device_id, entities: string[]): Promise<{ [key: string]: Entity }> {
+export function getBambuDeviceEntities(hass, device_id, entities: string[]): { [key: string]: Entity } {
   const result: { [key: string]: Entity } = {}
   // Loop through all hass entities, and find those that belong to the selected device
   for (let k in hass.entities) {
     const value = hass.entities[k];
     if (value.device_id === device_id) {
-      const r = await asyncGetEntity(hass, value.entity_id);
       for (const key of entities) {
-        const regex = new RegExp(`^[^_]+_${key}$`);
-        if (regex.test(r.unique_id)) {
-          result[key] = r
+        if (key == value.translation_key) {
+          result[key] = value
         }
       };
     }
