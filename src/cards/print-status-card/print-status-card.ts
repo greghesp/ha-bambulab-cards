@@ -293,6 +293,11 @@ export class PrintControlCard extends LitElement {
     if (entity != undefined) {
       const e = this._entityUX![key];
 
+      if (e.width == 0 && e.height == 0) {
+        // This is just an alternate click target, we don't display these.
+        return;
+      }
+
       // Determine element type
       const left = (e.x / 100) * imageWidth;
       const top = (e.y / 100) * imageHeight;
