@@ -2,6 +2,8 @@ import { customElement, state } from "lit/decorators.js";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { EXAMPLE_CARD_EDITOR_NAME, EXAMPLE_CARD_NAME } from "./const";
 import { html, LitElement, nothing } from "lit";
+import { hassContext } from "../../utils/context";
+import { provide } from "@lit/context";
 
 registerCustomCard({
   type: EXAMPLE_CARD_NAME,
@@ -14,11 +16,17 @@ export class EXAMPLE_CARD extends LitElement {
   @state() private _config?;
   @state() private _hass: any;
 
+  // Provide the hass context to the cards
+  @provide({ context: hassContext })
+  protected get provideHass() {
+    return this._hass;
+  }
+
   public getLayoutOptions() {
     return {
       grid_rows: 2,
       grid_columns: 2,
-      grid_min_rows:  2,
+      grid_min_rows: 2,
       grid_min_columns: 2,
     };
   }

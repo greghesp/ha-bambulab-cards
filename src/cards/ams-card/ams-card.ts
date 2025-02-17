@@ -1,9 +1,11 @@
 import { customElement, state } from "lit/decorators.js";
+import { provide } from "@lit/context";
 import { html, LitElement, nothing } from "lit";
 
 import { registerCustomCard } from "../../utils/custom-cards";
 import { INTEGRATION_DOMAIN, MANUFACTURER, AMS_MODELS } from "../../const";
-import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME  } from "./const";
+import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME } from "./const";
+import { hassContext, deviceEntitesContext } from "../../utils/context";
 import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
@@ -36,13 +38,23 @@ export class AMS_CARD extends LitElement {
   @state() private _hass?;
   @state() private _subtitle;
   @state() private _deviceId: any;
-  @state() private _entities: any;
+  @state() private _deviceEntities: any;
   @state() private _states;
   @state() private _style;
   @state() private _showInfoBar;
   @state() private _showType;
   @state() private _customHumidity;
   @state() private _customTemperature;
+
+  @provide({ context: hassContext })
+  protected get provideHass() {
+    return this._hass;
+  }
+
+  @provide({ context: deviceEntitesContext })
+  protected get provideEntities() {
+    return this._deviceEntities;
+  }
 
   static styles = styles;
 
@@ -63,7 +75,6 @@ export class AMS_CARD extends LitElement {
     }
 
     this._subtitle = config.subtitle === "" ? nothing : config.subtitle;
-    this._entities = config._entities;
     this._deviceId = config.ams;
     this._style = config.style;
     this._showInfoBar = config.show_info_bar ? true : false;
@@ -81,7 +92,7 @@ export class AMS_CARD extends LitElement {
     this._hass = hass;
     this._states = hass.states;
 
-    if (this._deviceId == 'MOCK') {
+    if (this._deviceId == "MOCK") {
       Object.keys(this._hass.devices).forEach((key) => {
         const device = this._hass.devices[key];
         if (device.manufacturer == MANUFACTURER) {
@@ -90,9 +101,9 @@ export class AMS_CARD extends LitElement {
             this._deviceId = key;
           }
         }
-      })
+      });
     }
-    
+
     this.filterBambuDevices();
   }
 
@@ -101,7 +112,7 @@ export class AMS_CARD extends LitElement {
       return html`
         <graphic-ams-card
           .subtitle="${this._subtitle}"
-          .entities="${this._entities}"
+          .entities="${this._deviceEntities}"
           .states="${this._states}"
           .showInfoBar=${this._showInfoBar}
           .customHumidity=${this._customHumidity}
@@ -112,7 +123,6 @@ export class AMS_CARD extends LitElement {
       return html`
         <vector-ams-card
           .subtitle="${this._subtitle}"
-          .entities="${this._entities}"
           .states="${this._states}"
           .showInfoBar=${this._showInfoBar}
           .showType=${this._showType}
@@ -167,7 +177,7 @@ export class AMS_CARD extends LitElement {
       }
     }
 
-    this._entities = result;
+    this._deviceEntities = result;
   }
 
   private async getDeviceModel() {

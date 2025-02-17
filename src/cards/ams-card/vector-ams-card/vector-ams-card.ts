@@ -2,12 +2,17 @@ import { customElement, property } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./vector-ams-card.styles";
 import "../components/info-bar/info-bar";
+import { deviceEntitesContext } from "../../../utils/context";
+import { consume } from "@lit/context";
 
 @customElement("vector-ams-card")
 export class VectorAmsCard extends LitElement {
+  @consume({ context: deviceEntitesContext })
+  @property({ type: Object })
+  public entities;
+
   @property() public subtitle;
   @property() public showInfoBar;
-  @property({ type: Object }) public entities;
   @property({ type: Object }) public states;
   @property() public showType;
   @property() public customHumidity;
