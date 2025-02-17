@@ -2,14 +2,6 @@ import { css } from "lit";
 
 export default css`
 
-#alpha-text {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  color: red;
-  font-size: 18px;
-  font-weight: bold;
-}
 .button {
   display: inline-flex;
   align-items: center;

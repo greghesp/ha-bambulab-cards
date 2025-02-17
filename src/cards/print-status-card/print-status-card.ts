@@ -71,68 +71,68 @@ export class PrintControlCard extends LitElement {
   private _model: string;
 
   private A1EntityUX: { [key: string]: EntityUX } = {
-//    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
-    chamber_light:        { x: 46, y:30,   width:20,  height:20 },  // light
-    nozzle_temp:          { x: 46, y:42,   width:25,  height:20 },  // sensor
+//    hms:                  { x: 90, y:10, width:20,  height:0 },  // binary_sensor
+    chamber_light:        { x: 46, y:30,   width:20,  height:0 },  // light
+    nozzle_temp:          { x: 46, y:42,   width:25,  height:0 },  // sensor
     cover_image:          { x: 46, y:60,   width:150, height:150 }, // image
-    bed_temp:             { x: 46, y:81,   width:25,  height:20 },  // sensor
-    print_progress:       { x: 85, y:81,   width:25,  height:20 },  // sensor
-    remaining_time:       { x: 85, y:85,   width:100, height:20 },  // sensor
-    stage:                { x: 46, y:92.5, width:300, height:20 },  // sensor
+    bed_temp:             { x: 46, y:81,   width:25,  height:0 },  // sensor
+    print_progress:       { x: 85, y:81,   width:25,  height:0 },  // sensor
+    remaining_time:       { x: 85, y:85,   width:100, height:0 },  // sensor
+    stage:                { x: 46, y:92.5, width:300, height:0 },  // sensor
   };
 
   private A1MiniEntityUX: { [key: string]: EntityUX } = {
-//    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
-    chamber_light:        { x: 88, y:29, width:20,  height:20 },  // light
-    nozzle_temp:          { x: 41, y:38, width:25,  height:20 },  // sensor
+//    hms:                  { x: 90, y:10, width:20,  height:0 },  // binary_sensor
+    chamber_light:        { x: 88, y:29, width:20,  height:0 },  // light
+    nozzle_temp:          { x: 41, y:38, width:25,  height:0 },  // sensor
     cover_image:          { x: 41, y:58, width:150, height:150 }, // image
-    bed_temp:             { x: 41, y:80, width:25,  height:20 },  // sensor
-    print_progress:       { x: 74, y:89, width:25,  height:20 },  // sensor
-    remaining_time:       { x: 74, y:93, width:100, height:20 },  // sensor
-    stage:                { x: 41, y:94, width:300, height:20 },  // sensor
+    bed_temp:             { x: 41, y:80, width:25,  height:0 },  // sensor
+    print_progress:       { x: 74, y:89, width:25,  height:0 },  // sensor
+    remaining_time:       { x: 74, y:93, width:100, height:0 },  // sensor
+    stage:                { x: 41, y:94, width:300, height:0 },  // sensor
   };
 
 
   private P1PEntityUX: { [key: string]: EntityUX } = {
-    print_progress:       { x: 23, y:9.5, width:25,  height:20 },  // sensor
-    remaining_time:       { x: 59, y:10,  width:100, height:20 },  // sensor
-//    hms:                  { x: 90,   y:10,  width:20,  height:20 },  // binary_sensor
-    chamber_light:        { x: 10, y:24,  width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 90, y:24,  width:70,  height:25 },  // fan
-    nozzle_temp:          { x: 50, y:35,  width:25,  height:20 },  // sensor
-    chamber_temp:         { x: 80, y:32,  width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 9,  y:60,  width:70,  height:25 },  // fan
+    print_progress:       { x: 23, y:9.5, width:25,  height:0 },  // sensor
+    remaining_time:       { x: 59, y:10,  width:100, height:0 },  // sensor
+//    hms:                  { x: 90,   y:10,  width:20,  height:0 },  // binary_sensor
+    chamber_light:        { x: 12, y:24,  width:20,  height:0 },  // light
+    chamber_fan_speed:    { x: 85, y:24,  width:70,  height:0 },  // fan
+    nozzle_temp:          { x: 50, y:35,  width:25,  height:0 },  // sensor
+    chamber_temp:         { x: 80, y:32,  width:20,  height:0 },  // sensor
+    aux_fan_speed:        { x: 12, y:60,  width:70,  height:0 },  // fan
     cover_image:          { x: 50, y:57,  width:150, height:150 }, // image
-    bed_temp:             { x: 50, y:76,  width:25,  height:20 },  // sensor
-    stage:                { x: 50, y:93,  width:300, height:20 },  // sensor
+    bed_temp:             { x: 50, y:76,  width:25,  height:0 },  // sensor
+    stage:                { x: 50, y:93,  width:300, height:0 },  // sensor
   };
 
   private P1SEntityUX: { [key: string]: EntityUX } = {
-//    hms:                  { x: 90, y:10,  width:20,  height:20 },  // binary_sensor
-    print_progress:       { x: 23, y:6,   width:25,  height:20 },  // sensor
-    remaining_time:       { x: 59, y:6.5, width:100, height:20 },  // sensor
-    chamber_light:        { x: 10, y:24,  width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 90, y:24,  width:70,  height:25 },  // fan
-    nozzle_temp:          { x: 50, y:35,  width:25,  height:20 },  // sensor
-    chamber_temp:         { x: 80, y:32,  width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 9,  y:52,  width:70,  height:25 },  // fan
+//    hms:                  { x: 90, y:10,  width:20,  height:0 },  // binary_sensor
+    print_progress:       { x: 23, y:6,   width:25,  height:0 },  // sensor
+    remaining_time:       { x: 59, y:6.5, width:100, height:0 },  // sensor
+    chamber_light:        { x: 13, y:24,  width:20,  height:0 },  // light
+    chamber_fan_speed:    { x: 86, y:24,  width:70,  height:0 },  // fan
+    nozzle_temp:          { x: 50, y:35,  width:25,  height:0 },  // sensor
+    chamber_temp:         { x: 80, y:32,  width:20,  height:0 },  // sensor
+    aux_fan_speed:        { x: 13,  y:52,  width:70,  height:0 },  // fan
     cover_image:          { x: 50, y:53,  width:150, height:150 }, // image
-    bed_temp:             { x: 50, y:72,  width:25,  height:20 },  // sensor
-    stage:                { x: 50, y:91,  width:300, height:20 },  // sensor
+    bed_temp:             { x: 50, y:72,  width:25,  height:0 },  // sensor
+    stage:                { x: 50, y:91,  width:300, height:0 },  // sensor
   };
 
   private X1CEntityUX: { [key: string]: EntityUX } = {
-//    hms:                  { x: 90, y:10, width:20,  height:20 },  // binary_sensor
-    print_progress:       { x: 29, y:6,  width:25,  height:20 },  // sensor
-    remaining_time:       { x: 29, y:11, width:100, height:20 },  // sensor
-    chamber_light:        { x: 10, y:25, width:20,  height:20 },  // light
-    chamber_fan_speed:    { x: 90, y:25, width:70,  height:25 },  // fan
-    nozzle_temp:          { x: 50, y:31, width:25,  height:20 },  // sensor
-    chamber_temp:         { x: 90, y:32, width:20,  height:20 },  // sensor
-    aux_fan_speed:        { x: 10, y:52, width:70,  height:25 },  // fan
+//    hms:                  { x: 90, y:10, width:20,  height:0 },  // binary_sensor
+    print_progress:       { x: 29, y:6,  width:25,  height:0 },  // sensor
+    remaining_time:       { x: 29, y:11, width:100, height:0 },  // sensor
+    chamber_light:        { x: 13, y:25, width:20,  height:0 },  // light
+    chamber_fan_speed:    { x: 86, y:25, width:70,  height:0 },  // fan
+    nozzle_temp:          { x: 50, y:31, width:25,  height:0 },  // sensor
+    chamber_temp:         { x: 86, y:35, width:20,  height:0 },  // sensor
+    aux_fan_speed:        { x: 13, y:52, width:70,  height:0 },  // fan
     cover_image:          { x: 50, y:53, width:150, height:150 }, // image
-    bed_temp:             { x: 50, y:75, width:25,  height:20 },  // sensor
-    stage:                { x: 50, y:93, width:300, height:20 },  // sensor
+    bed_temp:             { x: 50, y:75, width:25,  height:0 },  // sensor
+    stage:                { x: 50, y:93, width:300, height:0 },  // sensor
   };
 
   private EntityUX: { [key: string]: any } = {
@@ -219,9 +219,12 @@ export class PrintControlCard extends LitElement {
     return html`
       <ha-card class="card">
         <div class="control-container">
-          <div id="alpha-text">Alpha</div>
           <img id="printer" src="${this._getPrinterImage()}" width="466" height="516" />
-          <div id="container"></div>
+          <div id="container">
+            ${Object.keys(this._entityUX!).map((key) => {
+              return this._addElement(key);
+            })}
+          </div>
         </div>
       </ha-card>
     `;
@@ -246,71 +249,116 @@ export class PrintControlCard extends LitElement {
     }
 
     if (backgroundImage.complete) {
-      this._addElements(container, backgroundImage);
+      //this.requestUpdate();
     } else {
       backgroundImage.onload = () => {
-        this._addElements(container, backgroundImage);
+        this.requestUpdate();
       };
     }
   }
 
-  private _addElements(container: HTMLElement, backgroundImage: HTMLImageElement) {
+  private _addElement(key) {
     if (this._entityUX == undefined)
-      return;
-    
+      return html``;
+
+    const backgroundImage = this.shadowRoot?.getElementById('printer') as HTMLImageElement;
+    if (!backgroundImage)
+      return html``;
+
     const imageWidth = backgroundImage.width;
     const imageHeight = backgroundImage.height;
-  
-    let htmlString = ''; // Start with an empty string to build the HTML
-  
-    for (const key in this._entityUX) {
-      const entity = this._entityList[key];
-      if (entity != undefined) {
-        const e = this._entityUX[key];
-  
-        // Determine element type
-  
-        const left = (e.x / 100) * imageWidth;
-        const top = (e.y / 100) * imageHeight;
 
-        let style = `left:${left}px; top:${top}px; width:${e.width}px; height:${e.height}px;`
-  
-        // Build the HTML string for each element
-        let elementHTML = ""
-        let text = helpers.getLocalizedEntityState(this._hass, this._entityList[key]);
-        switch (key) {
-          case 'cover_image':
-            elementHTML = `<img class="entity" id="${key}" style="${style}" src="${this._getImageUrl()}" alt="Cover Image" />`;
-            break;
-          case 'chamber_light':
-            style += `background-color: rgba(0, 0, 0, 0.5); border-radius: ${2 + e.height/2}px; padding: 4px;`;
-            elementHTML = `<ha-icon class="entity" id="${key}" icon="mdi:lightbulb-outline" style="${style} color: ${text=='on'?'#ff0':'#fff'};"></ha-icon>`;
-            break;
-          default:
-            style += `background-color: rgba(0, 0, 0, 0.2); border-radius: ${e.height/2}px; padding: 2px;`;
-            if (key.includes('fan')) {
-              text = `<ha-icon icon="mdi:fan"></ha-icon>${text}%`
-            } 
-            else if (key == 'print_progress') {
-              text += '%'
-            }
-            else if (key.includes('temp')) {
-              const temp = Math.round(Number(text));
-              text = `${temp}&deg`
-            }
-            else if (key == 'remaining_time') {
-              text = helpers.formatMinutes(Number(text))
-            }
-            elementHTML = `<div class="entity" id="${key}" style="${style}">${text}</div>`;
-            break;
-        }
-  
-        htmlString += elementHTML; // Append the generated HTML to the string
+    const entity = this._entityList[key];
+    if (entity != undefined) {
+      const e = this._entityUX[key];
+
+      // Determine element type
+      const left = (e.x / 100) * imageWidth;
+      const top = (e.y / 100) * imageHeight;
+
+      let style = "";
+      if (e.height == 0) {
+        style = `left:${left}px; top:${top}px; width:auto; height:auto;`
+      } else {
+        style = `left:${left}px; top:${top}px; width:auto; height:${e.height}px;`
+      }
+
+      // Build the HTML string for each element
+      let text = helpers.getLocalizedEntityState(this._hass, this._entityList[key]);
+      switch (key) {
+        case 'cover_image':
+          return html`
+            <img
+              class="cover-image"
+              id="${key}"
+              style="${style}"
+              src="${this._getImageUrl()}"
+              alt="Cover Image"
+              />
+            `;
+        case 'chamber_light':
+          if (text == 'on') {
+            return html`
+              <ha-icon
+                class="entity" id="${key}"
+                icon="mdi:lightbulb-outline"
+                @click="${this._toggleLight}"
+                style="${style} color: rgb(255,165,0); background-color: rgba(255,165,0,0.3); box-shadow: 0 0 8px rgba(255,165,0,0.3);"
+                >
+              </ha-icon>`;
+          } else {
+            return html`
+              <ha-icon
+                class="entity"
+                id="${key}"
+                icon="mdi:lightbulb-outline"
+                @click="${this._toggleLight}"
+                style="${style} color: white;"
+                >
+              </ha-icon>`;
+          }
+          break;
+        default:
+          // Handling for fan
+          if (key.includes('fan')) {
+            return html`
+              <div class="entity" id="${key}" style="${style}">
+                <ha-icon icon="mdi:fan"></ha-icon>
+                ${text}%
+              </div>
+            `;
+          } else if (key === 'print_progress') {
+            return html`
+              <div class="entity" id="${key}" style="${style}">
+                ${text}%
+              </div>`;
+          } else if (key.includes('temp')) {
+            const temp = Math.round(Number(text));
+            return html`
+              <div class="entity" id="${key}" style="${style}">
+                ${temp}&deg;
+              </div>`;
+          } else if (key === 'remaining_time') {
+            return html`
+              <div class="entity" id="${key}" style="${style}">
+                ${helpers.formatMinutes(Number(text))}
+              </div>`;
+          }
+
+          // Default case
+          return html`<div class="entity" id="${key}" style="${style}">${text}</div>`;
       }
     }
-  
-    // Inject the constructed HTML string into the container
-    container.innerHTML = htmlString;
+    return html``
+  }
+
+  private _toggleLight() {
+    const data = {
+      entity_id: this._entityList['chamber_light'].entity_id
+    }
+    const lightOn = helpers.getEntityState(this._hass, this._entityList['chamber_light']) == 'on'
+    const service = lightOn ? 'turn_off' : 'turn_on';
+    this._hass.callService('light', service, data);
   }
 
   private _getImageUrl() {
