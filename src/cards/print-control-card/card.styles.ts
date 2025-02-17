@@ -2,14 +2,6 @@ import { css } from "lit";
 
 export default css`
 
-#alpha-text {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  color: red;
-  font-size: 18px;
-  font-weight: bold;
-}
 .button {
   display: inline-flex;
   align-items: center;
@@ -49,6 +41,7 @@ button:disabled {
   overflow-y: auto;    
   display: flex;
   flex-wrap: wrap;
+  min-height: 20px;
   max-height: 220px;
   width: 100%;
   max-width: 100%;
@@ -74,7 +67,6 @@ button:disabled {
   width: 100%;
   max-width: min(calc(100vw - 70px), 512px);
   max-height: calc(90vh - 90px);
-  overflow-y: auto;
   transform: translate(-50%,-50%);
   background-color: var(--card-background-color, white);
   padding: 10px;
@@ -107,7 +99,7 @@ button:disabled {
   font-size: 14px;
   display: flex;
   flex-direction: column; 
-  overflow: hidden;
+  overflow: auto;
 }
 #speed {
   display: inline-flex;

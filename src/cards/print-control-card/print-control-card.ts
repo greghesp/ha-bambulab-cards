@@ -434,7 +434,6 @@ export class PrintControlCard extends LitElement {
           <div class="popup-background" @click="${this._cancelPopup}"></div>
           <div class="popup">
             <div class="popup-header">Skip Objects</div>
-            <div id="alpha-text">Alpha</div>
             <div class="popup-content">
               <p>Select the object(s) you want to skip printing by tapping them in the image or the list.</p>
               <canvas id="canvas" width="512" height="512"></canvas>

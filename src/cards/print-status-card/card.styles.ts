@@ -2,14 +2,6 @@ import { css } from "lit";
 
 export default css`
 
-#alpha-text {
-  position: absolute;
-  top: 1px;
-  right: 1px;
-  color: red;
-  font-size: 12px;
-  font-weight: bold;
-}
 .card {
   display: flex;
   justify-content: center;
@@ -30,13 +22,26 @@ export default css`
     width: 100%;
     height: 100%;
 }
-.entity {
+.cover-image {
     position: absolute;
+    display: flex;
     transform: translate(-50%, -50%);
     display: flex;
+}
+.entity {
+    position: absolute;
+    display: flex;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
     justify-content: center;
     text-align: center;
     align-items: center;
+    background-color: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.3);
+    padding: 6px;
+    color: white;
 }
 #printer {
   display: block;
