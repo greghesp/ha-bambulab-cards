@@ -332,7 +332,6 @@ export class PrintControlCard extends LitElement {
           if (key.includes('fan')) {
             const fan = this._states[this._entityList[key].entity_id]
             text = fan.attributes['percentage'];
-            console.log(e)
             return html`
               <div class="entity" style="${style}" @click="${() => this._clickEntity(key)}">
                 <ha-icon icon="mdi:fan"></ha-icon>
