@@ -17,7 +17,7 @@ registerCustomCard({
 
 const ENTITYLIST: string[] = [
   "pause",
-//  "pick_image",
+  "pick_image",
   "printable_objects",
   "printing_speed",
   "resume",
@@ -43,7 +43,6 @@ export class PrintControlCard extends LitElement {
 
   @state() private _states;
   @state() private _device_id: any;
-  @state() private _entities: any;
   @state() private _popupVisible: boolean = false;
   @state() private _objects = new Map<number, PrintableObject>();
   @state() private _hoveredObject: number = 0;
@@ -378,7 +377,8 @@ export class PrintControlCard extends LitElement {
 
   private _showSkipButton() {
     const countOfPrintableObjects = Object.keys(this._getPrintableObjects()).length;
-    if ((countOfPrintableObjects < 2) ||
+    if ((this._pickImageState == undefined) ||
+        (countOfPrintableObjects < 2) ||
         (countOfPrintableObjects > 64))
     {
       return false;      
