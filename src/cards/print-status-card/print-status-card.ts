@@ -248,9 +248,7 @@ export class PrintControlCard extends LitElement {
       return
     }
 
-    if (backgroundImage.complete) {
-      //this.requestUpdate();
-    } else {
+    if (!backgroundImage.complete) {
       backgroundImage.onload = () => {
         this.requestUpdate();
       };
