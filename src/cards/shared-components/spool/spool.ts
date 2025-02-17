@@ -98,13 +98,14 @@ export class Spool extends LitElement {
   }
 
   modal() {
+    console.log("color", this.state.attributes.color);
     return html`
       <ha-dialog id="confirmation-popup" ?open=${this._dialogOpen} heading="title">
         <ha-dialog-header slot="heading">
           <ha-icon-button
             slot="navigationIcon"
             dialogAction="cancel"
-            .path="${mdiClose}"
+            .path="mdi:water"
           ></ha-icon-button>
           <div slot="title">${this.state.attributes.friendly_name}</div>
         </ha-dialog-header>

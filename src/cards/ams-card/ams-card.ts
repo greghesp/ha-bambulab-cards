@@ -5,7 +5,7 @@ import { html, LitElement, nothing } from "lit";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { INTEGRATION_DOMAIN, MANUFACTURER, AMS_MODELS } from "../../const";
 import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME } from "./const";
-import { hassContext, deviceEntitesContext } from "../../utils/context";
+import { hassContext, deviceEntitesContext, infoBarContext } from "../../utils/context";
 import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
@@ -35,10 +35,8 @@ interface Result {
 @customElement(AMS_CARD_NAME)
 export class AMS_CARD extends LitElement {
   // private property
-  @state() private _hass?;
   @state() private _subtitle;
   @state() private _deviceId: any;
-  @state() private _deviceEntities: any;
   @state() private _states;
   @state() private _style;
   @state() private _showInfoBar;
@@ -47,14 +45,17 @@ export class AMS_CARD extends LitElement {
   @state() private _customTemperature;
 
   @provide({ context: hassContext })
-  protected get provideHass() {
-    return this._hass;
-  }
+  private _hass?;
 
   @provide({ context: deviceEntitesContext })
-  protected get provideEntities() {
-    return this._deviceEntities;
-  }
+  private _deviceEntities: any;
+
+  @provide({ context: infoBarContext })
+  private _infoBar: {
+    active: boolean;
+    title: string;
+    sensors: [];
+  };
 
   static styles = styles;
 
@@ -75,8 +76,14 @@ export class AMS_CARD extends LitElement {
     }
 
     this._subtitle = config.subtitle === "" ? nothing : config.subtitle;
+    this._deviceEntities = config.entities;
     this._deviceId = config.ams;
     this._style = config.style;
+    this._infoBar = {
+      active: config.show_info_bar ? true : false,
+      title: config.subtitle === "" ? nothing : config.subtitle,
+      sensors: config.info_bar_sensors,
+    };
     this._showInfoBar = config.show_info_bar ? true : false;
     this._showType = config.show_type ? true : false;
     this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
@@ -108,6 +115,7 @@ export class AMS_CARD extends LitElement {
   }
 
   render() {
+    console.log("this._deviceEntities", this._deviceEntities);
     if (this._style == "graphic") {
       return html`
         <graphic-ams-card
@@ -123,7 +131,6 @@ export class AMS_CARD extends LitElement {
       return html`
         <vector-ams-card
           .subtitle="${this._subtitle}"
-          .states="${this._states}"
           .showInfoBar=${this._showInfoBar}
           .showType=${this._showType}
           .customHumidity=${this._customHumidity}

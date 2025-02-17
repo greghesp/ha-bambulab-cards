@@ -1,4 +1,5 @@
 export function getContrastingTextColor(hexColor) {
+  if (!hexColor) return "#000000";
   // Remove the '#' if present
   hexColor = hexColor.replace("#", "");
 
@@ -19,8 +20,8 @@ export function rgbaToInt(r, g, b, a) {
 }
 
 export function formatMinutes(minutes: number): string {
-  const mins  = Math.round(minutes % 60);      // Get the remaining minutes, rounded
-  const days  = Math.floor(minutes / (60*24)); // Get the whole days
+  const mins = Math.round(minutes % 60); // Get the remaining minutes, rounded
+  const days = Math.floor(minutes / (60 * 24)); // Get the whole days
   const hours = Math.floor(minutes / 60) % 24; // Get the whole hours
 
   // Create a readable string
@@ -39,7 +40,6 @@ export async function asyncGetEntity(hass, entity_id) {
   });
 }
 
-
 export interface Entity {
   entity_id: string;
   device_id: string;
@@ -49,37 +49,40 @@ export interface Entity {
   name: string;
 }
 
-export function getBambuDeviceEntities(hass, device_id, entities: string[]): { [key: string]: Entity } {
-  const result: { [key: string]: Entity } = {}
+export function getBambuDeviceEntities(
+  hass,
+  device_id,
+  entities: string[]
+): { [key: string]: Entity } {
+  const result: { [key: string]: Entity } = {};
   // Loop through all hass entities, and find those that belong to the selected device
   for (let k in hass.entities) {
     const value = hass.entities[k];
     if (value.device_id === device_id) {
       for (const key of entities) {
         if (key == value.translation_key) {
-          result[key] = value
+          result[key] = value;
         }
-      };
+      }
     }
   }
   return result;
 }
 
 export function isEntityUnavailable(hass, entity: Entity): boolean {
-  return hass.states[entity?.entity_id]?.state == 'unavailable';
+  return hass.states[entity?.entity_id]?.state == "unavailable";
 }
 
 export function getLocalizedEntityState(hass, entity: Entity) {
   const entityId = entity.entity_id;
-  const entityClass = entityId.substring(0, entityId.indexOf('.'));
+  const entityClass = entityId.substring(0, entityId.indexOf("."));
   const entityState = hass.states[entityId]?.state;
   if (entityId && entityState) {
     // Example localization key:
     // "component.bambu_lab.entity.sensor.stage.state.idle"
     const key = `component.bambu_lab.entity.${entityClass}.${entity.translation_key}.state.${entityState}`;
     return hass.localize(key) || entityState;
-  }
-  else {
+  } else {
     return "";
   }
 }
@@ -89,8 +92,7 @@ export function getEntityState(hass, entity: Entity) {
   const entityState = hass.states[entityId]?.state;
   if (entityState) {
     return entityState;
-  }
-  else {
+  } else {
     return "";
   }
 }

@@ -1,9 +1,14 @@
 import { customElement, property } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./info-bar.styles";
+import { consume } from "@lit/context";
+import { infoBarContext } from "../../../../utils/context";
 
 @customElement("info-bar")
 export class InfoBar extends LitElement {
+  @consume({ context: infoBarContext, subscribe: true })
+  private _infoBar;
+
   @property({ type: String }) public subtitle;
   @property({ type: Object }) public humidity;
   @property({ type: Object }) public temperature;
@@ -57,9 +62,10 @@ export class InfoBar extends LitElement {
   }
 
   render() {
+    if (!this._infoBar.active) return nothing;
     return html`
       <div class="extra-info">
-        <div class="subtitle">${this.subtitle}</div>
+        <div class="title">${this._infoBar.title}</div>
         <div class="info-slots">
           ${this.humidity
             ? html` <div class="info">
