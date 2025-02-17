@@ -28,22 +28,13 @@ export class Spool extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.color = this.hass.states[this.entity_id]?.attributes.color;
-    this.active =
-      this.hass.states[this.entity_id]?.attributes.active ||
-      this.hass.states[this.entity_id]?.attributes.in_use
-        ? true
-        : false;
-    this.name = this.hass.states[this.entity_id]?.attributes.name;
-    this.remaining = this.hass.states[this.entity_id]?.attributes?.remain;
-    this.tag_uid = this.hass.states[this.entity_id]?.attributes.tag_uid;
-    this.state = this.hass.states[this.entity_id];
+    this.updateFromHass();
+
+    // Create a bound instance method to avoid creating new functions on each resize
+    this._handleResize = this._handleResize.bind(this);
 
     // Start observing the parent element for size changes
-    this.resizeObserver = new ResizeObserver(() => {
-      this.calculateHeights();
-      this.updateLayers();
-    });
+    this.resizeObserver = new ResizeObserver(this._handleResize);
     const rootNode = this.getRootNode() as ShadowRoot;
     const parent = this.parentElement || (rootNode instanceof ShadowRoot ? rootNode.host : null);
     if (parent) {
@@ -51,11 +42,19 @@ export class Spool extends LitElement {
     }
   }
 
+  private _handleResize() {
+    // Only update if the component is still connected to the DOM
+    if (this.isConnected) {
+      this.calculateHeights();
+      this.updateLayers();
+    }
+  }
+
   disconnectedCallback() {
     super.disconnectedCallback();
-    // Stop observing when the component is removed
     if (this.resizeObserver) {
-      this.resizeObserver?.disconnect();
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
     }
   }
 
@@ -72,12 +71,15 @@ export class Spool extends LitElement {
   }
 
   render() {
+    console.log("spool component render");
     return html`
       ${this.modal()}
       <div class="ha-bambulab-spool-card-container">
         <div
           class="ha-bambulab-spool-card-holder"
-          style="border-color: ${this.active ? this.color : "#808080"}"
+          style="border-color: ${this.active
+            ? this.hass.states[this.entity_id]?.attributes.color
+            : "#808080"}"
           @click=${this._handleClick}
         >
           <div class="ha-bambulab-spool-container">
@@ -89,11 +91,16 @@ export class Spool extends LitElement {
               <div
                 class="v-string-roll"
                 id="v-string-roll"
-                style="background: ${this.color}; height: ${this.remainHeight.toFixed(2)}%"
+                style="background: ${this.hass.states[this.entity_id]?.attributes
+                  .color}; height: ${this.remainHeight.toFixed(2)}%"
               >
                 ${this.active ? html`<div class="v-reflection"></div>` : nothing}
-                ${this?.remaining > 0
-                  ? html` <div class="remaining-percent"><p>${this.remaining}%</p></div> `
+                ${this.hass.states[this.entity_id]?.attributes?.remain > 0
+                  ? html`
+                      <div class="remaining-percent">
+                        <p>${this.hass.states[this.entity_id]?.attributes?.remain}%</p>
+                      </div>
+                    `
                   : nothing}
               </div>
             </div>
@@ -103,7 +110,9 @@ export class Spool extends LitElement {
         ${this.show_type
           ? html` <div class="ha-bambulab-spool-info-container">
               <div class="ha-bambulab-spool-info-wrapper">
-                <div class="ha-bambulab-spool-info">${this.name}</div>
+                <div class="ha-bambulab-spool-info">
+                  ${this.hass.states[this.entity_id]?.attributes.name}
+                </div>
               </div>
             </div>`
           : nothing}
@@ -112,34 +121,44 @@ export class Spool extends LitElement {
   }
 
   modal() {
+    if (!this._dialogOpen) return nothing;
+
+    console.log("spool component modal rendered");
     return html`
-      <ha-dialog id="confirmation-popup" ?open=${this._dialogOpen} heading="title">
+      <ha-dialog
+        id="confirmation-popup"
+        .open=${this._dialogOpen}
+        @closed=${this._closeDialog}
+        heading="title"
+      >
         <ha-dialog-header slot="heading">
-          <ha-icon-button
-            slot="navigationIcon"
-            dialogAction="cancel"
-            .path="mdi:water"
+          <ha-icon-button slot="navigationIcon" dialogAction="cancel"
+            ><ha-icon icon="mdi:close"></ha-icon
           ></ha-icon-button>
-          <div slot="title">${this.state.attributes.friendly_name}</div>
+          <div slot="title">${this.hass.states[this.entity_id].attributes.friendly_name}</div>
         </ha-dialog-header>
         <div class="ha-bambulab-spool-modal-container">
           <div class="filament-title section-title">Filament Information</div>
           <div class="div2 item-title">Filament</div>
-          <div class="div3 item-value">${this.state.attributes.name}</div>
+          <div class="div3 item-value">${this.hass.states[this.entity_id].attributes.name}</div>
           <div class="div4 item-value">
             <span
-              style="background-color: ${this.state.attributes
+              style="background-color: ${this.hass.states[this.entity_id].attributes
                 .color}; color: ${getContrastingTextColor(
-                this.state.attributes.color
+                this.hass.states[this.entity_id].attributes.color
               )}; padding: 5px 10px; border-radius: 5px;"
-              >${this.state.attributes.color}</span
+              >${this.hass.states[this.entity_id].attributes.color}</span
             >
           </div>
           <div class="div5 item-title">Color</div>
           <div class="div6 section-title">Nozzle Temperature</div>
           <div class="div7 item-title">Minimum</div>
-          <div class="div8 item-value">${this.state.attributes.nozzle_temp_min}</div>
-          <div class="div9 item-value ">${this.state.attributes.nozzle_temp_max}</div>
+          <div class="div8 item-value">
+            ${this.hass.states[this.entity_id].attributes.nozzle_temp_min}
+          </div>
+          <div class="div9 item-value ">
+            ${this.hass.states[this.entity_id].attributes.nozzle_temp_max}
+          </div>
           <div class="div10 item-title">Maximum</div>
           <div class="action-buttons">
             <mwc-button class="action-button" @click=${this._closeDialog}>Load</mwc-button>
@@ -178,25 +197,22 @@ export class Spool extends LitElement {
     }
   }
 
-  getRemainingValue() {
-    if (this.isAllZeros(this.tag_uid)) {
-      return { type: "generic", value: 100 };
-    } else if (this.remaining < 0) {
-      return { type: "unknown", value: 100 };
-    }
-    return { type: "bambu", value: this.remaining };
-  }
-
   isAllZeros(str) {
     return /^0+$/.test(str);
   }
 
   calculateHeights() {
+    // Skip calculation if modal is open to prevent unwanted updates
+    if (this._dialogOpen) return;
+
     const maxHeightPercentage = 95;
     const minHeightPercentage = 12;
 
     // If not a Bambu Spool or remaining is less than 0
-    if (this.isAllZeros(this.tag_uid) || this.remaining < 0) {
+    if (
+      this.isAllZeros(this.hass.states[this.entity_id]?.attributes.tag_uid) ||
+      this.hass.states[this.entity_id]?.attributes?.remain < 0
+    ) {
       this.remainHeight = maxHeightPercentage;
     } else {
       // Get the container's height
@@ -210,7 +226,10 @@ export class Spool extends LitElement {
       const minHeightPx = containerHeight * (minHeightPercentage / 100);
 
       // Calculate remain height based on the remain percentage
-      const remainPercentage = Math.min(Math.max(this.remaining, 0), 100);
+      const remainPercentage = Math.min(
+        Math.max(this.hass.states[this.entity_id]?.attributes?.remain, 0),
+        100
+      );
       this.remainHeight = minHeightPx + (maxHeightPx - minHeightPx) * (remainPercentage / 100);
 
       // Convert back to percentage of container
@@ -223,5 +242,36 @@ export class Spool extends LitElement {
       maxHeightPercentage
     );
     this.requestUpdate();
+  }
+
+  // Add willUpdate lifecycle method to handle hass changes
+  willUpdate(changedProperties) {
+    if (changedProperties.has("hass")) {
+      // Skip the update if dialog is open to prevent unwanted re-renders
+      if (!this._dialogOpen) {
+        this.updateFromHass();
+      }
+    }
+  }
+
+  // New method to handle state updates
+  private updateFromHass() {
+    if (!this.hass || !this.entity_id) return;
+    console.log("updateFromHass");
+
+    const newActive =
+      this.hass.states[this.entity_id]?.attributes.active ||
+      this.hass.states[this.entity_id]?.attributes.in_use
+        ? true
+        : false;
+
+    // Only update if the active state has changed
+    if (this.active !== newActive) {
+      this.active = newActive;
+      // Only recalculate heights if dialog is not open
+      if (!this._dialogOpen) {
+        this.calculateHeights();
+      }
+    }
   }
 }

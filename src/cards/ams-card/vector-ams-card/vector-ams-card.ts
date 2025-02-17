@@ -20,9 +20,10 @@ export class VectorAmsCard extends LitElement {
         <div class="v-wrapper">
           <info-bar></info-bar>
           <div class="v-ams-container">
-            ${this._entities?.spools.map(
-              (spool: { entity_id: string | number }) => html`
+            ${this._entities?.spools?.map(
+              (spool: { entity_id: string }) => html`
                 <ha-bambulab-spool
+                  .key="${spool.entity_id}"
                   style="padding: 0px 5px"
                   .entity_id="${spool.entity_id}"
                   .show_type=${this.showType}
