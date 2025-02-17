@@ -201,11 +201,14 @@ export class PrintControlCard extends LitElement {
       this._entityUX = this.EntityUX[this._model];
       this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, Object.keys(this._entityUX!));
 
+      console.log("FIRST TIME")
       // We have the model and the chamber light entity - kick off the background image load asap.
       this.requestUpdate();
 
       // Now we create the html elements for the entities.
+      console.log("FIRST TIME2")
       this._createEntityElements();
+      console.log("FIRST TIME3")
     }
   }
 
@@ -288,7 +291,6 @@ export class PrintControlCard extends LitElement {
           return html`
             <img
               class="cover-image"
-              id="${key}"
               style="${style}"
               src="${this._getImageUrl()}"
               alt="Cover Image"
@@ -298,7 +300,7 @@ export class PrintControlCard extends LitElement {
           if (text == 'on') {
             return html`
               <ha-icon
-                class="entity" id="${key}"
+                class="entity"
                 icon="mdi:lightbulb-outline"
                 @click="${this._toggleLight}"
                 style="${style} color: rgb(255,165,0); background-color: rgba(255,165,0,0.3); box-shadow: 0 0 8px rgba(255,165,0,0.3);"
@@ -308,7 +310,6 @@ export class PrintControlCard extends LitElement {
             return html`
               <ha-icon
                 class="entity"
-                id="${key}"
                 icon="mdi:lightbulb-outline"
                 @click="${this._toggleLight}"
                 style="${style} color: white;"
@@ -320,25 +321,25 @@ export class PrintControlCard extends LitElement {
           // Handling for fan
           if (key.includes('fan')) {
             return html`
-              <div class="entity" id="${key}" style="${style}">
+              <div class="entity" style="${style}">
                 <ha-icon icon="mdi:fan"></ha-icon>
                 ${text}%
               </div>
             `;
           } else if (key === 'print_progress') {
             return html`
-              <div class="entity" id="${key}" style="${style}">
+              <div class="entity" style="${style}">
                 ${text}%
               </div>`;
           } else if (key.includes('temp')) {
             const temp = Math.round(Number(text));
             return html`
-              <div class="entity" id="${key}" style="${style}">
+              <div class="entity" style="${style}">
                 ${temp}&deg;
               </div>`;
           } else if (key === 'remaining_time') {
             return html`
-              <div class="entity" id="${key}" style="${style}">
+              <div class="entity" style="${style}">
                 ${helpers.formatMinutes(Number(text))}
               </div>`;
           }
