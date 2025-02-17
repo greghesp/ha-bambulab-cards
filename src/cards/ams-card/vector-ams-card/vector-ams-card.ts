@@ -10,11 +10,7 @@ export class VectorAmsCard extends LitElement {
   @consume({ context: deviceEntitesContext, subscribe: true })
   private _entities;
 
-  @property() public subtitle;
-  @property() public showInfoBar;
   @property() public showType;
-  @property() public customHumidity;
-  @property() public customTemperature;
 
   static styles = styles;
 

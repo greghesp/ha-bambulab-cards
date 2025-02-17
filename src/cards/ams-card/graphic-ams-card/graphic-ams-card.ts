@@ -1,82 +1,45 @@
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./graphic-ams-card.styles";
 import AMSImage from "../../../images/ams.png";
 import "../components/info-bar/info-bar";
+import { deviceEntitesContext, hassContext } from "../../../utils/context";
+import { consume, provide } from "@lit/context";
+
 @customElement("graphic-ams-card")
 export class GraphicAmsCard extends LitElement {
-  @property() public subtitle;
-  @property() public showInfoBar;
-  @property({ type: Object }) public entities;
-  @property({ type: Object }) public states;
-  @property() public customHumidity;
-  @property() public customTemperature;
+  @consume({ context: deviceEntitesContext, subscribe: true })
+  private _entities;
+
+  @consume({ context: hassContext, subscribe: true })
+  @state()
+  private _hass;
 
   static styles = styles;
-  temperature() {
-    if (this.customTemperature) {
-      return {
-        type: "custom",
-        value: this.states[this.customTemperature]?.state,
-        unit_of_measurement:
-          this.states[this.customTemperature]?.attributes?.unit_of_measurement || "",
-      };
-    }
-    if (this?.entities?.temperature) {
-      return {
-        type: "default",
-        value: this.states[this.entities.temperature.entity_id]?.state,
-        unit_of_measurement:
-          this.states[this.entities.temperature.entity_id]?.attributes.unit_of_measurement,
-      };
-    }
-    return nothing;
-  }
-
-  humidity() {
-    if (this.customHumidity) {
-      return {
-        type: "custom",
-        value: this.states[this.customHumidity]?.state,
-      };
-    }
-    if (this?.entities?.humidity) {
-      return {
-        type: "default",
-        value: this.states[this.entities.humidity.entity_id]?.state,
-      };
-    }
-    return nothing;
-  }
 
   render() {
+    console.log("graphic ams card", this._hass);
     return html` <ha-card class="card">
       <div class="v-wrapper">
-        ${this.showInfoBar
-          ? html`<info-bar
-              subtitle="${this.subtitle}"
-              .humidity="${this.humidity()}"
-              .temperature="${this.temperature()}"
-            ></info-bar>`
-          : nothing}
+        <info-bar></info-bar>
         <div class="ams-container">
           <img src=${AMSImage} alt="" />
-          ${this.entities?.spools.map(
+          ${this._entities?.spools.map(
             (spool, i) => html`
               <div class="spool slot-${i + 1}">
                 <div class="spool-info">
                   <span
                     class="spool-badge"
-                    style="border: ${this.states[spool.entity_id]?.attributes.active ||
-                    this.states[spool.entity_id]?.attributes.in_use
-                      ? `2px solid ${this.states[spool.entity_id]?.attributes.color}`
+                    style="border: ${this._hass.states[spool.entity_id]?.attributes.active ||
+                    this._hass.states[spool.entity_id]?.attributes.in_use
+                      ? `2px solid ${this._hass.states[spool.entity_id]?.attributes.color}`
                       : `2px solid rgba(255, 255, 255, 0)`}"
                   >
                     <ha-icon
-                      icon=${this.states[spool.entity_id]?.state !== "Empty"
+                      icon=${this._hass.states[spool.entity_id]?.state !== "Empty"
                         ? "mdi:printer-3d-nozzle"
                         : "mdi:tray"}
-                      style="color: ${this.states[spool.entity_id]?.attributes.color};"
+                      style="color: ${this._hass.states[spool.entity_id]?.attributes.color};"
                     >
                     </ha-icon>
                   </span>
@@ -84,10 +47,10 @@ export class GraphicAmsCard extends LitElement {
                 <div class="spool-info">
                   <span
                     class="spool-type"
-                    style="border: ${this.states[spool.entity_id]?.attributes.active
-                      ? `2px solid ${this.states[spool.entity_id]?.attributes.color}`
+                    style="border: ${this._hass.states[spool.entity_id]?.attributes.active
+                      ? `2px solid ${this._hass.states[spool.entity_id]?.attributes.color}`
                       : `2px solid rgba(255, 255, 255, 0)`};"
-                    >${this.states[spool.entity_id]?.attributes.type}</span
+                    >${this._hass.states[spool.entity_id]?.attributes.type}</span
                   >
                 </div>
               </div>
