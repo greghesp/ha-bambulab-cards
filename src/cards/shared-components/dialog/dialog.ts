@@ -7,7 +7,6 @@ export class Dialog extends LitElement {
   @property({ type: Boolean }) open = false;
 
   render() {
-    console.log("isopen", this.open);
     return html` <ha-dialog id="confirmation-popup" ?open=${this.open} heading="title">
       <ha-dialog-header slot="heading">
         <div slot="title">${this.heading}</div>

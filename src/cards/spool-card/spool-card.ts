@@ -4,6 +4,8 @@ import { SPOOL_CARD_EDITOR_NAME, SPOOL_CARD_NAME } from "./const";
 import { css, html, LitElement, nothing } from "lit";
 import "../shared-components/spool/spool";
 import { styles } from "./spool-card.styles";
+import { provide } from "@lit/context";
+import { hassContext } from "../../utils/context";
 
 registerCustomCard({
   type: SPOOL_CARD_NAME,
@@ -13,13 +15,16 @@ registerCustomCard({
 
 @customElement(SPOOL_CARD_NAME)
 export class SpoolCard extends LitElement {
-  @state() private _config?;
-  @state() private _hass: any;
   @property() public _spool;
   @property() public states;
   @property() public _spoolEntityId;
   @property() public _showType;
   @property() public _state;
+
+  @provide({ context: hassContext })
+  @state()
+  private _hass?;
+
   public getLayoutOptions() {
     return {
       grid_rows: this._showType ? 3 : 2,
@@ -58,18 +63,14 @@ export class SpoolCard extends LitElement {
     return html`
       <ha-card class="card">
         <ha-bambulab-spool
-          ?active="${this.states[this._spoolEntityId]?.attributes.active}"
-          .color="${this.states[this._spoolEntityId]?.attributes.color}"
-          .name="${this.states[this._spoolEntityId]?.attributes.name}"
-          .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
-          .state=${this.states[this._spoolEntityId]}
+          .entity_id="${this._spoolEntityId}"
           .show_type=${this._showType}
         ></ha-bambulab-spool>
       </ha-card>
     `;
   }
 
-  private async getSpool() {
+  private getSpool() {
     let entityId = null;
     // Loop through all hass entities, and find those that belong to the selected device
     for (let key in this._hass.entities) {

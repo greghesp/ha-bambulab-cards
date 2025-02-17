@@ -43,8 +43,10 @@ export class AMS_CARD extends LitElement {
   @state() private _showType;
   @state() private _customHumidity;
   @state() private _customTemperature;
+  @state() private _isLoading = true;
 
   @provide({ context: hassContext })
+  @state()
   private _hass?;
 
   @provide({ context: deviceEntitesContext })
@@ -54,10 +56,18 @@ export class AMS_CARD extends LitElement {
   private _infoBar: {
     active: boolean;
     title: string;
-    sensors: [];
+    sensors: { humidity: any; temperature: any };
+  } = {
+    active: false,
+    title: "",
+    sensors: {
+      humidity: null,
+      temperature: null,
+    },
   };
 
   static styles = styles;
+  config: any;
 
   public getLayoutOptions() {
     return {
@@ -68,31 +78,6 @@ export class AMS_CARD extends LitElement {
         this._style === "graphic" ? (this._showInfoBar ? 5 : 4) : this._showInfoBar ? 4 : 3,
       grid_min_columns: 4,
     };
-  }
-
-  setConfig(config) {
-    if (!config.ams) {
-      throw new Error("You need to select an AMS");
-    }
-
-    this._subtitle = config.subtitle === "" ? nothing : config.subtitle;
-    this._deviceEntities = config.entities;
-    this._deviceId = config.ams;
-    this._style = config.style;
-    this._infoBar = {
-      active: config.show_info_bar ? true : false,
-      title: config.subtitle === "" ? nothing : config.subtitle,
-      sensors: config.info_bar_sensors,
-    };
-    this._showInfoBar = config.show_info_bar ? true : false;
-    this._showType = config.show_type ? true : false;
-    this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
-    this._customTemperature =
-      config.custom_temperature === "" ? nothing : config.custom_temperature;
-
-    if (this._hass) {
-      this.hass = this._hass;
-    }
   }
 
   set hass(hass) {
@@ -111,11 +96,46 @@ export class AMS_CARD extends LitElement {
       });
     }
 
-    this.filterBambuDevices();
+    this.fetchDevices();
+  }
+
+  private async fetchDevices() {
+    this._isLoading = true;
+    try {
+      await this.filterBambuDevices();
+      this._infoBar.sensors = this.returnInfoBarSensors();
+    } finally {
+      this._isLoading = false;
+    }
+  }
+
+  setConfig(config) {
+    if (!config.ams) {
+      throw new Error("You need to select an AMS");
+    }
+    this.config = config;
+
+    this._subtitle = config.subtitle === "" ? nothing : config.subtitle;
+    this._deviceEntities = config.entities;
+    this._deviceId = config.ams;
+    this._style = config.style;
+    this._infoBar = {
+      active: config.show_info_bar ? true : false,
+      title: config.subtitle === "" ? nothing : config.subtitle,
+      sensors: {
+        humidity: null,
+        temperature: null,
+      },
+    };
+    this._showInfoBar = config.show_info_bar ? true : false;
+    this._showType = config.show_type ? true : false;
+    this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
+    this._customTemperature =
+      config.custom_temperature === "" ? nothing : config.custom_temperature;
   }
 
   render() {
-    console.log("this._deviceEntities", this._deviceEntities);
+    if (this._isLoading) return nothing;
     if (this._style == "graphic") {
       return html`
         <graphic-ams-card
@@ -128,15 +148,7 @@ export class AMS_CARD extends LitElement {
         />
       `;
     } else {
-      return html`
-        <vector-ams-card
-          .subtitle="${this._subtitle}"
-          .showInfoBar=${this._showInfoBar}
-          .showType=${this._showType}
-          .customHumidity=${this._customHumidity}
-          .customTemperature=${this._customTemperature}
-        />
-      `;
+      return html` <vector-ams-card .showType=${this._showType} /> `;
     }
   }
 
@@ -204,5 +216,24 @@ export class AMS_CARD extends LitElement {
       console.error("Error fetching device info:", error);
       return null;
     }
+  }
+
+  private returnInfoBarSensors() {
+    const sensors: { humidity: any; temperature: any } = {
+      humidity: null,
+      temperature: null,
+    };
+    if (this.config.custom_humidity) {
+      sensors.humidity = this._hass.states[this.config.custom_humidity];
+    } else if (this._deviceEntities.humidity) {
+      sensors.humidity = this._hass.states[this._deviceEntities.humidity.entity_id];
+    }
+
+    if (this.config.custom_temperature) {
+      sensors.temperature = this._hass.states[this.config.custom_temperature];
+    } else if (this._deviceEntities.temperature) {
+      sensors.temperature = this._hass.states[this._deviceEntities.temperature.entity_id];
+    }
+    return sensors;
   }
 }

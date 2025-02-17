@@ -9,14 +9,10 @@ export class InfoBar extends LitElement {
   @consume({ context: infoBarContext, subscribe: true })
   private _infoBar;
 
-  @property({ type: String }) public subtitle;
-  @property({ type: Object }) public humidity;
-  @property({ type: Object }) public temperature;
-
   static styles = styles;
 
   getHumidityColor() {
-    switch (this.humidity) {
+    switch (this._infoBar.sensors.humidity.state) {
       case "1":
         return "#e0f7fa"; // very light blue
       case "2":
@@ -34,8 +30,8 @@ export class InfoBar extends LitElement {
 
   getTemperatureColor() {
     // Ensure temperature is within 0–30 if you want to clamp out-of-range values:
-    let temp = parseFloat(this.temperature.value);
-    const unit = this.temperature.unit_of_measurement;
+    let temp = parseFloat(this._infoBar.sensors.temperature.state);
+    const unit = this._infoBar.sensors.temperature.attributes.unit_of_measurement;
 
     if (unit !== "°C") {
       temp = ((temp - 32) * 5) / 9;
@@ -67,27 +63,21 @@ export class InfoBar extends LitElement {
       <div class="extra-info">
         <div class="title">${this._infoBar.title}</div>
         <div class="info-slots">
-          ${this.humidity
+          ${this._infoBar.sensors?.humidity
             ? html` <div class="info">
                 <span><ha-icon icon="mdi:water" style="color: ${this.getHumidityColor()}" /></span>
-                <span
-                  >${this.humidity.type == "custom"
-                    ? this.humidity.value + "%"
-                    : this.humidity.value}</span
-                >
+                <span>${this._infoBar.sensors.humidity.state}%</span>
               </div>`
             : nothing}
-          ${this.temperature
+          ${this._infoBar.sensors?.temperature
             ? html`
                 <div class="info">
                   <span>
                     <ha-icon icon="mdi:thermometer" style="color: ${this.getTemperatureColor()}" />
                   </span>
                   <span
-                    >${this.temperature.type == "custom"
-                      ? this.temperature.value
-                      : this.temperature.value}
-                    ${this.temperature.unit_of_measurement}</span
+                    >${this._infoBar.sensors.temperature.state}
+                    ${this._infoBar.sensors.temperature.attributes.unit_of_measurement}</span
                   >
                 </div>
               `

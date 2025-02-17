@@ -1,29 +1,45 @@
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./spool.styles";
 import "../dialog/dialog";
 import { getContrastingTextColor } from "../../../utils/helpers";
-import { mdiClose } from "@mdi/js";
+import { hassContext } from "../../../utils/context";
+import { consume } from "@lit/context";
 
 @customElement("ha-bambulab-spool")
 export class Spool extends LitElement {
-  @property({ type: Boolean }) public active: boolean = false;
-  @property({ type: String }) public color;
-  @property({ type: String }) public tag_uid;
-  @property({ type: String }) public name;
-  @property({ type: Number }) public remaining;
+  @consume({ context: hassContext, subscribe: true })
+  private hass;
+
   @property({ type: Boolean }) public show_type: boolean = false;
-  @property({ type: Number }) private remainHeight: number = 95;
-  @property({ type: Number }) private resizeObserver: ResizeObserver | null = null;
-  @property({ type: Object }) private state;
-  @property({ type: Boolean }) private _dialogOpen: boolean = false;
+  @property({ type: String }) public entity_id;
+
+  @state() private color;
+  @state() private name;
+  @state() private active;
+  @state() private remaining;
+  @state() private tag_uid;
+  @state() private state;
+  @state() private remainHeight: number = 95;
+  @state() private resizeObserver: ResizeObserver | null = null;
+  @state() private _dialogOpen: boolean = false;
 
   static styles = styles;
 
   connectedCallback() {
     super.connectedCallback();
-    // Start observing the parent element for size changes
+    this.color = this.hass.states[this.entity_id]?.attributes.color;
+    this.active =
+      this.hass.states[this.entity_id]?.attributes.active ||
+      this.hass.states[this.entity_id]?.attributes.in_use
+        ? true
+        : false;
+    this.name = this.hass.states[this.entity_id]?.attributes.name;
+    this.remaining = this.hass.states[this.entity_id]?.attributes?.remain;
+    this.tag_uid = this.hass.states[this.entity_id]?.attributes.tag_uid;
+    this.state = this.hass.states[this.entity_id];
 
+    // Start observing the parent element for size changes
     this.resizeObserver = new ResizeObserver(() => {
       this.calculateHeights();
       this.updateLayers();
@@ -56,7 +72,6 @@ export class Spool extends LitElement {
   }
 
   render() {
-    console.log("state", this.state);
     return html`
       ${this.modal()}
       <div class="ha-bambulab-spool-card-container">
@@ -77,10 +92,9 @@ export class Spool extends LitElement {
                 style="background: ${this.color}; height: ${this.remainHeight.toFixed(2)}%"
               >
                 ${this.active ? html`<div class="v-reflection"></div>` : nothing}
-                ${this.getRemainingValue().type == "unknown" ||
-                this.getRemainingValue().type == "generic"
-                  ? ""
-                  : html` <div class="remaining-percent"><p>${this.remaining}%</p></div> `}
+                ${this?.remaining > 0
+                  ? html` <div class="remaining-percent"><p>${this.remaining}%</p></div> `
+                  : nothing}
               </div>
             </div>
             <div class="ha-bambulab-spool-side"></div>
@@ -98,7 +112,6 @@ export class Spool extends LitElement {
   }
 
   modal() {
-    console.log("color", this.state.attributes.color);
     return html`
       <ha-dialog id="confirmation-popup" ?open=${this._dialogOpen} heading="title">
         <ha-dialog-header slot="heading">
