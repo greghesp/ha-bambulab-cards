@@ -100,10 +100,9 @@ export class PrintControlCard extends LitElement {
     remaining_time:       { x: 59, y:10,  width:100, height:0 },  // sensor
 //    hms:                  { x: 90,   y:10,  width:20,  height:0 },  // binary_sensor
     chamber_light:        { x: 12, y:24,  width:20,  height:0 },  // light
-    chamber_fan_speed:    { x: 85, y:24,  width:70,  height:0 },  // fan
     nozzle_temp:          { x: 50, y:35,  width:25,  height:0 },  // sensor
     chamber_temp:         { x: 80, y:32,  width:20,  height:0 },  // sensor
-    aux_fan_speed:        { x: 12, y:60,  width:70,  height:0 },  // fan
+    aux_fan:             { x: 12, y:60,  width:70,  height:0 },  // fan
     cover_image:          { x: 50, y:57,  width:150, height:150 }, // image
     bed_temp:             { x: 50, y:76,  width:25,  height:0 },  // sensor
     stage:                { x: 50, y:93,  width:300, height:0 },  // sensor
@@ -114,10 +113,10 @@ export class PrintControlCard extends LitElement {
     print_progress:       { x: 23, y:6,   width:25,  height:0 },  // sensor
     remaining_time:       { x: 59, y:6.5, width:100, height:0 },  // sensor
     chamber_light:        { x: 13, y:24,  width:20,  height:0 },  // light
-    chamber_fan_speed:    { x: 86, y:24,  width:70,  height:0 },  // fan
+    chamber_fan:          { x: 86, y:24,  width:70,  height:0 },  // fan
     nozzle_temp:          { x: 50, y:35,  width:25,  height:0 },  // sensor
     chamber_temp:         { x: 80, y:32,  width:20,  height:0 },  // sensor
-    aux_fan_speed:        { x: 13,  y:52,  width:70,  height:0 },  // fan
+    aux_fan:              { x: 13,  y:52,  width:70,  height:0 },  // fan
     cover_image:          { x: 50, y:53,  width:150, height:150 }, // image
     bed_temp:             { x: 50, y:72,  width:25,  height:0 },  // sensor
     stage:                { x: 50, y:91,  width:300, height:0 },  // sensor
@@ -128,10 +127,10 @@ export class PrintControlCard extends LitElement {
     print_progress:       { x: 29, y:6,  width:25,  height:0 },  // sensor
     remaining_time:       { x: 29, y:11, width:100, height:0 },  // sensor
     chamber_light:        { x: 13, y:25, width:20,  height:0 },  // light
-    chamber_fan_speed:    { x: 86, y:25, width:70,  height:0 },  // fan
+    chamber_fan:          { x: 86, y:25, width:70,  height:0 },  // fan
     nozzle_temp:          { x: 50, y:31, width:25,  height:0 },  // sensor
     chamber_temp:         { x: 86, y:35, width:20,  height:0 },  // sensor
-    aux_fan_speed:        { x: 13, y:52, width:70,  height:0 },  // fan
+    aux_fan:              { x: 13, y:52, width:70,  height:0 },  // fan
     cover_image:          { x: 50, y:53, width:150, height:150 }, // image
     bed_temp:             { x: 50, y:75, width:25,  height:0 },  // sensor
     stage:                { x: 50, y:93, width:300, height:0 },  // sensor
@@ -331,8 +330,11 @@ export class PrintControlCard extends LitElement {
         default:
           // Handling for fan
           if (key.includes('fan')) {
+            const fan = this._states[this._entityList[key].entity_id]
+            text = fan.attributes['percentage'];
+            console.log(e)
             return html`
-              <div class="entity" style="${style}">
+              <div class="entity" style="${style}" @click="${() => this._clickEntity(key)}">
                 <ha-icon icon="mdi:fan"></ha-icon>
                 ${text}%
               </div>
@@ -345,7 +347,7 @@ export class PrintControlCard extends LitElement {
           } else if (key.includes('temp')) {
             const temp = Math.round(Number(text));
             return html`
-              <div class="entity" style="${style}">
+              <div class="entity" style="${style}" @click="${() => this._clickEntity(key)}">
                 ${temp}&deg;
               </div>`;
           } else if (key === 'remaining_time') {
@@ -360,6 +362,18 @@ export class PrintControlCard extends LitElement {
       }
     }
     return html``
+  }
+
+  private _clickEntity(key) {
+    const entity_id = this._entityList[key].entity_id;
+    const event = new CustomEvent('hass-more-info', {
+      detail: {
+        entityId: entity_id,
+      },
+      bubbles: true,
+      composed: true, // Make the event work across shadow DOM boundaries
+    });
+    this.dispatchEvent(event);
   }
 
   private _toggleLight() {
