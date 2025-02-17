@@ -96,6 +96,8 @@ export class PrintControlCard extends LitElement {
   }
 
   set hass(hass) {
+    const firstTime = hass && !this._hass;
+
     if (hass) {
       this._hass = hass;
       this._states = hass.states;
@@ -110,7 +112,9 @@ export class PrintControlCard extends LitElement {
           }
         })
       }
+    }
 
+    if (firstTime) {
       this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, ENTITYLIST);
       // Keep a reference to the skippedObjects state for Lit reactivity to trigger off when it changes.
       this._pickImageState = this._states[this._entityList['pick_image']?.entity_id]?.state;
