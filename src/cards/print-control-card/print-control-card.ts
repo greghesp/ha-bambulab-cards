@@ -17,7 +17,7 @@ registerCustomCard({
 
 const ENTITYLIST: string[] = [
   "pause",
-  "pick_image",
+//  "pick_image",
   "printable_objects",
   "printing_speed",
   "resume",
@@ -114,8 +114,8 @@ export class PrintControlCard extends LitElement {
 
       this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, ENTITYLIST);
       // Keep a reference to the skippedObjects state for Lit reactivity to trigger off when it changes.
-      this._pickImageState = this._states[this._entityList['pick_image'].entity_id].state;
-      this._skippedObjectsState = this._states[this._entityList['skipped_objects'].entity_id].state;
+      this._pickImageState = this._states[this._entityList['pick_image']?.entity_id]?.state;
+      this._skippedObjectsState = this._states[this._entityList['skipped_objects']?.entity_id]?.state;
     }
   }
 
