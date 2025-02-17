@@ -81,6 +81,8 @@ export class AMS_CARD extends LitElement {
   }
 
   set hass(hass) {
+    const firstTime = hass && !this._hass;
+
     this._hass = hass;
     this._states = hass.states;
 
@@ -96,7 +98,9 @@ export class AMS_CARD extends LitElement {
       });
     }
 
-    this.fetchDevices();
+    if (firstTime) {
+      this.fetchDevices();
+    }
   }
 
   private async fetchDevices() {
