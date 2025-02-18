@@ -130,6 +130,7 @@ export class Spool extends LitElement {
         .open=${this._dialogOpen}
         @closed=${this._closeDialog}
         heading="title"
+        hideactions
       >
         <ha-dialog-header slot="heading">
           <ha-icon-button slot="navigationIcon" dialogAction="cancel"

@@ -9,6 +9,7 @@ import { hassContext, deviceEntitesContext, infoBarContext } from "../../utils/c
 import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
+import { asyncGetEntity } from "../../utils/helpers";
 
 registerCustomCard({
   type: AMS_CARD_NAME,
@@ -171,13 +172,6 @@ export class AMS_CARD extends LitElement {
     };
   }
 
-  private async getEntity(entity_id) {
-    return await this._hass.callWS({
-      type: "config/entity_registry/get",
-      entity_id: entity_id,
-    });
-  }
-
   private async filterBambuDevices() {
     const result: Result = {
       humidity: null,
@@ -189,7 +183,7 @@ export class AMS_CARD extends LitElement {
     for (let key in this._hass.entities) {
       const value = this._hass.entities[key];
       if (value.device_id === this._deviceId) {
-        const r = await this.getEntity(value.entity_id);
+        const r = await asyncGetEntity(this._hass, value.entity_id);
         if (r.unique_id.includes("humidity")) {
           result.humidity = value;
         } else if (r.unique_id.includes("temp")) {
