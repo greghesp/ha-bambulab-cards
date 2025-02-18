@@ -14,6 +14,21 @@ const NEW_SCHEMA = [
     label: "Printer",
     selector: { device: { filter: filterCombinations } },
   },
+  {
+    name: "custom_humidity",
+    label: "Custom humidity sensor",
+    selector: { entity: { domain: "sensor" }},
+  },
+  {
+    name: "custom_temperature",
+    label: "Custom temperature Sensor",
+    selector: { entity: { domain: "sensor" } },
+  },
+  {
+    name: "custom_power",
+    label: "Power switch",
+    selector: { entity: { domain: "switch" } },
+  }
 ];
 
 @customElement(PRINT_STATUS_CARD_EDITOR_NAME)

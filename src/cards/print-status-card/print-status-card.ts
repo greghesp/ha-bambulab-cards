@@ -70,11 +70,15 @@ export class PrintControlCard extends LitElement {
   private _entityList: { [key: string]: helpers.Entity };
   private _entityUX: { [key: string]: EntityUX } | undefined;
   private _model: string;
+  private _temperature: string | undefined;
+  private _humidity: string | undefined;
+  private _power: string | undefined;
 
   private resizeObserver: ResizeObserver;
 
   private A1EntityUX: { [key: string]: EntityUX } = {
     //hms:                    { x: 90, y:10, width:20,  height:0 },  // binary_sensor
+    power:                  { x: 95, y:9,  width:20,  height:0 },  // custom power button
     chamber_light:          { x: 46, y:30,   width:20,  height:0 },  // light
     nozzle_temp:            { x: 46, y:42,   width:25,  height:0, alternate:"target_nozzle_temperature" },  // sensor
     target_nozzle_temperature: { x:0,y:0,width:0,height:0},         // Used only as a click target
@@ -86,44 +90,48 @@ export class PrintControlCard extends LitElement {
   };
 
   private A1MiniEntityUX: { [key: string]: EntityUX } = {
-    //hms:                    { x: 90, y:10, width:20,  height:0 },  // binary_sensor
-    chamber_light:          { x: 88, y:29, width:20,  height:0 },  // light
+    //hms:                    { x: 90, y:10, width:20,  height:0 },   // binary_sensor
+    power:                  { x: 95, y:9,  width:20,  height:0 },   // custom power button
+    chamber_light:          { x: 88, y:29, width:20,  height:0 },   // light
     nozzle_temp:            { x: 41, y:38, width:25,  height:0, alternate:"target_nozzle_temperature" },  // sensor
     target_nozzle_temperature: { x:0,y:0,width:0,height:0},         // Used only as a click target
     cover_image:            { x: 41, y:58, width:150, height:150 }, // image
     bed_temp:               { x: 41, y:80, width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
-    target_bed_temperature: { x:0,y:0,width:0,height:0},           // Used only as a click target
-    print_progress:         { x: 74, y:89, width:25,  height:0 },  // sensor
-    remaining_time:         { x: 74, y:93, width:100, height:0 },  // sensor
-    stage:                  { x: 41, y:94, width:300, height:0 },  // sensor
+    target_bed_temperature: { x:0,y:0,width:0,height:0},            // Used only as a click target
+    print_progress:         { x: 74, y:89, width:25,  height:0 },   // sensor
+    remaining_time:         { x: 74, y:93, width:100, height:0 },   // sensor
+    stage:                  { x: 41, y:93, width:300, height:0 },   // sensor
   };
 
-
   private P1PEntityUX: { [key: string]: EntityUX } = {
-    print_progress:         { x: 23, y:9.5, width:25,  height:0 },  // sensor
-    remaining_time:         { x: 59, y:10,  width:100, height:0 },  // sensor
+    power:                  { x: 94, y:10,  width:20,  height:0 },    // custom power button
+    print_progress:         { x: 23, y:9.5, width:25,  height:0 },   // sensor
+    remaining_time:         { x: 59, y:10,  width:100, height:0 },   // sensor
     //hms:                    { x: 90,   y:10,  width:20,  height:0 },  // binary_sensor
-    chamber_light:          { x: 12, y:24,  width:20,  height:0 },  // light
+    chamber_light:          { x: 12, y:24,  width:20,  height:0 },   // light
     nozzle_temp:            { x: 50, y:35,  width:25,  height:0, alternate:"target_nozzle_temperature" },  // sensor
-    target_nozzle_temperature: { x:0,y:0,width:0,height:0},         // Used only as a click target
-    chamber_temp:           { x: 80, y:32,  width:20,  height:0 },  // sensor
-    aux_fan:                { x: 12, y:60,  width:70,  height:0 },  // fan
+    target_nozzle_temperature: { x:0,y:0,width:0,height:0},          // Used only as a click target
+    chamber_temp:           { x: 86, y:35,  width:20,  height:0 },   // sensor
+    humidity:               { x: 86, y:45,  width:20,  height:0 },   // sensor
+    aux_fan:                { x: 12, y:60,  width:70,  height:0 },   // fan
     cover_image:            { x: 50, y:57,  width:150, height:150 }, // image
     bed_temp:               { x: 50, y:76,  width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
-    target_bed_temperature: { x:0,y:0,width:0,height:0},            // Used only as a click target
-    stage:                  { x: 50, y:93,  width:300, height:0 },  // sensor
+    target_bed_temperature: { x:0,y:0,width:0,height:0},             // Used only as a click target
+    stage:                  { x: 50, y:93,  width:300, height:0 },   // sensor
   };
 
   private P1SEntityUX: { [key: string]: EntityUX } = {
-    //hms:                  { x: 90, y:10,  width:20,  height:0 },  // binary_sensor
-    print_progress:         { x: 23, y:6,   width:25,  height:0 },  // sensor
-    remaining_time:         { x: 59, y:6.5, width:100, height:0 },  // sensor
-    chamber_light:          { x: 13, y:24,  width:20,  height:0 },  // light
-    chamber_fan:            { x: 86, y:24,  width:70,  height:0 },  // fan
+    //hms:                    { x: 90, y:10,  width:20,  height:0 },   // binary_sensor
+    power:                  { x: 95, y:8,  width:20,  height:0 },    // custom power button
+    print_progress:         { x: 23, y:6,   width:25,  height:0 },   // sensor
+    remaining_time:         { x: 59, y:6.5, width:100, height:0 },   // sensor
+    chamber_light:          { x: 13, y:24,  width:20,  height:0 },   // light
+    chamber_fan:            { x: 86, y:24,  width:70,  height:0 },   // fan
     nozzle_temp:            { x: 50, y:35,  width:25,  height:0, alternate:"target_nozzle_temperature" },  // sensor
-    target_nozzle_temperature: { x:0,y:0,width:0,height:0},         // Used only as a click target
-    chamber_temp:           { x: 80, y:32,  width:20,  height:0 },  // sensor
-    aux_fan:                { x: 13,  y:52,  width:70,  height:0 },  // fan
+    target_nozzle_temperature: { x:0,y:0,width:0,height:0},          // Used only as a click target
+    chamber_temp:           { x: 86, y:35,  width:20,  height:0 },   // sensor
+    humidity:               { x: 86, y:45,  width:20,  height:0 },   // sensor
+    aux_fan:                { x: 13, y:52,  width:70,  height:0 },   // fan
     cover_image:            { x: 50, y:53,  width:150, height:150 }, // image
     bed_temp:               { x: 50, y:72,  width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
     target_bed_temperature: { x:0,y:0,width:0,height:0},            // Used only as a click target
@@ -131,19 +139,21 @@ export class PrintControlCard extends LitElement {
   };
 
   private X1CEntityUX: { [key: string]: EntityUX } = {
-    //hms:                  { x: 90, y:10, width:20,  height:0 },  // binary_sensor
-    print_progress:         { x: 29, y:6,  width:25,  height:0 },  // sensor
-    remaining_time:         { x: 29, y:11, width:100, height:0 },  // sensor
-    chamber_light:          { x: 13, y:25, width:20,  height:0 },  // light
-    chamber_fan:            { x: 86, y:25, width:70,  height:0 },  // fan
+    //hms:                    { x: 90, y:10, width:20,  height:0 },   // binary_sensor
+    power:                  { x: 95.5, y:10,  width:20,  height:0 },   // custom power button
+    print_progress:         { x: 29, y:6,  width:25,  height:0 },   // sensor
+    remaining_time:         { x: 29, y:11, width:100, height:0 },   // sensor
+    chamber_light:          { x: 13, y:25, width:20,  height:0 },   // light
+    chamber_fan:            { x: 86, y:25, width:70,  height:0 },   // fan
     nozzle_temp:            { x: 50, y:31, width:25,  height:0, alternate:"target_nozzle_temperature" },  // sensor
     target_nozzle_temperature: { x:0,y:0,width:0,height:0},         // Used only as a click target
-    chamber_temp:           { x: 86, y:35, width:20,  height:0 },  // sensor
-    aux_fan:                { x: 13, y:52, width:70,  height:0 },  // fan
+    chamber_temp:           { x: 86, y:35, width:20,  height:0 },   // sensor
+    humidity:               { x: 86, y:45, width:20,  height:0 },   // sensor
+    aux_fan:                { x: 13, y:52, width:70,  height:0 },   // fan
     cover_image:            { x: 50, y:53, width:150, height:150 }, // image
     bed_temp:               { x: 50, y:75, width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
     target_bed_temperature: { x:0,y:0,width:0,height:0},            // Used only as a click target
-    stage:                  { x: 50, y:93, width:300, height:0 },  // sensor
+    stage:                  { x: 50, y:93, width:300, height:0 },   // sensor
   };
 
   private EntityUX: { [key: string]: any } = {
@@ -161,6 +171,9 @@ export class PrintControlCard extends LitElement {
     this._model = "";
     this._entityList = {};
     this._entityUX = undefined; // Initialized once we know what model printer it is.
+    this._humidity = undefined;
+    this._temperature = undefined;
+    this._power = undefined;
 
     this.resizeObserver = new ResizeObserver(() => {
       this.requestUpdate();
@@ -187,6 +200,9 @@ export class PrintControlCard extends LitElement {
     }
 
     this._device_id = config.printer;
+    this._temperature = config.custom_temperature;
+    this._humidity = config.custom_humidity;
+    this._power = config.custom_power;
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -229,6 +245,17 @@ export class PrintControlCard extends LitElement {
       this._entityUX = this.EntityUX[this._model];
       this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, Object.keys(this._entityUX!));
 
+      for (const e in hass.entities) {
+        const value = hass.entities[e];
+        if (value.entity_id === this._temperature) {
+          this._entityList['chamber_temp'] = value;
+        } else if (value.entity_id === this._humidity) {
+          this._entityList['humidity'] = value;
+        } else if (value.entity_id === this._power) {
+          this._entityList['power'] = value;
+        }
+      }
+    
       // We have the model and the chamber light entity - kick off the background image load asap.
       this.requestUpdate();
     }
@@ -309,18 +336,37 @@ export class PrintControlCard extends LitElement {
         style = `left:${left}px; top:${top}px; width:auto; height:${e.height}px;`
       }
 
+      let clickTarget = key;
+      const alternate = this._entityUX![key].alternate
+      if (alternate != undefined) {
+        if (!helpers.isEntityUnavailable(this._hass, this._entityList[alternate])) {
+          clickTarget = alternate
+        }
+      }
+      
       // Build the HTML string for each element
       let text = helpers.getLocalizedEntityState(this._hass, this._entityList[key]);
       switch (key) {
-        case 'cover_image':
+        case 'aux_fan':
+        case 'chamber_fan':
+          const fan = this._states[this._entityList[key].entity_id]
+          text = fan.attributes['percentage'];
           return html`
-            <img
-              class="cover-image"
-              style="${style}"
-              src="${this._getImageUrl()}"
-              alt="Cover Image"
-              />
-            `;
+            <div id="${key}" class="entity" style="${style}" @click="${() => this._clickEntity(clickTarget)}">
+              <ha-icon icon="mdi:fan"></ha-icon>
+              ${text}%
+            </div>
+          `;
+
+        case 'bed_temp':
+        case 'chamber_temp':
+        case 'nozzle_temp':
+          const temp = Math.round(Number(text));
+          return html`
+            <div id="${key}" class="entity" style="${style}" @click="${() => this._clickEntity(clickTarget)}">
+              ${temp}&deg;
+            </div>`;
+
         case 'chamber_light':
           if (text == 'on') {
             return html`
@@ -341,43 +387,53 @@ export class PrintControlCard extends LitElement {
                 >
               </ha-icon>`;
           }
-          break;
-        default:
-          let clickTarget = key;
-          const alternate = this._entityUX![key].alternate
-          if (alternate != undefined) {
-            if (!helpers.isEntityUnavailable(this._hass, this._entityList[alternate])) {
-              clickTarget = alternate
-            }
-          }
-          // Handling for fan
-          if (key.includes('fan')) {
-            const fan = this._states[this._entityList[key].entity_id]
-            text = fan.attributes['percentage'];
+
+        case 'cover_image':
+          return html`
+            <img
+              class="cover-image"
+              style="${style}"
+              src="${this._getImageUrl()}"
+              alt="Cover Image"
+              />
+            `;
+
+        case 'humidity':
+          return html`
+            <div id="${key}" class="entity" style="${style}" @click="${() => this._clickEntity(clickTarget)}">
+              <ha-icon icon="mdi:water-percent"></ha-icon>
+              ${text}%
+            </div>
+           `;
+
+        case 'power':
+          if (text == 'on') {
             return html`
-              <div class="entity" style="${style}" @click="${() => this._clickEntity(clickTarget)}">
-                <ha-icon icon="mdi:fan"></ha-icon>
-                ${text}%
+              <div id="${key}" class="entity" style="${style} color:green;" @click="${() => this._clickEntity(clickTarget)}">
+                <ha-icon icon="mdi:power"></ha-icon>
               </div>
             `;
-          } else if (key === 'print_progress') {
+          } else {
             return html`
-              <div class="entity" style="${style}">
-                ${text}%
-              </div>`;
-          } else if (key.includes('temp')) {
-            const temp = Math.round(Number(text));
-            return html`
-              <div class="entity" style="${style}" @click="${() => this._clickEntity(clickTarget)}">
-                ${temp}&deg;
-              </div>`;
-          } else if (key === 'remaining_time') {
-            return html`
-              <div class="entity" style="${style}">
-                ${helpers.formatMinutes(Number(text))}
-              </div>`;
+              <div id="${key}" class="entity" style="${style} color:red;" @click="${() => this._clickEntity(clickTarget)}">
+                <ha-icon icon="mdi:power"></ha-icon>
+              </div>
+            `;
           }
 
+        case 'print_progress':
+          return html`
+            <div id="${key}" class="entity" style="${style}">
+              ${text}%
+            </div>`;
+
+        case 'remaining_time':
+          return html`
+            <div id="${key}" class="entity" style="${style}">
+              ${helpers.formatMinutes(Number(text))}
+            </div>`;
+
+        default:
           // Default case
           return html`<div class="entity" id="${key}" style="${style}">${text}</div>`;
       }
