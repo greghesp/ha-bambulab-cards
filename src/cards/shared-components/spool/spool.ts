@@ -124,6 +124,7 @@ export class Spool extends LitElement {
     if (!this._dialogOpen) return nothing;
 
     console.log("spool component modal rendered");
+    console.log(this.hass.states[this.entity_id]);
     return html`
       <ha-dialog
         id="confirmation-popup"
@@ -162,12 +163,45 @@ export class Spool extends LitElement {
           </div>
           <div class="div10 item-title">Maximum</div>
           <div class="action-buttons">
-            <mwc-button class="action-button" @click=${this._closeDialog}>Load</mwc-button>
-            <mwc-button class="action-button" @click=${this._closeDialog}>Unload</mwc-button>
+            <mwc-button
+              class="action-button"
+              @click=${() =>
+                this.loadUnloadFilament("load", this.hass.states[this.entity_id].entity_id)}
+              >Load</mwc-button
+            >
+            <mwc-button
+              class="action-button"
+              @click=${() =>
+                this.loadUnloadFilament("unload", this.hass.states[this.entity_id].entity_id)}
+              >Unload</mwc-button
+            >
           </div>
         </div>
       </ha-dialog>
     `;
+  }
+
+  private loadUnloadFilament(action: "load" | "unload", tray: number) {
+    if (action === "load") {
+      const data = { tray: 1 };
+      this.hass
+        .callService("bambu_lab", "load_filament", data)
+        .then(() => {
+          console.log("Load filament service called successfully");
+        })
+        .catch((error) => {
+          console.error("Error calling load filament service:", error);
+        });
+    } else {
+      this.hass
+        .callService("bambu_lab", "unload_filament")
+        .then(() => {
+          console.log("Unload filament service called successfully");
+        })
+        .catch((error) => {
+          console.error("Error calling unload filament service:", error);
+        });
+    }
   }
 
   updateLayers() {
