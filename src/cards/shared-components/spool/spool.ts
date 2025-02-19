@@ -3,13 +3,16 @@ import { html, LitElement, nothing } from "lit";
 import styles from "./spool.styles";
 import "../dialog/dialog";
 import { getContrastingTextColor } from "../../../utils/helpers";
-import { hassContext } from "../../../utils/context";
+import { deviceEntitesContext, hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
 
 @customElement("ha-bambulab-spool")
 export class Spool extends LitElement {
   @consume({ context: hassContext, subscribe: true })
   private hass;
+
+  @consume({ context: deviceEntitesContext, subscribe: true })
+  private deviceEntities;
 
   @property({ type: Boolean }) public show_type: boolean = false;
   @property({ type: String }) public entity_id;
@@ -123,8 +126,8 @@ export class Spool extends LitElement {
   modal() {
     if (!this._dialogOpen) return nothing;
 
-    console.log("spool component modal rendered");
-    console.log(this.hass.states[this.entity_id]);
+    console.log(this.deviceEntities);
+
     return html`
       <ha-dialog
         id="confirmation-popup"

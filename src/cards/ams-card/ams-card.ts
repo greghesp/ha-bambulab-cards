@@ -179,6 +179,7 @@ export class AMS_CARD extends LitElement {
       spools: [],
       type: (await this.getDeviceModel()) ?? null,
     };
+
     // Loop through all hass entities, and find those that belong to the selected device
     for (let key in this._hass.entities) {
       const value = this._hass.entities[key];
