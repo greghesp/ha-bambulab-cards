@@ -13,10 +13,6 @@ export default css`
   cursor: pointer;
   border-radius: 5px;
 }
-button:disabled {
-  background-color: #ccc; // Light grey
-  cursor: not-allowed;
-}
 .buttons-container {
   display: flex;
   justify-content: flex-end;

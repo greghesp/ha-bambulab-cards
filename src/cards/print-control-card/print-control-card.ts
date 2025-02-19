@@ -408,18 +408,18 @@ export class PrintControlCard extends LitElement {
             ${this._getSpeedProfile()}
           </div>
           <div class="buttons-container">
-            <button class="button" @click="${this._showPopup}" ?disabled="${!this._enableSkipButton()}" style="display: ${this._showSkipButton() ? 'block' : 'none'};">
+            <ha-button class="ha-button" @click="${this._showPopup}" ?disabled="${!this._enableSkipButton()}" style="display: ${this._showSkipButton() ? 'block' : 'none'};">
               <ha-icon icon="mdi:skip-forward"></ha-icon>
-            </button>
-            <button class="button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['pause'])}">
+            </ha-button>
+            <ha-button class="ha-button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['pause'])}">
               <ha-icon icon="mdi:pause"></ha-icon>
-            </button>
-            <button class="button" @click="${() => { this._clickButton(this._entityList['resume']) }}" ?disabled="${this._isEntityUnavailable(this._entityList['resume'])}">
+            </ha-button>
+            <ha-button class="ha-button" @click="${() => { this._clickButton(this._entityList['resume']) }}" ?disabled="${this._isEntityUnavailable(this._entityList['resume'])}">
               <ha-icon icon="mdi:play"></ha-icon>
-            </button>
-            <button class="button" @click="${this._showStopDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['stop'])}">
+            </ha-button>
+            <ha-button class="ha-button" @click="${this._showStopDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['stop'])}">
               <ha-icon icon="mdi:stop"></ha-icon>
-            </button>
+            </ha-button>
           </div>
         </div>
         ${this._confirmationDialogVisible ? html`
@@ -456,12 +456,12 @@ export class PrintControlCard extends LitElement {
                   })}
               </div>
               <div class="popup-button-container">
-                <button class="button" @click="${this._cancelPopup}">
+                <ha-button class="ha-button" @click="${this._cancelPopup}">
                   Cancel
-                </button>
-                <button class="button" @click="${this._callSkipObjectsService}" ?disabled="${this._isSkipButtonDisabled}">
+                </ha-button>
+                <ha-button class="ha-button" @click="${this._callSkipObjectsService}" ?disabled="${this._isSkipButtonDisabled}">
                   Skip
-                </button>
+                </ha-button>
               </div>
             </div>
           </div>

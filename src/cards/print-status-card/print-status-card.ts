@@ -343,7 +343,9 @@ export class PrintControlCard extends LitElement {
           clickTarget = alternate
         }
       }
-      
+
+      const entity = this._hass.entities[this._entityList[key].entity_id];
+
       // Build the HTML string for each element
       let text = helpers.getLocalizedEntityState(this._hass, this._entityList[key]);
       switch (key) {
@@ -389,16 +391,22 @@ export class PrintControlCard extends LitElement {
           }
 
         case 'cover_image':
-          return html`
-            <img
-              class="cover-image"
-              style="${style}"
-              src="${this._getImageUrl()}"
-              alt="Cover Image"
-              />
-            `;
+          if (helpers.isEntityUnavailable(this._hass, this._entityList[key])) {
+            return html``
+          } else {
+            return html`
+              <img
+                class="cover-image"
+                style="${style}"
+                src="${this._getImageUrl()}"
+                alt="Cover Image"
+                />
+              `;
+          }
 
         case 'humidity':
+          const precision = (entity.display_precision == undefined) ? 1 : entity.display_precision;
+          text = Number(text).toFixed(precision);
           return html`
             <div id="${key}" class="entity" style="${style}" @click="${() => this._clickEntity(clickTarget)}">
               <ha-icon icon="mdi:water-percent"></ha-icon>
