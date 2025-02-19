@@ -9,7 +9,7 @@ import { hassContext, deviceEntitesContext, infoBarContext } from "../../utils/c
 import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
-import { asyncGetEntity } from "../../utils/helpers";
+import { asyncGetDevice, asyncGetEntity } from "../../utils/helpers";
 
 registerCustomCard({
   type: AMS_CARD_NAME,
@@ -27,6 +27,7 @@ interface Sensor {
 }
 
 interface Result {
+  printer_deviceEntry: {} | null;
   humidity: Sensor | null;
   temperature: Sensor | null;
   spools: Sensor[];
@@ -174,6 +175,7 @@ export class AMS_CARD extends LitElement {
 
   private async filterBambuDevices() {
     const result: Result = {
+      printer_deviceEntry: null,
       humidity: null,
       temperature: null,
       spools: [],
@@ -195,6 +197,8 @@ export class AMS_CARD extends LitElement {
       }
     }
 
+    const device = await asyncGetDevice(this._hass, this._deviceId);
+    result.printer_deviceEntry = device;
     this._deviceEntities = result;
   }
 

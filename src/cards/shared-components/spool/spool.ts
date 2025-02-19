@@ -2,7 +2,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./spool.styles";
 import "../dialog/dialog";
-import { getContrastingTextColor } from "../../../utils/helpers";
+import { getContrastingTextColor, loadUnloadFilament } from "../../../utils/helpers";
 import { deviceEntitesContext, hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
 
@@ -169,42 +169,28 @@ export class Spool extends LitElement {
             <mwc-button
               class="action-button"
               @click=${() =>
-                this.loadUnloadFilament("load", this.hass.states[this.entity_id].entity_id)}
+                loadUnloadFilament(
+                  this.hass,
+                  this.deviceEntities.printer_deviceEntry.via_device_id,
+                  "load",
+                  1
+                )}
               >Load</mwc-button
             >
             <mwc-button
               class="action-button"
               @click=${() =>
-                this.loadUnloadFilament("unload", this.hass.states[this.entity_id].entity_id)}
+                loadUnloadFilament(
+                  this.hass,
+                  this.deviceEntities.printer_deviceEntry.via_device_id,
+                  "unload"
+                )}
               >Unload</mwc-button
             >
           </div>
         </div>
       </ha-dialog>
     `;
-  }
-
-  private loadUnloadFilament(action: "load" | "unload", tray: number) {
-    if (action === "load") {
-      const data = { tray: 1 };
-      this.hass
-        .callService("bambu_lab", "load_filament", data)
-        .then(() => {
-          console.log("Load filament service called successfully");
-        })
-        .catch((error) => {
-          console.error("Error calling load filament service:", error);
-        });
-    } else {
-      this.hass
-        .callService("bambu_lab", "unload_filament")
-        .then(() => {
-          console.log("Unload filament service called successfully");
-        })
-        .catch((error) => {
-          console.error("Error calling unload filament service:", error);
-        });
-    }
   }
 
   updateLayers() {

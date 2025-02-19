@@ -2,12 +2,15 @@ import { customElement, property } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./info-bar.styles";
 import { consume } from "@lit/context";
-import { infoBarContext } from "../../../../utils/context";
+import { infoBarContext, hassContext } from "../../../../utils/context";
 
 @customElement("info-bar")
 export class InfoBar extends LitElement {
   @consume({ context: infoBarContext, subscribe: true })
   private _infoBar;
+
+  @consume({ context: hassContext, subscribe: true })
+  private hass;
 
   static styles = styles;
 
@@ -59,6 +62,7 @@ export class InfoBar extends LitElement {
 
   render() {
     if (!this._infoBar.active) return nothing;
+    console.log(this._infoBar.sensors.humidity);
     return html`
       <div class="extra-info">
         <div class="title">${this._infoBar.title}</div>
@@ -66,7 +70,11 @@ export class InfoBar extends LitElement {
           ${this._infoBar.sensors?.humidity
             ? html` <div class="info">
                 <span><ha-icon icon="mdi:water" style="color: ${this.getHumidityColor()}" /></span>
-                <span>${this._infoBar.sensors.humidity.state}%</span>
+                <span
+                  >${this.hass.formatEntityState(
+                    this.hass.states[this._infoBar.sensors.humidity.entity_id]
+                  )}%</span
+                >
               </div>`
             : nothing}
           ${this._infoBar.sensors?.temperature
@@ -76,9 +84,10 @@ export class InfoBar extends LitElement {
                     <ha-icon icon="mdi:thermometer" style="color: ${this.getTemperatureColor()}" />
                   </span>
                   <span
-                    >${this._infoBar.sensors.temperature.state}
-                    ${this._infoBar.sensors.temperature.attributes.unit_of_measurement}</span
-                  >
+                    >${this.hass.formatEntityState(
+                      this.hass.states[this._infoBar.sensors.temperature.entity_id]
+                    )}
+                  </span>
                 </div>
               `
             : nothing}

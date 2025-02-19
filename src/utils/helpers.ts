@@ -40,6 +40,14 @@ export async function asyncGetEntity(hass, entity_id) {
   });
 }
 
+export async function asyncGetDevice(hass, device_id) {
+  const devices = await hass.callWS({
+    type: "config/device_registry/list",
+  });
+  const deviceInfo = devices.find((device) => device.id === device_id);
+  return deviceInfo;
+}
+
 export interface Entity {
   entity_id: string;
   device_id: string;
@@ -94,5 +102,38 @@ export function getEntityState(hass, entity: Entity) {
     return entityState;
   } else {
     return "";
+  }
+}
+
+export async function loadUnloadFilament(hass, device_id, action, tray?) {
+  //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
+
+  if (action === "load") {
+    const serviceData = { tray: tray };
+    const target = { device_id: device_id };
+    console.log(serviceData, target);
+    hass
+      .callService("bambu_lab", "load_filament", serviceData, target)
+      .then(() => {
+        console.log("Load filament service called successfully");
+        return true;
+      })
+      .catch((error) => {
+        console.error("Error calling load filament service:", error);
+        return false;
+      });
+  } else {
+    const serviceData = {};
+    const target = { device_id: device_id };
+    hass
+      .callService("bambu_lab", "unload_filament", serviceData, target)
+      .then(() => {
+        console.log("Unload filament service called successfully");
+        return true;
+      })
+      .catch((error) => {
+        console.error("Error calling unload filament service:", error);
+        return false;
+      });
   }
 }
