@@ -9,6 +9,8 @@ import { PRINTER_MODELS } from "./const";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { PRINT_CONTROL_CARD_EDITOR_NAME, PRINT_CONTROL_CARD_NAME, PRINT_CONTROL_CARD_NAME_LEGACY } from "./const";
 
+import BUILD_PLATE_IMAGE from "../../images/bambu_smooth_plate.png";
+
 registerCustomCard({
   type: PRINT_CONTROL_CARD_NAME,
   name: "Bambu Lab Print Control Card",
@@ -440,7 +442,10 @@ export class PrintControlCard extends LitElement {
             <div class="popup-header">Skip Objects</div>
             <div class="popup-content">
               <p>Select the object(s) you want to skip printing by tapping them in the image or the list.</p>
-              <canvas id="canvas" width="512" height="512"></canvas>
+              <div id="image-container">
+                <img id="build-plate" src="${BUILD_PLATE_IMAGE}"/>
+                <canvas id="canvas" width="512" height="512"></canvas>
+              </div>
               <div class="checkbox-list">
                 ${Array.from(this._objects.keys()).map((key) => {
                   const item = this._objects.get(key)!;

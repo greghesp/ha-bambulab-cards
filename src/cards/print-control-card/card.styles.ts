@@ -2,6 +2,14 @@ import { css } from "lit";
 
 export default css`
 
+#build-plate {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 256px;
+  max-width: 512px;
+  z-index: 1;
+}
 .button {
   display: inline-flex;
   align-items: center;
@@ -19,11 +27,14 @@ export default css`
   gap: 10px;
 }
 #canvas {
-  display: block;
+  position: absolute;
+  left: 0;
+  top: 2.5%;
   width: 100%;
-  min-width: 256px
-  max-width: 512px;
   height: auto;
+  min-width: 256px;
+  max-width: 512px;
+  z-index: 2;
 }
 .card {
   display: flex;
@@ -53,6 +64,11 @@ export default css`
   justify-content: space-between;
   gap: 10px;
   width: 100%;
+}
+#image-container {
+  position: relative;
+  display: block;
+  padding-bottom: 10px;
 }
 .popup {
   position: fixed;
@@ -95,6 +111,7 @@ export default css`
   font-size: 14px;
   display: flex;
   flex-direction: column; 
+  min-width: 256px;
   overflow: auto;
 }
 #speed {
