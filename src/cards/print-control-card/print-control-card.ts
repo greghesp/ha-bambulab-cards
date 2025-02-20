@@ -405,7 +405,7 @@ export class PrintControlCard extends LitElement {
     return html`
       <ha-card class="card">
         <div class="control-container">
-          <div id="speed">
+          <div id="speed" @click="${() => helpers.showEntityMoreInfo(this, this._entityList['printing_speed'])}">
             <ha-icon icon="mdi:speedometer"></ha-icon>
             ${this._getSpeedProfile()}
           </div>

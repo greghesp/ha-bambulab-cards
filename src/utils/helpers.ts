@@ -94,3 +94,16 @@ export function getEntityState(hass, entity: Entity) {
     return "";
   }
 }
+
+export function showEntityMoreInfo(obj: HTMLElement, entity: Entity) {
+  const entity_id = entity.entity_id;
+  const event = new CustomEvent('hass-more-info', {
+    detail: {
+      entityId: entity.entity_id,
+    },
+    bubbles: true,
+    composed: true, // Make the event work across shadow DOM boundaries
+  });
+  obj.dispatchEvent(event);
+}
+
