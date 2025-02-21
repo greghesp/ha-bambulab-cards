@@ -14,36 +14,28 @@ export class GraphicAmsCard extends LitElement {
 
   static styles = styles;
   temperature() {
-    if (this.customTemperature) {
-      return {
-        type: "custom",
-        value: this.states[this.customTemperature]?.state,
-        unit_of_measurement:
-          this.states[this.customTemperature]?.attributes?.unit_of_measurement || "",
-      };
-    }
-    if (this?.entities?.temperature) {
+    if (this.entities.temperature) {
       return {
         type: "default",
-        value: this.states[this.entities.temperature.entity_id]?.state,
+        value: this.states[this.entities.temperature.entity_id].state,
         unit_of_measurement:
-          this.states[this.entities.temperature.entity_id]?.attributes.unit_of_measurement,
+          this.states[this.entities.temperature.entity_id].attributes.unit_of_measurement,
       };
     }
     return nothing;
   }
 
   humidity() {
-    if (this.customHumidity) {
+    if (this.entities.customHumidity) {
       return {
         type: "custom",
-        value: this.states[this.customHumidity]?.state,
+        value: this.states[this.entities.customHumidity.entity_id].state,
       };
     }
-    if (this?.entities?.humidity) {
+    if (this.entities.humidity) {
       return {
         type: "default",
-        value: this.states[this.entities.humidity.entity_id]?.state,
+        value: this.states[this.entities.humidity.entity_id].state,
       };
     }
     return nothing;
@@ -73,7 +65,7 @@ export class GraphicAmsCard extends LitElement {
                       : `2px solid rgba(255, 255, 255, 0)`}"
                   >
                     <ha-icon
-                      icon=${this.states[spool.entity_id]?.state !== "Empty"
+                      icon=${this.states[spool.entity_id].state !== "Empty"
                         ? "mdi:printer-3d-nozzle"
                         : "mdi:tray"}
                       style="color: ${this.states[spool.entity_id]?.attributes.color};"
