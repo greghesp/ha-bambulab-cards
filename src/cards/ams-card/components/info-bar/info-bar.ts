@@ -65,7 +65,6 @@ export class InfoBar extends LitElement {
     let value = state.state;
     if (this.temperature.display_precision != undefined) {
       value = Number(value).toFixed(this.temperature.display_precision);
-      console.log(value)
     }
     return `${value}${state.attributes.unit_of_measurement}`
   }
