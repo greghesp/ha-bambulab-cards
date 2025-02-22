@@ -409,7 +409,7 @@ export class PrintControlCard extends LitElement {
           </div>
           <div class="buttons-container">
             <ha-button class="ha-button" @click="${this._showPopup}" ?disabled="${!this._enableSkipButton()}" style="display: ${this._showSkipButton() ? 'block' : 'none'};">
-              <ha-icon icon="mdi:skip-forward"></ha-icon>
+              <ha-icon icon="mdi:debug-step-over"></ha-icon>
             </ha-button>
             <ha-button class="ha-button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['pause'])}">
               <ha-icon icon="mdi:pause"></ha-icon>
