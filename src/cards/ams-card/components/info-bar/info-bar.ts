@@ -60,6 +60,19 @@ export class InfoBar extends LitElement {
     }
   }
 
+  private getHumidity(): String {
+    const state = this.hass.states[this.humidity.entity_id];
+    let value = state.state;
+    if (this.humidity.display_precision != undefined) {
+      value = Number(value).toFixed(this.humidity.display_precision);
+    }
+    if (this.humidity.translation_key != 'humidity_index') {
+      value += '%'
+    }
+    return value
+  }
+
+
   private getTemperature(): String {
     const state = this.hass.states[this.temperature.entity_id];
     let value = state.state;
@@ -79,8 +92,7 @@ export class InfoBar extends LitElement {
               <div class="info" @click="${() => helpers.showEntityMoreInfo(this, this.humidity)}">
                 <span><ha-icon icon="mdi:water" style="color: ${this.getHumidityColor()}" /></span>
                 <span>
-                  ${this.hass.states[this.humidity.entity_id].state}
-                  ${this.humidity.translation_key == 'humidity_index' ? '': '%'}
+                  ${this.getHumidity()}
                 </span>
               </div>`
             : nothing}
