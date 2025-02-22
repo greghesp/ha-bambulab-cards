@@ -1,3 +1,4 @@
+import * as helpers from "../../../utils/helpers"
 import { customElement, property } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./graphic-ams-card.styles";
@@ -8,38 +9,9 @@ export class GraphicAmsCard extends LitElement {
   @property() public subtitle;
   @property() public showInfoBar;
   @property({ type: Object }) public entities;
-  @property({ type: Object }) public states;
-  @property() public customHumidity;
-  @property() public customTemperature;
+  @property({ type: Object }) public hass;
 
   static styles = styles;
-  temperature() {
-    if (this.entities.temperature) {
-      return {
-        type: "default",
-        value: this.states[this.entities.temperature.entity_id].state,
-        unit_of_measurement:
-          this.states[this.entities.temperature.entity_id].attributes.unit_of_measurement,
-      };
-    }
-    return nothing;
-  }
-
-  humidity() {
-    if (this.entities.customHumidity) {
-      return {
-        type: "custom",
-        value: this.states[this.entities.customHumidity.entity_id].state,
-      };
-    }
-    if (this.entities.humidity) {
-      return {
-        type: "default",
-        value: this.states[this.entities.humidity.entity_id].state,
-      };
-    }
-    return nothing;
-  }
 
   render() {
     return html` <ha-card class="card">
@@ -47,8 +19,9 @@ export class GraphicAmsCard extends LitElement {
         ${this.showInfoBar
           ? html`<info-bar
               subtitle="${this.subtitle}"
-              .humidity="${this.humidity()}"
-              .temperature="${this.temperature()}"
+              .hass="${this.hass}"
+              .humidity="${this.entities.humidity}"
+              .temperature="${this.entities.temperature}"
             ></info-bar>`
           : nothing}
         <div class="ams-container">
@@ -59,16 +32,16 @@ export class GraphicAmsCard extends LitElement {
                 <div class="spool-info">
                   <span
                     class="spool-badge"
-                    style="border: ${this.states[spool.entity_id]?.attributes.active ||
-                    this.states[spool.entity_id]?.attributes.in_use
-                      ? `2px solid ${this.states[spool.entity_id]?.attributes.color}`
+                    style="border: ${this.hass.states[spool.entity_id]?.attributes.active ||
+                    this.hass.states[spool.entity_id]?.attributes.in_use
+                      ? `2px solid ${this.hass.states[spool.entity_id]?.attributes.color}`
                       : `2px solid rgba(255, 255, 255, 0)`}"
                   >
                     <ha-icon
-                      icon=${this.states[spool.entity_id].state !== "Empty"
+                      icon=${this.hass.states[spool.entity_id].state !== "Empty"
                         ? "mdi:printer-3d-nozzle"
                         : "mdi:tray"}
-                      style="color: ${this.states[spool.entity_id]?.attributes.color};"
+                      style="color: ${this.hass.states[spool.entity_id]?.attributes.color};"
                     >
                     </ha-icon>
                   </span>
@@ -76,10 +49,10 @@ export class GraphicAmsCard extends LitElement {
                 <div class="spool-info">
                   <span
                     class="spool-type"
-                    style="border: ${this.states[spool.entity_id]?.attributes.active
-                      ? `2px solid ${this.states[spool.entity_id]?.attributes.color}`
+                    style="border: ${this.hass.states[spool.entity_id]?.attributes.active
+                      ? `2px solid ${this.hass.states[spool.entity_id]?.attributes.color}`
                       : `2px solid rgba(255, 255, 255, 0)`};"
-                    >${this.states[spool.entity_id]?.attributes.type}</span
+                    >${this.hass.states[spool.entity_id]?.attributes.type}</span
                   >
                 </div>
               </div>

@@ -1,7 +1,7 @@
+import * as helpers from "../../utils/helpers"
 import { customElement, state } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 
-import * as helpers from "../../utils/helpers"
 import { registerCustomCard } from "../../utils/custom-cards";
 import { INTEGRATION_DOMAIN, MANUFACTURER, AMS_MODELS } from "../../const";
 import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME  } from "./const";
@@ -35,7 +35,6 @@ interface Sensor {
 }
 
 interface Result {
-  custom_humidity: Sensor | null;
   humidity: Sensor;
   temperature: Sensor | null;
   spools: Sensor[];
@@ -116,18 +115,18 @@ export class AMS_CARD extends LitElement {
       this._entityList = helpers.getBambuDeviceEntities(hass, this._deviceId, ENTITYLIST);
 
       // Set custom entities
-      for (const e in hass.entities) {
-        const value = hass.entities[e];
+      for (const key in hass.entities) {
+        const value = hass.entities[key];
         if (value.entity_id === this._customTemperature) {
           this._entityList['ams_temp'] = value; // Replace normal temp sensor, if present.
-        } else if (value.entity_id === this._customHumidity) {
-          this._entityList['custom_humidity'] = value;
+        }
+        if (value.entity_id === this._customHumidity) {
+          this._entityList['humidity_index'] = value; // Replace normal humidity_index sensor.
         }
       }
 
       // Convert data to form rest of the cards are expecting.
       this._entities = {
-        customHumidity: this._entityList['custom_humidity'],
         humidity: this._entityList['humidity_index'],
         temperature: this._entityList['ams_temp'],
         spools: [ this._entityList['tray_1'], this._entityList['tray_2'], this._entityList['tray_3'], this._entityList['tray_4']],
@@ -142,7 +141,7 @@ export class AMS_CARD extends LitElement {
         <graphic-ams-card
           .subtitle="${this._subtitle}"
           .entities="${this._entities}"
-          .states="${this._states}"
+          .hass="${this._hass}"
           .showInfoBar=${this._showInfoBar}
         />
       `;
@@ -151,7 +150,7 @@ export class AMS_CARD extends LitElement {
         <vector-ams-card
           .subtitle="${this._subtitle}"
           .entities="${this._entities}"
-          .states="${this._states}"
+          .hass="${this._hass}"
           .showInfoBar=${this._showInfoBar}
           .showType=${this._showType}
         />
@@ -180,31 +179,6 @@ export class AMS_CARD extends LitElement {
       entity_id: entity_id,
     });
   }
-
-  // private async filterBambuDevices() {
-  //   const result: Result = {
-  //     humidity: null,
-  //     temperature: null,
-  //     spools: [],
-  //     type: (await this.getDeviceModel()) ?? null,
-  //   };
-  //   // Loop through all hass entities, and find those that belong to the selected device
-  //   for (let key in this._hass.entities) {
-  //     const value = this._hass.entities[key];
-  //     if (value.device_id === this._deviceId) {
-  //       const r = await this.getEntity(value.entity_id);
-  //       if (r.unique_id.includes("humidity")) {
-  //         result.humidity = value;
-  //       } else if (r.unique_id.includes("temp")) {
-  //         result.temperature = value;
-  //       } else if (r.unique_id.includes("tray")) {
-  //         result.spools.push(value);
-  //       }
-  //     }
-  //   }
-
-  //   this._entities = result;
-  // }
 
   private async getDeviceModel() {
     if (!this._deviceId) return;
