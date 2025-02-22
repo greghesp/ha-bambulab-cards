@@ -52,9 +52,9 @@ export class PrintControlCard extends LitElement {
   @state() private _confirmationDialogVisible: boolean = false;
   @state() private _confirmationDialogBody: string = "";
 
-  // Home assistant state references that are only used in chanedProperties
-  @state() private _pickImageState: any;
-  @state() private _skippedObjectsState = new Map<string, Object>();
+  // Home assistant state references that are only used in changedProperties
+  private _pickImageState: any;
+  private _skippedObjectsState: any;
 
   private _entityList: { [key: string]: helpers.Entity };
 
@@ -118,9 +118,6 @@ export class PrintControlCard extends LitElement {
 
     if (firstTime) {
       this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, ENTITYLIST);
-      // Keep a reference to the skippedObjects state for Lit reactivity to trigger off when it changes.
-      this._pickImageState = this._states[this._entityList['pick_image']?.entity_id]?.state;
-      this._skippedObjectsState = this._states[this._entityList['skipped_objects']?.entity_id]?.state;
     }
   }
 
@@ -180,15 +177,7 @@ export class PrintControlCard extends LitElement {
     }
 
     // Finally set the home assistant image URL into it to load the image.
-    this._pickImage.src = this._getPickImageUrl();
-  }
-
-  private _getPickImageUrl() {
-    const entity = this._entityList['pick_image'];
-    const timestamp = this._states[entity.entity_id].state;
-    const accessToken = this._states[entity.entity_id].attributes?.access_token
-    const imageUrl = `/api/image_proxy/${entity.entity_id}?token=${accessToken}&time=${timestamp}`;
-    return imageUrl;
+    this._pickImage.src = this._hass.states[this._entityList['pick_image'].entity_id].attributes.entity_picture;
   }
 
   private _getSkippedObjects() {
@@ -355,13 +344,22 @@ export class PrintControlCard extends LitElement {
       this._colorizeCanvas();
     }
 
-    if (changedProperties.has('_pickImageState')) {
-      this._initializeCanvas();
-      this._populateCheckboxList();
-    }
+    if (changedProperties.has("_states")) {
+      let newState = this._hass.states[this._entityList['pick_image'].entity_id].state;
+      if (newState !== this._pickImageState) {
+        console.log("Pick image updated");
+        this._pickImageState = newState;
+        this._initializeCanvas();
+        this._populateCheckboxList();
+      }
 
-    if (changedProperties.has('_skippedObjectsState')) {
-      this._populateCheckboxList();
+      newState = this._hass.states[this._entityList['skipped_objects'].entity_id].state;
+      if (newState !== this._skippedObjectsState) {
+        console.log("Skipped objects list updated");
+        this._skippedObjectsState = newState;
+        this._initializeCanvas();
+        this._populateCheckboxList();
+      }
     }
   }
 

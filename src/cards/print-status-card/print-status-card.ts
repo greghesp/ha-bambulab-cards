@@ -1,6 +1,6 @@
 import * as helpers from "../../utils/helpers"
 
-import { customElement, state, property } from "lit/decorators.js";
+import { customElement, state, property, query } from "lit/decorators.js";
 import { html, LitElement, nothing, PropertyValues } from "lit";
 import styles from "./card.styles";
 
@@ -63,9 +63,9 @@ export class PrintControlCard extends LitElement {
 
   @state() private _states;
   @state() private _device_id: any;
+
   // Home assistant state references that are only used in changedProperties
-  //@state() private _entities: any[];
-  //@state() private _lightbulb: any;
+  private _coverImageState: any;
 
   private _entityList: { [key: string]: helpers.Entity };
   private _entityUX: { [key: string]: EntityUX } | undefined;
@@ -75,6 +75,8 @@ export class PrintControlCard extends LitElement {
   private _power: string | undefined;
 
   private resizeObserver: ResizeObserver;
+
+  @query('#cover-image') coverImageElement: HTMLImageElement | undefined;
 
   private A1EntityUX: { [key: string]: EntityUX | undefined } = {
     //hms:                    { x: 90, y:10, width:20,  height:0 },  // binary_sensor
@@ -101,7 +103,7 @@ export class PrintControlCard extends LitElement {
     target_nozzle_temp:        undefined,
     cover_image:            { x: 41, y:58, width:150, height:150 }, // image
     bed_temp:               { x: 41, y:80, width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
-    target_bed_temperature: { x:0,y:0,width:0,height:0},            // Used only as a click target
+    target_bed_temperature:    undefined,
     print_progress:         { x: 74, y:89, width:25,  height:0 },   // sensor
     remaining_time:         { x: 74, y:93, width:100, height:0 },   // sensor
     stage:                  { x: 41, y:93, width:300, height:0 },   // sensor
@@ -122,7 +124,7 @@ export class PrintControlCard extends LitElement {
     aux_fan:                { x: 12, y:60,  width:70,  height:0 },   // fan
     cover_image:            { x: 50, y:57,  width:150, height:150 }, // image
     bed_temp:               { x: 50, y:76,  width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
-    target_bed_temperature: { x:0,y:0,width:0,height:0},             // Used only as a click target
+    target_bed_temperature:    undefined,
     stage:                  { x: 50, y:93,  width:300, height:0 },   // sensor
   };
 
@@ -142,7 +144,7 @@ export class PrintControlCard extends LitElement {
     aux_fan:                { x: 13, y:52,  width:70,  height:0 },   // fan
     cover_image:            { x: 50, y:53,  width:150, height:150 }, // image
     bed_temp:               { x: 50, y:72,  width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
-    target_bed_temperature: { x:0,y:0,width:0,height:0},            // Used only as a click target
+    target_bed_temperature:    undefined,
     stage:                  { x: 50, y:91,  width:300, height:0 },  // sensor
   };
 
@@ -162,7 +164,7 @@ export class PrintControlCard extends LitElement {
     aux_fan:                { x: 13, y:52, width:70,  height:0 },   // fan
     cover_image:            { x: 50, y:53, width:150, height:150 }, // image
     bed_temp:               { x: 50, y:75, width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
-    target_bed_temperature: { x:0,y:0,width:0,height:0},            // Used only as a click target
+    target_bed_temperature:    undefined,
     stage:                  { x: 50, y:93, width:300, height:0 },   // sensor
   };
 
@@ -273,6 +275,15 @@ export class PrintControlCard extends LitElement {
 
   updated(changedProperties) {
     super.updated(changedProperties);
+
+    if (changedProperties.has("_states")) {
+      let newState = this._hass.states[this._entityList['cover_image'].entity_id].state;
+      if (newState !== this._coverImageState) {
+        console.log("Cover image updated");
+        this._coverImageState = newState;
+        this.requestUpdate();
+      }
+    }
   }
 
   connectedCallback() {
@@ -413,9 +424,12 @@ export class PrintControlCard extends LitElement {
           } else {
             return html`
               <img
+                id="cover-image"
                 class="cover-image"
                 style="${style}"
-                src="${this._getImageUrl()}"
+                src="${this._getCoverImageUrl()}"
+                @error="${this._handleCoverImageError}"
+                @load="${this._handleCoverImageLoad}"
                 alt="Cover Image"
                 />
               `;
@@ -467,15 +481,7 @@ export class PrintControlCard extends LitElement {
   }
 
   private _clickEntity(key) {
-    const entity_id = this._entityList[key].entity_id;
-    const event = new CustomEvent('hass-more-info', {
-      detail: {
-        entityId: entity_id,
-      },
-      bubbles: true,
-      composed: true, // Make the event work across shadow DOM boundaries
-    });
-    this.dispatchEvent(event);
+    helpers.showEntityMoreInfo(this, this._entityList[key]);
   }
 
   private _toggleLight() {
@@ -487,14 +493,22 @@ export class PrintControlCard extends LitElement {
     this._hass.callService('light', service, data);
   }
 
-  private _getImageUrl() {
-    const img = this._entityList['cover_image'];
-    if (img) {
-      const timestamp = this._states[img.entity_id]?.state;
-      const accessToken = this._states[img.entity_id].attributes?.access_token
-      const imageUrl = `/api/image_proxy/${img.entity_id}?token=${accessToken}&time=${timestamp}`;
-      return imageUrl;
+  private _getCoverImageUrl() {
+    if (helpers.isEntityUnavailable(this._hass, this._entityList['cover_image'])) {
+      return '';
+    } else {
+      const coverImageEntityId = this._entityList['cover_image'].entity_id;
+      return this._hass.states[coverImageEntityId].attributes.entity_picture;
     }
-    return '';
+  }
+
+  private _handleCoverImageError() {
+    console.log("_handleCoverImageError");
+    this.coverImageElement!.style.display = 'none';
+  }
+
+  private _handleCoverImageLoad() {
+    console.log("_handleCoverImageLoad");
+    this.coverImageElement!.style.display = 'block';
   }
 }
