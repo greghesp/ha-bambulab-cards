@@ -24,7 +24,7 @@ export default css`
     line-height: 19px;
     display: flex;
     align-items: center;
-    color: #6a6a6a;
+    color: var(--mdc-dialog-content-ink-color, #6a6a6a);
   }
 
   .item-title {
@@ -35,7 +35,7 @@ export default css`
     line-height: 19px;
     display: flex;
     align-items: center;
-    color: #6a6a6a;
+    color: var(--mdc-dialog-content-ink-color, #6a6a6a);
   }
 
   .item-value {
@@ -47,7 +47,7 @@ export default css`
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    color: #000000;
+    color: var(--mdc-dialog-content-ink-color, #000000);
   }
 
   .div2 {
