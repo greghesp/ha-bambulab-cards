@@ -18,6 +18,7 @@ registerCustomCard({
 });
 
 const ENTITYLIST: string[] = [
+  "ftp",
   "pause",
   "pick_image",
   "printable_objects",
@@ -380,6 +381,12 @@ export class PrintControlCard extends LitElement {
   }
 
   private _showSkipButton() {
+    // Only show the Skip button when the integration is configured to enable model downoad off the printer.
+    const state = this._hass.states[this._entityList['ftp'].entity_id].state;
+    return state == 'on';
+  }
+
+  private _enableSkipButton() {
     const countOfPrintableObjects = Object.keys(this._getPrintableObjects()).length;
     if ((this._pickImageState == undefined) ||
         (countOfPrintableObjects < 2) ||
@@ -387,10 +394,7 @@ export class PrintControlCard extends LitElement {
     {
       return false;      
     }
-    return true;
-  }
 
-  private _enableSkipButton() {
     if (this._isEntityUnavailable(this._entityList['stop']) ||
         this._isEntityStateUnknown(this._entityList['pick_image']))
     {

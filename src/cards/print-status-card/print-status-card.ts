@@ -379,19 +379,25 @@ export class PrintControlCard extends LitElement {
             </div>
           `;
 
+        // @ts-expect-error // falls through
         case 'chamber_temp':
+          target_temperature == ""
         // @ts-expect-error // falls through
         case 'bed_temp':
-          target_temperature = 'target_bed_temp';
+          target_temperature = (target_temperature == undefined) ? 'target_bed_temp' : target_temperature;
         case 'nozzle_temp':
           target_temperature = (target_temperature == undefined) ? 'target_nozzle_temp' : target_temperature;
-          const temp = Math.round(Number(text));
-          if (target_temperature != undefined) {
+          if (target_temperature != "") {
             const target = helpers.getEntityState(this._hass, this._entityList[target_temperature]);
             if (target != "0") {
               style=`${style} background-color: rgba(255,100,0,0.2); box-shadow: 0 0 24px rgba(255,100,0,0.5);`;
             }
           }
+
+          // Strip the formated state down to just the number so we can add just the degree symbol to it.
+          let temp = this._hass.formatEntityState(this._hass.states[entity.entity_id]);
+          temp = temp.match(/[-+]?\d*\.?\d+/)[0];
+
           return html`
             <div id="${key}" class="entity" style="${style}" @click="${() => this._clickEntity(clickTarget)}">
               ${temp}&deg;
@@ -436,12 +442,11 @@ export class PrintControlCard extends LitElement {
           }
 
         case 'humidity':
-          const precision = (entity.display_precision == undefined) ? 1 : entity.display_precision;
-          text = Number(text).toFixed(precision);
+          text = this._hass.formatEntityState(this._hass.states[entity.entity_id])
           return html`
             <div id="${key}" class="entity" style="${style}" @click="${() => this._clickEntity(clickTarget)}">
               <ha-icon icon="mdi:water-percent"></ha-icon>
-              ${text}%
+              ${text}
             </div>
            `;
 
