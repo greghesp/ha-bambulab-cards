@@ -94,78 +94,78 @@ export class PrintControlCard extends LitElement {
   };
 
   private A1MiniEntityUX: { [key: string]: EntityUX | undefined } = {
-    //hms:                    { x: 90, y:10, width:20,  height:0 },   // binary_sensor
-    power:                  { x: 95, y:9,  width:20,  height:0 },   // custom power button
-    chamber_light:          { x: 88, y:29, width:20,  height:0 },   // light
-    nozzle_temp:            { x: 41, y:38, width:25,  height:0, alternate:"target_nozzle_temperature" },  // sensor
+    //hms:                    { x: 90, y:10, width:20,  height:0 },
+    power:                  { x: 95, y:9,  width:20,  height:0 },
+    chamber_light:          { x: 88, y:29, width:20,  height:0 },
+    nozzle_temp:            { x: 41, y:38, width:25,  height:0, alternate:"target_nozzle_temperature" },
     target_bed_temp:           undefined,
     target_nozzle_temperature: undefined,
     target_nozzle_temp:        undefined,
-    cover_image:            { x: 41, y:58, width:150, height:150 }, // image
-    bed_temp:               { x: 41, y:80, width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
+    cover_image:            { x: 41, y:58, width:150, height:150 },
+    bed_temp:               { x: 41, y:80, width:25,  height:0, alternate:"target_bed_temperature" },
     target_bed_temperature:    undefined,
-    print_progress:         { x: 74, y:89, width:25,  height:0 },   // sensor
-    remaining_time:         { x: 74, y:93, width:100, height:0 },   // sensor
-    stage:                  { x: 41, y:93, width:300, height:0 },   // sensor
+    print_progress:         { x: 74, y:89, width:25,  height:0 }, 
+    remaining_time:         { x: 74, y:93, width:100, height:0 },
+    stage:                  { x: 41, y:93, width:300, height:0 },
   };
 
   private P1PEntityUX: { [key: string]: EntityUX | undefined } = {
-    power:                  { x: 94, y:10,  width:20,  height:0 },    // custom power button
-    print_progress:         { x: 23, y:9.5, width:25,  height:0 },   // sensor
-    remaining_time:         { x: 59, y:10,  width:100, height:0 },   // sensor
-    //hms:                    { x: 90,   y:10,  width:20,  height:0 },  // binary_sensor
-    chamber_light:          { x: 12, y:24,  width:20,  height:0 },   // light
-    nozzle_temp:            { x: 50, y:35,  width:25,  height:0, alternate:"target_nozzle_temperature" },  // sensor
+    power:                  { x: 94, y:5,   width:20,  height:0 },
+    print_progress:         { x: 23, y:3.5, width:25,  height:0 },
+    remaining_time:         { x: 59, y:4.5, width:100, height:0 },
+    //hms:                    { x: 90,   y:10,  width:20,  height:0 },
+    chamber_light:          { x: 12, y:19,  width:20,  height:0 },
+    nozzle_temp:            { x: 50, y:33,  width:25,  height:0, alternate:"target_nozzle_temperature" },
     target_bed_temp:           undefined,
     target_nozzle_temperature: undefined,
     target_nozzle_temp:        undefined,
-    chamber_temp:           { x: 86, y:35,  width:20,  height:0 },   // sensor
-    humidity:               { x: 86, y:45,  width:20,  height:0 },   // sensor
-    aux_fan:                { x: 12, y:60,  width:70,  height:0 },   // fan
-    cover_image:            { x: 50, y:57,  width:150, height:150 }, // image
-    bed_temp:               { x: 50, y:76,  width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
+    chamber_temp:           { x: 86, y:32,  width:20,  height:0 },
+    humidity:               { x: 86, y:42,  width:20,  height:0 },
+    aux_fan:                { x: 12, y:60,  width:70,  height:0 },
+    cover_image:            { x: 50, y:60,  width:300, height:300 },
+    bed_temp:               { x: 50, y:86,  width:25,  height:0, alternate:"target_bed_temperature" },
     target_bed_temperature:    undefined,
-    stage:                  { x: 50, y:93,  width:300, height:0 },   // sensor
+    stage:                  { x: 50, y:94,  width:300, height:0 },
   };
 
   private P1SEntityUX: { [key: string]: EntityUX | undefined } = {
-    //hms:                    { x: 90, y:10,  width:20,  height:0 },   // binary_sensor
-    power:                  { x: 95, y:8,  width:20,  height:0 },    // custom power button
-    print_progress:         { x: 23, y:6,   width:25,  height:0 },   // sensor
-    remaining_time:         { x: 59, y:6.5, width:100, height:0 },   // sensor
-    chamber_light:          { x: 13, y:24,  width:20,  height:0 },   // light
-    chamber_fan:            { x: 86, y:24,  width:70,  height:0 },   // fan
-    nozzle_temp:            { x: 50, y:35,  width:25,  height:0, alternate:"target_nozzle_temperature" },  // sensor
+    //hms:                    { x: 90, y:10,  width:20,  height:0 },
+    power:                  { x: 95, y:5.5, width:20,  height:0 },
+    print_progress:         { x: 23, y:4,   width:25,  height:0 },
+    remaining_time:         { x: 59, y:5,   width:100, height:0 },
+    chamber_light:          { x: 13, y:21,  width:20,  height:0 },
+    chamber_fan:            { x: 86, y:21,  width:70,  height:0 },
+    nozzle_temp:            { x: 50, y:33,  width:25,  height:0, alternate:"target_nozzle_temperature" },
     target_bed_temp:           undefined,
     target_nozzle_temperature: undefined,
     target_nozzle_temp:        undefined,
-    chamber_temp:           { x: 86, y:35,  width:20,  height:0 },   // sensor
-    humidity:               { x: 86, y:45,  width:20,  height:0 },   // sensor
-    aux_fan:                { x: 13, y:52,  width:70,  height:0 },   // fan
-    cover_image:            { x: 50, y:53,  width:150, height:150 }, // image
-    bed_temp:               { x: 50, y:72,  width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
+    chamber_temp:           { x: 86, y:32,  width:20,  height:0 },
+    humidity:               { x: 86, y:42,  width:20,  height:0 },
+    aux_fan:                { x: 13, y:60,  width:70,  height:0 },
+    cover_image:            { x: 50, y:60,  width:300, height:300 },
+    bed_temp:               { x: 50, y:88,  width:25,  height:0, alternate:"target_bed_temperature" },
     target_bed_temperature:    undefined,
-    stage:                  { x: 50, y:91,  width:300, height:0 },  // sensor
+    stage:                  { x: 50, y:95,  width:300, height:0 },
   };
 
   private X1CEntityUX: { [key: string]: EntityUX | undefined } = {
-    //hms:                    { x: 90, y:10, width:20,  height:0 },   // binary_sensor
-    power:                  { x: 95.5, y:10,  width:20,  height:0 },   // custom power button
-    print_progress:         { x: 29, y:6,  width:25,  height:0 },   // sensor
-    remaining_time:         { x: 29, y:11, width:100, height:0 },   // sensor
-    chamber_light:          { x: 13, y:25, width:20,  height:0 },   // light
-    chamber_fan:            { x: 86, y:25, width:70,  height:0 },   // fan
-    nozzle_temp:            { x: 50, y:31, width:25,  height:0, alternate:"target_nozzle_temperature" },  // sensor
+    //hms:                    { x: 90, y:10, width:20,  height:0 },
+    power:                  { x: 95.5, y:10, width:20,  height:0 },
+    print_progress:         { x: 29, y:6,    width:25,  height:0 },
+    remaining_time:         { x: 29, y:11,   width:100, height:0 },
+    chamber_light:          { x: 13, y:24,   width:20,  height:0 },
+    chamber_fan:            { x: 86, y:24,   width:70,  height:0 },
+    nozzle_temp:            { x: 50, y:31,   width:25,  height:0, alternate:"target_nozzle_temperature" },
     target_bed_temp:           undefined,
     target_nozzle_temperature: undefined,
     target_nozzle_temp:        undefined,
-    chamber_temp:           { x: 86, y:35, width:20,  height:0 },   // sensor
-    humidity:               { x: 86, y:45, width:20,  height:0 },   // sensor
-    aux_fan:                { x: 13, y:52, width:70,  height:0 },   // fan
-    cover_image:            { x: 50, y:53, width:150, height:150 }, // image
-    bed_temp:               { x: 50, y:75, width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
+    chamber_temp:           { x: 86, y:33,   width:20,  height:0 },
+    humidity:               { x: 86, y:42,   width:20,  height:0 },
+    aux_fan:                { x: 13, y:60,   width:70,  height:0 },
+    cover_image:            { x: 50, y:60,   width:300, height:300 },
+    bed_temp:               { x: 50, y:88,   width:25,  height:0, alternate:"target_bed_temperature" },
     target_bed_temperature:    undefined,
-    stage:                  { x: 50, y:93, width:300, height:0 },   // sensor
+    stage:                  { x: 50, y:95, width:300, height:0 },
   };
 
   private EntityUX: { [key: string]: any } = {
