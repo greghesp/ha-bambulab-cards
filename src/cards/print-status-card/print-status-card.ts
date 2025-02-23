@@ -432,7 +432,7 @@ export class PrintControlCard extends LitElement {
               <img
                 id="cover-image"
                 class="cover-image"
-                style="${style}"
+                style="${style} z-index: 1;"
                 src="${this._getCoverImageUrl()}"
                 @error="${this._handleCoverImageError}"
                 @load="${this._handleCoverImageLoad}"

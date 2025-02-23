@@ -42,6 +42,7 @@ export default css`
     box-shadow: 0 0 8px rgba(0,0,0,0.3);
     padding: 6px;
     color: white;
+    z-index: 2;
 }
 #printer {
   display: block;
