@@ -5,30 +5,25 @@ import styles from "./graphic-ams-card.styles";
 import AMSImage from "../../../images/ams.png";
 import "../components/info-bar/info-bar";
 import "../../shared-components/ams-popup/ams-popup";
+import { entitiesContext, hassContext } from "../../../utils/context";
+import { consume } from "@lit/context";
 
 @customElement("graphic-ams-card")
 export class GraphicAmsCard extends LitElement {
-  @property() public subtitle;
-  @property() public showInfoBar;
-  @property({ type: Object }) public entities;
-  @property({ type: Object }) public hass;
+  @consume({ context: hassContext, subscribe: true })
+  private hass; 
+  @consume({ context: entitiesContext, subscribe: true })
+  private _entities;
 
   static styles = styles;
 
   render() {
     return html` <ha-card class="card">
       <div class="v-wrapper">
-        ${this.showInfoBar
-          ? html`<info-bar
-              subtitle="${this.subtitle}"
-              .hass="${this.hass}"
-              .humidity="${this.entities.humidity}"
-              .temperature="${this.entities.temperature}"
-            ></info-bar>`
-          : nothing}
+        <info-bar></info-bar>
         <div class="ams-container">
           <img src=${AMSImage} alt="" />
-            ${this.entities?.spools.map(
+            ${this._entities?.spools.map(
               (spool, i) => html`
                 <ams-popup .entity_id=${spool.entity_id}>
                   <div class="spool slot-${i + 1}">

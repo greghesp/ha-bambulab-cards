@@ -150,12 +150,7 @@ export class AMS_CARD extends LitElement {
   render() {
     if (this._style == "graphic") {
       return html`
-        <graphic-ams-card
-          .subtitle="${this._subtitle}"
-          .entities="${this._entities}"
-          .hass="${this._hass}"
-          .showInfoBar=${this._showInfoBar}
-        />
+        <graphic-ams-card />
       `;
     } else {
       return html` <vector-ams-card .showType=${this._showType} /> `;
