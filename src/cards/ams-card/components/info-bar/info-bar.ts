@@ -76,7 +76,7 @@ export class InfoBar extends LitElement {
                 <span
                   >${this.hass.formatEntityState(
                     this.hass.states[this._entities.humidity.entity_id]
-                  )}%</span
+                  )}</span
                 >
               </div>`
             : nothing}
