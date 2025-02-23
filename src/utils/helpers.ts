@@ -19,8 +19,8 @@ export function rgbaToInt(r, g, b, a) {
 }
 
 export function formatMinutes(minutes: number): string {
-  const mins  = Math.round(minutes % 60);      // Get the remaining minutes, rounded
-  const days  = Math.floor(minutes / (60*24)); // Get the whole days
+  const mins = Math.round(minutes % 60); // Get the remaining minutes, rounded
+  const days = Math.floor(minutes / (60 * 24)); // Get the whole days
   const hours = Math.floor(minutes / 60) % 24; // Get the whole hours
 
   // Create a readable string
@@ -39,7 +39,6 @@ export async function asyncGetEntity(hass, entity_id) {
   });
 }
 
-
 export interface Entity {
   entity_id: string;
   device_id: string;
@@ -49,37 +48,40 @@ export interface Entity {
   name: string;
 }
 
-export function getBambuDeviceEntities(hass, device_id, entities: string[]): { [key: string]: Entity } {
-  const result: { [key: string]: Entity } = {}
+export function getBambuDeviceEntities(
+  hass,
+  device_id,
+  entities: string[]
+): { [key: string]: Entity } {
+  const result: { [key: string]: Entity } = {};
   // Loop through all hass entities, and find those that belong to the selected device
   for (let k in hass.entities) {
     const value = hass.entities[k];
     if (value.device_id === device_id) {
       for (const key of entities) {
         if (key == value.translation_key) {
-          result[key] = value
+          result[key] = value;
         }
-      };
+      }
     }
   }
   return result;
 }
 
 export function isEntityUnavailable(hass, entity: Entity): boolean {
-  return hass.states[entity?.entity_id]?.state == 'unavailable';
+  return hass.states[entity?.entity_id]?.state == "unavailable";
 }
 
 export function getLocalizedEntityState(hass, entity: Entity) {
   const entityId = entity.entity_id;
-  const entityClass = entityId.substring(0, entityId.indexOf('.'));
+  const entityClass = entityId.substring(0, entityId.indexOf("."));
   const entityState = hass.states[entityId]?.state;
   if (entityId && entityState) {
     // Example localization key:
     // "component.bambu_lab.entity.sensor.stage.state.idle"
     const key = `component.bambu_lab.entity.${entityClass}.${entity.translation_key}.state.${entityState}`;
     return hass.localize(key) || entityState;
-  }
-  else {
+  } else {
     return "";
   }
 }
@@ -89,15 +91,14 @@ export function getEntityState(hass, entity: Entity) {
   const entityState = hass.states[entityId]?.state;
   if (entityState) {
     return entityState;
-  }
-  else {
+  } else {
     return "";
   }
 }
 
 export function showEntityMoreInfo(obj: HTMLElement, entity: Entity) {
   const entity_id = entity.entity_id;
-  const event = new CustomEvent('hass-more-info', {
+  const event = new CustomEvent("hass-more-info", {
     detail: {
       entityId: entity.entity_id,
     },
@@ -107,3 +108,30 @@ export function showEntityMoreInfo(obj: HTMLElement, entity: Entity) {
   obj.dispatchEvent(event);
 }
 
+export async function loadUnloadFilament(hass, target_id, action) {
+  //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
+
+  if (action === "load") {
+    hass
+      .callService("bambu_lab", "load_filament", { entity_id: target_id })
+      .then(() => {
+        console.log("Load filament service called successfully");
+        return true;
+      })
+      .catch((error) => {
+        console.error("Error calling load filament service:", error);
+        return false;
+      });
+  } else {
+    hass
+      .callService("bambu_lab", "unload_filament", { device_id: target_id })
+      .then(() => {
+        console.log("Unload filament service called successfully");
+        return true;
+      })
+      .catch((error) => {
+        console.error("Error calling unload filament service:", error);
+        return false;
+      });
+  }
+}

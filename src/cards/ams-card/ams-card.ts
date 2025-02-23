@@ -1,13 +1,15 @@
-import * as helpers from "../../utils/helpers"
+import * as helpers from "../../utils/helpers";
 import { customElement, state } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
+import { provide } from "@lit/context";
 
 import { registerCustomCard } from "../../utils/custom-cards";
 import { INTEGRATION_DOMAIN, MANUFACTURER, AMS_MODELS } from "../../const";
-import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME  } from "./const";
+import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME } from "./const";
 import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
+import { entitiesContext, hassContext, showInfoBarContext } from "../../utils/context";
 
 registerCustomCard({
   type: AMS_CARD_NAME,
@@ -44,26 +46,29 @@ interface Result {
 @customElement(AMS_CARD_NAME)
 export class AMS_CARD extends LitElement {
   // private property
-  @state() private _hass?;
   @state() private _subtitle;
   @state() private _deviceId: any;
-  @state() private _entities: any;
   @state() private _states;
   @state() private _style;
-  @state() private _showInfoBar;
   @state() private _showType;
+  private _entityList: { [key: string]: helpers.Entity } = {};
+
+  @provide({ context: hassContext })
+  @state()
+  private _hass?;
+
+  @provide({ context: entitiesContext })
+  private _entities;
+
+  @provide({ context: showInfoBarContext })
+  @state()
+  private _showInfoBar: { [key: string]: any } = {};
 
   private _customHumidity;
   private _customTemperature;
 
   static styles = styles;
-  private _entityList: { [key: string]: helpers.Entity };
 
-  constructor() {
-    super()
-    this._entityList = {};
-  }
-    
   public getLayoutOptions() {
     return {
       grid_rows:
@@ -80,13 +85,15 @@ export class AMS_CARD extends LitElement {
       throw new Error("You need to select an AMS");
     }
 
-    this._subtitle = config.subtitle === "" ? nothing : config.subtitle;
+    this._showInfoBar["title"] = config.subtitle === "" ? nothing : config.subtitle;
+    this._showInfoBar["active"] = config.show_info_bar ? true : false;
+
     this._deviceId = config.ams;
     this._style = config.style;
-    this._showInfoBar = config.show_info_bar ? true : false;
     this._showType = config.show_type ? true : false;
     this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
-    this._customTemperature = config.custom_temperature === "" ? nothing : config.custom_temperature;
+    this._customTemperature =
+      config.custom_temperature === "" ? nothing : config.custom_temperature;
 
     if (this._hass) {
       this.hass = this._hass;
@@ -99,7 +106,7 @@ export class AMS_CARD extends LitElement {
     this._hass = hass;
     this._states = hass.states;
 
-    if (this._deviceId == 'MOCK') {
+    if (this._deviceId == "MOCK") {
       Object.keys(this._hass.devices).forEach((key) => {
         const device = this._hass.devices[key];
         if (device.manufacturer == MANUFACTURER) {
@@ -108,7 +115,7 @@ export class AMS_CARD extends LitElement {
             this._deviceId = key;
           }
         }
-      })
+      });
     }
 
     if (firstTime) {
@@ -118,19 +125,24 @@ export class AMS_CARD extends LitElement {
       for (const key in hass.entities) {
         const value = hass.entities[key];
         if (value.entity_id === this._customTemperature) {
-          this._entityList['ams_temp'] = value; // Replace normal temp sensor, if present.
+          this._entityList["ams_temp"] = value; // Replace normal temp sensor, if present.
         }
         if (value.entity_id === this._customHumidity) {
-          this._entityList['humidity_index'] = value; // Replace normal humidity_index sensor.
+          this._entityList["humidity_index"] = value; // Replace normal humidity_index sensor.
         }
       }
 
       // Convert data to form rest of the cards are expecting.
       this._entities = {
-        humidity: this._entityList['humidity_index'],
-        temperature: this._entityList['ams_temp'],
-        spools: [ this._entityList['tray_1'], this._entityList['tray_2'], this._entityList['tray_3'], this._entityList['tray_4']],
-        type: this._hass.devices[this._deviceId].model.toUpperCase()
+        humidity: this._entityList["humidity_index"],
+        temperature: this._entityList["ams_temp"],
+        spools: [
+          this._entityList["tray_1"],
+          this._entityList["tray_2"],
+          this._entityList["tray_3"],
+          this._entityList["tray_4"],
+        ],
+        type: this._hass.devices[this._deviceId].model.toUpperCase(),
       };
     }
   }
@@ -146,15 +158,7 @@ export class AMS_CARD extends LitElement {
         />
       `;
     } else {
-      return html`
-        <vector-ams-card
-          .subtitle="${this._subtitle}"
-          .entities="${this._entities}"
-          .hass="${this._hass}"
-          .showInfoBar=${this._showInfoBar}
-          .showType=${this._showType}
-        />
-      `;
+      return html` <vector-ams-card .showType=${this._showType} /> `;
     }
   }
 

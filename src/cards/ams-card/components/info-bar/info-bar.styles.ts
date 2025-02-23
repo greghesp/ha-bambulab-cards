@@ -11,7 +11,7 @@ export default css`
     height: 56px;
   }
 
-  .subtitle {
+  .title {
     width: 50%;
   }
 

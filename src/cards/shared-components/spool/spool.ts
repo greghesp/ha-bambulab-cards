@@ -1,28 +1,43 @@
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./spool.styles";
+import { getContrastingTextColor } from "../../../utils/helpers";
+import { entitiesContext, hassContext } from "../../../utils/context";
+import { consume } from "@lit/context";
+import "../ams-popup/ams-popup";
 
 @customElement("ha-bambulab-spool")
 export class Spool extends LitElement {
-  @property({ type: Boolean }) public active: boolean = false;
-  @property({ type: String }) public color;
-  @property({ type: String }) public tag_uid;
-  @property({ type: String }) public name;
-  @property({ type: Number }) public remaining;
+  @consume({ context: hassContext, subscribe: true })
+  private hass;
+
+  @consume({ context: entitiesContext, subscribe: true })
+  private _entities;
+
   @property({ type: Boolean }) public show_type: boolean = false;
-  @property({ type: Number }) private remainHeight: number = 95;
-  @property({ type: Number }) private resizeObserver: ResizeObserver | null = null;
+  @property({ type: String }) public entity_id;
+
+  @state() private color;
+  @state() private name;
+  @state() private active;
+  @state() private remaining;
+  @state() private tag_uid;
+  @state() private state;
+  @state() private remainHeight: number = 95;
+  @state() private resizeObserver: ResizeObserver | null = null;
+  @state() private _dialogOpen: boolean = false;
 
   static styles = styles;
 
   connectedCallback() {
     super.connectedCallback();
-    // Start observing the parent element for size changes
+    this.updateFromHass();
 
-    this.resizeObserver = new ResizeObserver(() => {
-      this.calculateHeights();
-      this.updateLayers();
-    });
+    // Create a bound instance method to avoid creating new functions on each resize
+    this._handleResize = this._handleResize.bind(this);
+
+    // Start observing the parent element for size changes
+    this.resizeObserver = new ResizeObserver(this._handleResize);
     const rootNode = this.getRootNode() as ShadowRoot;
     const parent = this.parentElement || (rootNode instanceof ShadowRoot ? rootNode.host : null);
     if (parent) {
@@ -30,11 +45,19 @@ export class Spool extends LitElement {
     }
   }
 
+  private _handleResize() {
+    // Only update if the component is still connected to the DOM
+    if (this.isConnected) {
+      this.calculateHeights();
+      this.updateLayers();
+    }
+  }
+
   disconnectedCallback() {
     super.disconnectedCallback();
-    // Stop observing when the component is removed
     if (this.resizeObserver) {
-      this.resizeObserver?.disconnect();
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
     }
   }
 
@@ -44,40 +67,50 @@ export class Spool extends LitElement {
 
   render() {
     return html`
-      <div class="ha-bambulab-spool-card-container">
-        <div
-          class="ha-bambulab-spool-card-holder"
-          style="border-color: ${this.active ? this.color : "#808080"}"
-        >
-          <div class="ha-bambulab-spool-container">
-            <div class="ha-bambulab-spool-side"></div>
-            <div
-              class="string-roll-container"
-              style="${this.active ? "animation: wiggle 3s linear infinite" : nothing}"
-            >
+      <ams-popup .entity_id=${this.entity_id}>
+        <div class="ha-bambulab-spool-card-container">
+          <div
+            class="ha-bambulab-spool-card-holder"
+            style="border-color: ${this.active
+              ? this.hass.states[this.entity_id]?.attributes.color
+              : "#808080"}"
+          >
+            <div class="ha-bambulab-spool-container">
+              <div class="ha-bambulab-spool-side"></div>
               <div
-                class="v-string-roll"
-                id="v-string-roll"
-                style="background: ${this.color}; height: ${this.remainHeight.toFixed(2)}%"
+                class="string-roll-container"
+                style="${this.active ? "animation: wiggle 3s linear infinite" : nothing}"
               >
-                ${this.active ? html`<div class="v-reflection"></div>` : nothing}
-                ${this.getRemainingValue().type == "unknown" ||
-                this.getRemainingValue().type == "generic"
-                  ? ""
-                  : html` <div class="remaining-percent"><p>${this.remaining}%</p></div> `}
+                <div
+                  class="v-string-roll"
+                  id="v-string-roll"
+                  style="background: ${this.hass.states[this.entity_id]?.attributes
+                    .color}; height: ${this.remainHeight.toFixed(2)}%"
+                >
+                  ${this.active ? html`<div class="v-reflection"></div>` : nothing}
+                  ${this.hass.states[this.entity_id]?.attributes?.remain > 0
+                    ? html`
+                        <div class="remaining-percent">
+                          <p>${this.hass.states[this.entity_id]?.attributes?.remain}%</p>
+                        </div>
+                      `
+                    : nothing}
+                </div>
               </div>
+              <div class="ha-bambulab-spool-side"></div>
             </div>
-            <div class="ha-bambulab-spool-side"></div>
           </div>
+          ${this.show_type
+            ? html` <div class="ha-bambulab-spool-info-container">
+                <div class="ha-bambulab-spool-info-wrapper">
+                  <div class="ha-bambulab-spool-info">
+                    ${this.hass.states[this.entity_id]?.attributes.name}
+                  </div>
+                </div>
+              </div>`
+            : nothing}
         </div>
-        ${this.show_type
-          ? html` <div class="ha-bambulab-spool-info-container">
-              <div class="ha-bambulab-spool-info-wrapper">
-                <div class="ha-bambulab-spool-info">${this.name}</div>
-              </div>
-            </div>`
-          : nothing}
-      </div>
+      </ams-popup>
     `;
   }
 
@@ -109,25 +142,22 @@ export class Spool extends LitElement {
     }
   }
 
-  getRemainingValue() {
-    if (this.isAllZeros(this.tag_uid)) {
-      return { type: "generic", value: 100 };
-    } else if (this.remaining < 0) {
-      return { type: "unknown", value: 100 };
-    }
-    return { type: "bambu", value: this.remaining };
-  }
-
   isAllZeros(str) {
     return /^0+$/.test(str);
   }
 
   calculateHeights() {
+    // Skip calculation if modal is open to prevent unwanted updates
+    if (this._dialogOpen) return;
+
     const maxHeightPercentage = 95;
     const minHeightPercentage = 12;
 
     // If not a Bambu Spool or remaining is less than 0
-    if (this.isAllZeros(this.tag_uid) || this.remaining < 0) {
+    if (
+      this.isAllZeros(this.hass.states[this.entity_id]?.attributes.tag_uid) ||
+      this.hass.states[this.entity_id]?.attributes?.remain < 0
+    ) {
       this.remainHeight = maxHeightPercentage;
     } else {
       // Get the container's height
@@ -141,7 +171,10 @@ export class Spool extends LitElement {
       const minHeightPx = containerHeight * (minHeightPercentage / 100);
 
       // Calculate remain height based on the remain percentage
-      const remainPercentage = Math.min(Math.max(this.remaining, 0), 100);
+      const remainPercentage = Math.min(
+        Math.max(this.hass.states[this.entity_id]?.attributes?.remain, 0),
+        100
+      );
       this.remainHeight = minHeightPx + (maxHeightPx - minHeightPx) * (remainPercentage / 100);
 
       // Convert back to percentage of container
@@ -154,5 +187,35 @@ export class Spool extends LitElement {
       maxHeightPercentage
     );
     this.requestUpdate();
+  }
+
+  // Add willUpdate lifecycle method to handle hass changes
+  willUpdate(changedProperties) {
+    if (changedProperties.has("hass")) {
+      // Skip the update if dialog is open to prevent unwanted re-renders
+      if (!this._dialogOpen) {
+        this.updateFromHass();
+      }
+    }
+  }
+
+  // New method to handle state updates
+  private updateFromHass() {
+    if (!this.hass || !this.entity_id) return;
+
+    const newActive =
+      this.hass.states[this.entity_id]?.attributes.active ||
+      this.hass.states[this.entity_id]?.attributes.in_use
+        ? true
+        : false;
+
+    // Only update if the active state has changed
+    if (this.active !== newActive) {
+      this.active = newActive;
+      // Only recalculate heights if dialog is not open
+      if (!this._dialogOpen) {
+        this.calculateHeights();
+      }
+    }
   }
 }
