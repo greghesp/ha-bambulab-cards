@@ -3,6 +3,8 @@ import { css } from "lit";
 export default css`
   .popup-action-container {
     cursor: pointer;
+    height: 100%;
+    display: block;
   }
 
   .ha-bambulab-spool-modal-container {

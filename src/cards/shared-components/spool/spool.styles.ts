@@ -173,7 +173,6 @@ export default css`
     position: relative;
     flex: 1;
     min-height: calc(112px - 7px);
-    cursor: pointer;
   }
 
   .ha-bambulab-spool-info-container {
