@@ -14,13 +14,13 @@ export default css`
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
-    border: 2px solid #5a5a5a;
+    border: 2px solid #a9a9a9;
     border-radius: 3px;
     flex: 1;
   }
 
   .ha-bambulab-spool-side {
-    background: #3d3d3d;
+    background: #8c8c8c;
     width: 15%;
     height: 100%;
     max-width: 30px;
@@ -52,9 +52,9 @@ export default css`
 
   .v-string-layer {
     position: absolute;
-    width: 2px; /* Thickness of each vertical string line */
+    width: 3px; /* Thickness of each vertical string line */
     height: 100%; /* Full height of the roll */
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.2);
     z-index: 2;
   }
 
@@ -120,7 +120,7 @@ export default css`
   }
 
   .remaining-percent p {
-    background: #0000008c;
+    background: rgba(0, 0, 0, 0.4);
     padding: 0.2em;
     border-radius: 0.3em;
     color: white;
@@ -164,8 +164,8 @@ export default css`
   }
 
   .ha-bambulab-spool-card-holder {
-    border: 7px solid #808080;
-    background: linear-gradient(#959595, #626262, #959595);
+    border: 7px solid #c5c5c5;
+    background: #d6d6d6;
     width: 100%;
     box-sizing: border-box;
     border-radius: 0.6em;
@@ -185,7 +185,7 @@ export default css`
   }
 
   .ha-bambulab-spool-info {
-    background: #444444;
+    background: #838383;
     padding: 0px 10px;
     border-radius: 0.5em;
     white-space: nowrap;

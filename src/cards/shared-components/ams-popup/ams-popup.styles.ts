@@ -7,87 +7,57 @@ export default css`
     display: block;
   }
 
-  .ha-bambulab-spool-modal-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(6, 1fr);
-    gap: 8px;
+  .section {
+    margin-bottom: 32px;
   }
 
-  .filament-title {
-    grid-column: span 2 / span 2;
+  .section:last-of-type {
+    margin-bottom: 24px;
   }
 
   .section-title {
     font-family: "Inter";
-    font-style: normal;
     font-weight: 700;
     font-size: 16px;
-    line-height: 19px;
+    color: var(--mdc-dialog-content-ink-color, #6a6a6a);
+    margin: 0 0 16px 0;
+  }
+
+  .info-row {
     display: flex;
+    justify-content: space-between;
     align-items: center;
+    margin-bottom: 12px;
+    padding: 0 8px;
+  }
+
+  .info-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .info-label {
+    font-family: "Inter";
+    font-size: 16px;
     color: var(--mdc-dialog-content-ink-color, #6a6a6a);
   }
 
-  .item-title {
+  .info-value {
     font-family: "Inter";
-    font-style: normal;
-    font-weight: 400;
     font-size: 16px;
-    line-height: 19px;
-    display: flex;
-    align-items: center;
-    color: var(--mdc-dialog-content-ink-color, #6a6a6a);
-  }
-
-  .item-value {
-    font-family: "Inter";
-    font-style: normal;
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 19px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
     color: var(--mdc-dialog-content-ink-color, #000000);
   }
 
-  .div2 {
-    grid-row-start: 2;
-  }
-
-  .div3 {
-    grid-row-start: 2;
-  }
-
-  .div5 {
-    grid-row-start: 3;
-  }
-
-  .div6 {
-    grid-column: span 2 / span 2;
-    margin-top: 20px;
-  }
-
-  .div7 {
-    grid-row-start: 5;
-  }
-
-  .div8 {
-    grid-row-start: 5;
-  }
-
-  .div10 {
-    grid-row-start: 6;
+  .color-chip {
+    padding: 5px 10px;
+    border-radius: 5px;
   }
 
   .action-buttons {
-    grid-column: span 2 / span 2;
     display: flex;
     border-radius: 4px;
     overflow: hidden;
     background: #4caf50;
-    margin: 16px 0;
+    margin: 0;
   }
 
   .action-button {
@@ -108,6 +78,6 @@ export default css`
   }
 
   #load ha-icon {
-  margin-right: 8px;
-}
+    margin-right: 8px;
+  }
 `;
