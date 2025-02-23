@@ -23,15 +23,52 @@ export class AMSPopup extends LitElement {
     this._dialogOpen = true;
   }
 
+  
   private _enableLoadButton() {
-    // TODO - Disable if some other entity is active.
-    return !this.hass.states[this.entity_id].attributes.empty && !this.hass.states[this.entity_id].attributes.active;
+    return this._loadState === 'idle' && 
+           !this.hass.states[this.entity_id].attributes.empty &&
+           !this.hass.states[this.entity_id].attributes.active;
   }
 
-  private _enableUnloadButton() {
-    return !this.hass.states[this.entity_id].attributes.empty && this.hass.states[this.entity_id].attributes.active;
+  private _unloadButtonEnabled() {
+    return this._loadState === 'idle' && 
+           !this.hass.states[this.entity_id].attributes.empty &&
+           this.hass.states[this.entity_id].attributes.active;
   }
 
+  @property({ type: String })
+  private _loadState: "idle" | "loading" | "unloading" | "success" | "error" = "idle";
+
+  private async _handleLoad() {
+    this._loadState = "loading";
+    try {
+      await loadFilament(this.hass, this.entity_id);
+      setTimeout(() => {
+        this._loadState = "idle";
+      }, 10000);
+    } catch (error) {
+      this._loadState = "error";
+      setTimeout(() => {
+        this._loadState = "idle";
+      }, 2000);
+    }
+  }
+
+  private async _handleUnload() {
+    this._loadState = "unloading";
+    try {
+      await unloadFilament(this.hass, this.entity_id);
+      setTimeout(() => {
+        this._loadState = "idle";
+      }, 10000);
+    } catch (error) {
+      this._loadState = "error";
+      setTimeout(() => {
+        this._loadState = "idle";
+      }, 2000);
+    }
+  }
+  
   static styles = styles;
 
   render() {
@@ -85,15 +122,36 @@ export class AMSPopup extends LitElement {
           </div>
           <div class="div10 item-title">Maximum</div>
           <div class="action-buttons">
-            <mwc-button id="load" class="action-button" ?disabled="${!this._enableLoadButton()}" @click=${() => {
-              loadFilament(this.hass, this.entity_id);
-              this._closeDialog();
-            }}
-            >Load</mwc-button>
-            <mwc-button id="unload" class="action-button" ?disabled="${!this._enableUnloadButton()}" @click=${() => {
-              unloadFilament(this.hass, this.entity_id);
-              this._closeDialog();
-            }}>Unload</mwc-button>
+            <mwc-button
+              id="load"
+              class="action-button" 
+              @click=${this._handleLoad}
+              ?disabled=${!this._enableLoadButton()}
+            >
+              ${this._loadState === "loading" 
+                ? html`<ha-circular-progress active size="small"></ha-circular-progress>Loading` 
+                : this._loadState === "success"
+                ? html`<ha-icon icon="mdi:check" style="color: var(--success-color)"></ha-icon>Load`
+                : this._loadState === "error"
+                ? html`<ha-icon icon="mdi:close" style="color: var(--error-color)"></ha-icon>Load`
+                : "Load"
+              }
+            </mwc-button>
+            <mwc-button
+              id="unload"
+              class="action-button" 
+              @click=${this._handleUnload}
+              ?disabled=${!this._unloadButtonEnabled()}
+            >
+              ${this._loadState === "unloading" 
+                ? html`<ha-circular-progress active size="small"></ha-circular-progress>Unloading` 
+                : this._loadState === "success"
+                ? html`<ha-icon icon="mdi:check" style="color: var(--success-color)"></ha-icon>Unload`
+                : this._loadState === "error"
+                ? html`<ha-icon icon="mdi:close" style="color: var(--error-color)"></ha-icon> Unload`
+                : "Unload"
+              }
+            </mwc-button>            
           </div>
       </ha-dialog>
     `;

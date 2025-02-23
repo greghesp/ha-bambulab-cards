@@ -106,4 +106,8 @@ export default css`
   .action-button:first-child {
     border-right: 1px solid rgba(255, 255, 255, 0.2);
   }
+
+  #load ha-icon {
+  margin-right: 8px;
+}
 `;
