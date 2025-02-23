@@ -3,7 +3,7 @@ import { html, nothing } from "lit-html";
 import { consume } from "@lit/context";
 import { customElement, property } from "lit/decorators.js";
 import { hassContext } from "../../../utils/context";
-import { getContrastingTextColor, loadUnloadFilament } from "../../../utils/helpers";
+import { getContrastingTextColor, loadFilament, unloadFilament } from "../../../utils/helpers";
 import styles from "./ams-popup.styles";
 @customElement("ams-popup")
 export class AMSPopup extends LitElement {
@@ -77,11 +77,11 @@ export class AMSPopup extends LitElement {
           <div class="div10 item-title">Maximum</div>
           <div class="action-buttons">
             <mwc-button class="action-button" @click=${() => {
-              loadUnloadFilament(this.hass, this.entity_id, "load");
+              loadFilament(this.hass, this.entity_id);
             }}
             >Load</mwc-button>
             <mwc-button class="action-button" @click=${() => {
-              loadUnloadFilament(this.hass, this.entity_id, "unload");
+              unloadFilament(this.hass, this.entity_id);
             }}>Unload</mwc-button>
           </div>
       </ha-dialog>
