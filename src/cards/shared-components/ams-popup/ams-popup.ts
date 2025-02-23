@@ -23,6 +23,15 @@ export class AMSPopup extends LitElement {
     this._dialogOpen = true;
   }
 
+  private _enableLoadButton() {
+    // TODO - Disable if some other entity is active.
+    return !this.hass.states[this.entity_id].attributes.empty && !this.hass.states[this.entity_id].attributes.active;
+  }
+
+  private _enableUnloadButton() {
+    return !this.hass.states[this.entity_id].attributes.empty && this.hass.states[this.entity_id].attributes.active;
+  }
+
   static styles = styles;
 
   render() {
@@ -76,12 +85,14 @@ export class AMSPopup extends LitElement {
           </div>
           <div class="div10 item-title">Maximum</div>
           <div class="action-buttons">
-            <mwc-button class="action-button" @click=${() => {
+            <mwc-button id="load" class="action-button" ?disabled="${!this._enableLoadButton()}" @click=${() => {
               loadFilament(this.hass, this.entity_id);
+              this._closeDialog();
             }}
             >Load</mwc-button>
-            <mwc-button class="action-button" @click=${() => {
+            <mwc-button id="unload" class="action-button" ?disabled="${!this._enableUnloadButton()}" @click=${() => {
               unloadFilament(this.hass, this.entity_id);
+              this._closeDialog();
             }}>Unload</mwc-button>
           </div>
       </ha-dialog>
