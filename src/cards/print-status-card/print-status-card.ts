@@ -79,18 +79,18 @@ export class PrintControlCard extends LitElement {
   @query('#cover-image') coverImageElement: HTMLImageElement | undefined;
 
   private A1EntityUX: { [key: string]: EntityUX | undefined } = {
-    //hms:                    { x: 90, y:10, width:20,  height:0 },  // binary_sensor
-    power:                  { x: 95, y:9,  width:20,  height:0 },  // custom power button
-    chamber_light:          { x: 46, y:30,   width:20,  height:0 },  // light
-    nozzle_temp:            { x: 46, y:42,   width:25,  height:0, alternate:"target_nozzle_temperature" },  // sensor
+    //hms:                    { x: 90, y:10, width:20,  height:0 },
+    power:                  { x: 95, y:9,    width:20,  height:0 },
+    chamber_light:          { x: 46, y:30,   width:20,  height:0 },
+    nozzle_temp:            { x: 46, y:42,   width:25,  height:0, alternate:"target_nozzle_temperature" },
     target_bed_temp:           undefined,
     target_nozzle_temperature: undefined,
     target_nozzle_temp:        undefined,
-    cover_image:            { x: 46, y:60,   width:250, height:250 }, // image
-    bed_temp:               { x: 46, y:81,   width:25,  height:0, alternate:"target_bed_temperature" },  // sensor
-    print_progress:         { x: 85, y:81,   width:25,  height:0 },  // sensor
-    remaining_time:         { x: 85, y:85,   width:100, height:0 },  // sensor
-    stage:                  { x: 46, y:92.5, width:300, height:0 },  // sensor
+    cover_image:            { x: 46, y:60,   width:250, height:250 },
+    bed_temp:               { x: 46, y:81,   width:25,  height:0, alternate:"target_bed_temperature" },
+    print_progress:         { x: 85, y:81,   width:25,  height:0 },
+    remaining_time:         { x: 85, y:85,   width:100, height:0 },
+    stage:                  { x: 46, y:92.5, width:300, height:0 },
   };
 
   private A1MiniEntityUX: { [key: string]: EntityUX | undefined } = {
