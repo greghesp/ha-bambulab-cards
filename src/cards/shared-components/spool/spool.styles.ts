@@ -16,6 +16,7 @@ export default css`
     box-sizing: border-box;
     border: 2px solid #5a5a5a;
     border-radius: 3px;
+    flex: 1;
   }
 
   .ha-bambulab-spool-side {
@@ -172,6 +173,7 @@ export default css`
     position: relative;
     flex: 1;
     min-height: calc(112px - 7px);
+    cursor: pointer;
   }
 
   .ha-bambulab-spool-info-container {
