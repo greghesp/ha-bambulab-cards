@@ -23,17 +23,20 @@ export class AMSPopup extends LitElement {
     this._dialogOpen = true;
   }
 
-  
   private _enableLoadButton() {
-    return this._loadState === 'idle' && 
-           !this.hass.states[this.entity_id].attributes.empty &&
-           !this.hass.states[this.entity_id].attributes.active;
+    return (
+      this._loadState === "idle" &&
+      !this.hass.states[this.entity_id].attributes.empty &&
+      !this.hass.states[this.entity_id].attributes.active
+    );
   }
 
   private _unloadButtonEnabled() {
-    return this._loadState === 'idle' && 
-           !this.hass.states[this.entity_id].attributes.empty &&
-           this.hass.states[this.entity_id].attributes.active;
+    return (
+      this._loadState === "idle" &&
+      !this.hass.states[this.entity_id].attributes.empty &&
+      this.hass.states[this.entity_id].attributes.active
+    );
   }
 
   @property({ type: String })
@@ -68,7 +71,7 @@ export class AMSPopup extends LitElement {
       }, 2000);
     }
   }
-  
+
   static styles = styles;
 
   render() {
@@ -128,13 +131,16 @@ export class AMSPopup extends LitElement {
               @click=${this._handleLoad}
               ?disabled=${!this._enableLoadButton()}
             >
-              ${this._loadState === "loading" 
-                ? html`<ha-circular-progress active size="small"></ha-circular-progress>Loading` 
-                : this._loadState === "success"
-                ? html`<ha-icon icon="mdi:check" style="color: var(--success-color)"></ha-icon>Load`
-                : this._loadState === "error"
-                ? html`<ha-icon icon="mdi:close" style="color: var(--error-color)"></ha-icon>Load`
-                : "Load"
+              ${
+                this._loadState === "loading"
+                  ? html`<ha-circular-progress active size="small"></ha-circular-progress>Loading`
+                  : this._loadState === "success"
+                    ? html`<ha-icon icon="mdi:check" style="color: var(--success-color)"></ha-icon
+                        >Load`
+                    : this._loadState === "error"
+                      ? html`<ha-icon icon="mdi:close" style="color: var(--error-color)"></ha-icon
+                          >Load`
+                      : "Load"
               }
             </mwc-button>
             <mwc-button
@@ -143,13 +149,16 @@ export class AMSPopup extends LitElement {
               @click=${this._handleUnload}
               ?disabled=${!this._unloadButtonEnabled()}
             >
-              ${this._loadState === "unloading" 
-                ? html`<ha-circular-progress active size="small"></ha-circular-progress>Unloading` 
-                : this._loadState === "success"
-                ? html`<ha-icon icon="mdi:check" style="color: var(--success-color)"></ha-icon>Unload`
-                : this._loadState === "error"
-                ? html`<ha-icon icon="mdi:close" style="color: var(--error-color)"></ha-icon> Unload`
-                : "Unload"
+              ${
+                this._loadState === "unloading"
+                  ? html`<ha-circular-progress active size="small"></ha-circular-progress>Unloading`
+                  : this._loadState === "success"
+                    ? html`<ha-icon icon="mdi:check" style="color: var(--success-color)"></ha-icon
+                        >Unload`
+                    : this._loadState === "error"
+                      ? html`<ha-icon icon="mdi:close" style="color: var(--error-color)"></ha-icon>
+                          Unload`
+                      : "Unload"
               }
             </mwc-button>            
           </div>
