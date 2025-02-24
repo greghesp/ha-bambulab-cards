@@ -56,7 +56,7 @@ export class Spool extends LitElement {
             style="border-color: ${this.hass.states[this.entity_id]?.attributes.active ||
             this.hass.states[this.entity_id]?.attributes.in_use
               ? this.hass.states[this.entity_id]?.attributes.color
-              : "#808080"}"
+              : nothing}"
           >
             <div class="ha-bambulab-spool-container">
               <div class="ha-bambulab-spool-side"></div>
@@ -106,7 +106,7 @@ export class Spool extends LitElement {
     const stringRoll = (this.renderRoot as ShadowRoot).getElementById("v-string-roll");
     if (!stringRoll) return;
 
-    const stringWidth = 2; // matches .string-layer width in CSS
+    const stringWidth = 4; // matches .string-layer width in CSS
     const rollWidth = stringRoll.offsetWidth; // container width
 
     // Calculate how many lines fit
