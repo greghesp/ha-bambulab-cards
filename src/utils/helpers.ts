@@ -1,3 +1,5 @@
+import filaments from "../filament.json";
+
 export function getContrastingTextColor(hexColor) {
   // Remove the '#' if present
   hexColor = hexColor.replace("#", "");
@@ -137,4 +139,44 @@ export async function unloadFilament(hass, target_id) {
       console.error("Error calling unload filament service:", error);
       return false;
     });
+}
+
+export function doesFilamentIDExist(filament_id: string): boolean {
+  const filamentData = filaments.find((f) => f.filament_id === filament_id);
+  return filamentData !== undefined;
+}
+
+export function calculateDistanceToEmpty(
+  remain: number,
+  filament_id: string,
+  total_weight: number = 1000
+) {
+  if (remain < 0 || remain > 100) {
+    throw new Error("Remaining percentage must be between 0 and 100");
+  }
+
+  // Find the filament data from filament.json
+  const filamentData = filaments.find((f) => f.filament_id === filament_id);
+  if (
+    !filamentData ||
+    !filamentData.filament_density ||
+    filamentData.filament_density.length === 0
+  ) {
+    throw new Error(`No density data found for filament ID ${filament_id}`);
+  }
+
+  const density = parseFloat(filamentData.filament_density[0]); // Convert string to float
+  const diameter = 1.75 / 10; // Standard 1.75mm diameter converted to cm
+
+  // Calculate cross-sectional area in cm²
+  const area = Math.PI * Math.pow(diameter / 2, 2);
+
+  // Calculate total volume in cm³
+  const volume = total_weight / density;
+
+  // Calculate total length in cm
+  const total_length = volume / area;
+
+  // Convert to meters and calculate remaining length based on percentage
+  return Math.round((total_length * (remain / 100)) / 100);
 }
