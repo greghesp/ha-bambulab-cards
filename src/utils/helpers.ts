@@ -138,3 +138,36 @@ export async function unloadFilament(hass, target_id) {
       return false;
     });
 }
+
+type FilamentType = "pla" | "petg" | "abs" | "tpu";
+
+export function calculateDistanceToEmpty(remain: number, filament_type: FilamentType): number {
+  if (remain < 0 || remain > 100) {
+    throw new Error("Remaining percentage must be between 0 and 100");
+  }
+
+  const filamentData = {
+    pla: {
+      density: 1.24, // g/cm³
+      diameter: 1.75, // mm
+      total_weight: 1000, // grams
+    },
+    // ... other filament types ...
+  } as const;
+
+  const data = filamentData[filament_type];
+  const diameter = data.diameter / 10; // Convert mm to cm
+  const density = data.density;
+
+  // Calculate cross-sectional area in cm²
+  const area = Math.PI * Math.pow(diameter / 2, 2);
+
+  // Calculate total volume in cm³
+  const volume = data.total_weight / density;
+
+  // Calculate total length in cm
+  const total_length = volume / area;
+
+  // Convert to meters and calculate remaining length based on percentage
+  return Math.round((total_length * (remain / 100)) / 100);
+}

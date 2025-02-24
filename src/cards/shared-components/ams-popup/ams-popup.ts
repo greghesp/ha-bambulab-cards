@@ -3,7 +3,12 @@ import { html, nothing } from "lit-html";
 import { consume } from "@lit/context";
 import { customElement, property } from "lit/decorators.js";
 import { hassContext } from "../../../utils/context";
-import { getContrastingTextColor, loadFilament, unloadFilament } from "../../../utils/helpers";
+import {
+  calculateDistanceToEmpty,
+  getContrastingTextColor,
+  loadFilament,
+  unloadFilament,
+} from "../../../utils/helpers";
 import styles from "./ams-popup.styles";
 @customElement("ams-popup")
 export class AMSPopup extends LitElement {
@@ -122,9 +127,12 @@ export class AMSPopup extends LitElement {
             ${this.hass.states[this.entity_id].attributes.remain > 0
               ? html`
                   <div class="info-row">
-                    <span class="info-label">Remaining Filament</span>
+                    <span class="info-label">Estimated Remaining Length</span>
                     <span class="info-value"
-                      >${this.hass.states[this.entity_id].attributes.remain}%</span
+                      >${calculateDistanceToEmpty(
+                        this.hass.states[this.entity_id].attributes.remain,
+                        "pla"
+                      )}m</span
                     >
                   </div>
                 `
