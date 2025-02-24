@@ -1,4 +1,4 @@
-import * as helpers from "../../../../utils/helpers"
+import * as helpers from "../../../../utils/helpers";
 import { customElement, property } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./info-bar.styles";
@@ -36,7 +36,6 @@ export class InfoBar extends LitElement {
   }
 
   getTemperatureColor() {
-    // Ensure temperature is within 0–30 if you want to clamp out-of-range values:
     let temp = parseFloat(this.hass.states[this._entities.temperature.entity_id].state);
     const unit =
       this.hass.states[this._entities.temperature.entity_id].attributes.unit_of_measurement;
@@ -45,24 +44,16 @@ export class InfoBar extends LitElement {
       temp = ((temp - 32) * 5) / 9;
     }
 
-    if (temp < 0) return "red";
+    console.log(temp);
 
-    switch (true) {
-      case temp >= 0 && temp <= 5:
-        return "#0000ff"; // coldest shade (blue)
-      case temp <= 10:
-        return "#0084ff";
-      case temp <= 15:
-        return "#47baa5";
-      case temp <= 20:
-        return "#48af1c";
-      case temp <= 25:
-        return "#ffa500";
-      case temp >= 30:
-        return "#ff4500"; // hottest shade (orange/red)
-      default:
-        return "white";
-    }
+    if (temp < 0) return "red";
+    if (temp >= 0 && temp <= 5) return "#0000ff";
+    if (temp <= 10) return "#0084ff";
+    if (temp <= 15) return "#47baa5";
+    if (temp <= 20) return "#48af1c";
+    if (temp <= 25) return "#ffa500";
+    if (temp <= 30) return "#ff4500";
+    return "#ff0000";
   }
 
   render() {
@@ -72,24 +63,33 @@ export class InfoBar extends LitElement {
         <div class="title">${this._infoBar.title}</div>
         <div class="info-slots">
           ${this._entities?.humidity
-            ? html` <div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.humidity)}">
+            ? html` <div
+                class="info"
+                @click="${() => helpers.showEntityMoreInfo(this, this._entities.humidity)}"
+              >
                 <span>
                   <ha-icon icon="mdi:water" style="color: ${this.getHumidityColor()}" />
                 </span>
                 <span>
-                  ${this.hass.formatEntityState(this.hass.states[this._entities.humidity.entity_id])}
-                </span
-                >
+                  ${this.hass.formatEntityState(
+                    this.hass.states[this._entities.humidity.entity_id]
+                  )}
+                </span>
               </div>`
             : nothing}
           ${this._entities.temperature
             ? html`
-                <div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.temperature)}">
+                <div
+                  class="info"
+                  @click="${() => helpers.showEntityMoreInfo(this, this._entities.temperature)}"
+                >
                   <span>
                     <ha-icon icon="mdi:thermometer" style="color: ${this.getTemperatureColor()}" />
                   </span>
                   <span>
-                    ${this.hass.formatEntityState(this.hass.states[this._entities.temperature.entity_id])}
+                    ${this.hass.formatEntityState(
+                      this.hass.states[this._entities.temperature.entity_id]
+                    )}
                   </span>
                 </div>
               `

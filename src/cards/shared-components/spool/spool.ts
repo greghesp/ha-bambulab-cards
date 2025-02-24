@@ -106,7 +106,7 @@ export class Spool extends LitElement {
     const stringRoll = (this.renderRoot as ShadowRoot).getElementById("v-string-roll");
     if (!stringRoll) return;
 
-    const stringWidth = 3; // matches .string-layer width in CSS
+    const stringWidth = 4; // matches .string-layer width in CSS
     const rollWidth = stringRoll.offsetWidth; // container width
 
     // Calculate how many lines fit

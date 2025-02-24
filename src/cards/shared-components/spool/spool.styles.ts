@@ -14,8 +14,6 @@ export default css`
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
-    border: 2px solid #a9a9a9;
-    border-radius: 3px;
     flex: 1;
   }
 
@@ -52,9 +50,9 @@ export default css`
 
   .v-string-layer {
     position: absolute;
-    width: 3px; /* Thickness of each vertical string line */
+    width: 4px; /* Thickness of each vertical string line */
     height: 100%; /* Full height of the roll */
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.25);
     z-index: 2;
   }
 

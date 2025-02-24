@@ -25,9 +25,10 @@ export default css`
 
   .info {
     background: #4f4f4f;
-    padding: 0.5em;
+    padding: 0.5em 1em 0.5em 0.5em;
     border-radius: 0.5em;
     color: white;
     font-size: smaller;
+    cursor: pointer;
   }
 `;
