@@ -3,7 +3,7 @@ import { html, LitElement, nothing } from "lit";
 import styles from "./spool.styles";
 import { hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
-import "../ams-popup/ams-popup";
+import "../../shared-components/ams-popup/ams-popup";
 
 @customElement("ha-bambulab-spool")
 export class Spool extends LitElement {
