@@ -43,7 +43,11 @@ export class AMSPopup extends LitElement {
   }
 
   private _isSetBuildEnabled() {
-    return this.color.toUpperCase() != this.hass.states[this.entity_id].attributes.color.substring(0,7).toUpperCase();
+    return this.color.toUpperCase() != this.hass.states[this.entity_id].attributes.color.substring(0,7).toUpperCase() ||
+           this.min_temp != this.hass.states[this.entity_id].attributes.nozzle_temp_min ||
+           this.max_temp != this.hass.states[this.entity_id].attributes.nozzle_temp_max ||
+           this.tray_type != this.hass.states[this.entity_id].attributes.type ||
+           this.tray_info_idx != this.hass.states[this.entity_id].attributes.filament_id;
   }
 
   private _isLoadButtonEnabled() {
