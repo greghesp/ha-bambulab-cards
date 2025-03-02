@@ -166,6 +166,7 @@ export class PrintControlCard extends LitElement {
     bed_temp:               { x: 50, y:88,   width:25,  height:0, alternate:"target_bed_temperature" },
     target_bed_temperature:    undefined,
     stage:                  { x: 50, y:95, width:300, height:0 },
+    door_open:              { x: 86, y:60,   width:20, height:0 },
   };
 
   private EntityUX: { [key: string]: any } = {
@@ -475,6 +476,13 @@ export class PrintControlCard extends LitElement {
           return html`
             <div id="${key}" class="entity" style="${style}">
               ${helpers.formatMinutes(Number(text))}
+            </div>`;
+
+        case 'door_open':
+          const icon = (text == 'on') ? 'mdi:door-open' : 'mdi:door-closed';
+          return html`
+            <div id="${key}" class="entity" style="${style}" @click="${() => this._clickEntity(clickTarget)}">
+              <ha-icon icon="${icon}"></ha-icon>
             </div>`;
 
         default:
