@@ -1,9 +1,9 @@
 import { LitElement } from "lit";
 import { html, nothing } from "lit-html";
 import { consume } from "@lit/context";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { hassContext } from "../../../utils/context";
-import { getContrastingTextColor, loadFilament, unloadFilament } from "../../../utils/helpers";
+import { getContrastingTextColor, setFilament, loadFilament, unloadFilament } from "../../../utils/helpers";
 import styles from "./ams-popup.styles";
 @customElement("ams-popup")
 export class AMSPopup extends LitElement {
@@ -15,6 +15,25 @@ export class AMSPopup extends LitElement {
   @property({ type: Boolean })
   private _dialogOpen = false;
 
+  @state()
+  private color: string = "";
+  @state()
+  private tray_type: string = "";
+  @state()
+  private min_temp: number = 0;
+  @state()
+  private max_temp: number = 0;
+  @state()
+  private tray_info_idx: string = "";
+
+  firstUpdated() {
+    this.color = this.hass.states[this.entity_id].attributes.color.substring(0,7);
+    this.min_temp = this.hass.states[this.entity_id].attributes.nozzle_temp_min;
+    this.max_temp = this.hass.states[this.entity_id].attributes.nozzle_temp_max;
+    this.tray_type = this.hass.states[this.entity_id].attributes.type;
+    this.tray_info_idx = this.hass.states[this.entity_id].attributes.filament_id;
+  }
+
   private _closeDialog() {
     this._dialogOpen = false;
   }
@@ -23,17 +42,31 @@ export class AMSPopup extends LitElement {
     this._dialogOpen = true;
   }
 
-  
-  private _enableLoadButton() {
+  private _isSetBuildEnabled() {
+    return this.color.toUpperCase() != this.hass.states[this.entity_id].attributes.color.substring(0,7).toUpperCase();
+  }
+
+  private _isLoadButtonEnabled() {
     return this._loadState === 'idle' && 
            !this.hass.states[this.entity_id].attributes.empty &&
            !this.hass.states[this.entity_id].attributes.active;
   }
 
-  private _unloadButtonEnabled() {
+  private _isUnloadButtonEnabled() {
     return this._loadState === 'idle' && 
            !this.hass.states[this.entity_id].attributes.empty &&
            this.hass.states[this.entity_id].attributes.active;
+  }
+
+  private async _handleSet() {
+    const rgbaColor = `${this.color}FF`.toUpperCase();
+    await setFilament(this.hass, this.entity_id, this.tray_info_idx, this.tray_type, rgbaColor, this.min_temp, this.max_temp);
+  }
+
+  private _handleColorChange(event: InputEvent) {
+    const input = event.target as HTMLInputElement;
+    this.color = input.value;
+    console.log('Selected color:', this.color);
   }
 
   @property({ type: String })
@@ -102,14 +135,12 @@ export class AMSPopup extends LitElement {
           <div class="div2 item-title">Filament</div>
           <div class="div3 item-value">${this.hass.states[this.entity_id].attributes.name}</div>
           <div class="div4 item-value">
-            <span
-              style="background-color: ${
-                this.hass.states[this.entity_id].attributes.color
-              }; color: ${getContrastingTextColor(
-                this.hass.states[this.entity_id].attributes.color
-              )}; padding: 5px 10px; border-radius: 5px;"
-              >${this.hass.states[this.entity_id].attributes.color}</span
-            >
+            <input
+              type="color"
+              style="padding: 0px 0px; border-radius: 5px;"
+              .value="${this.hass.states[this.entity_id].attributes.color.substring(0,7)}"
+              @input="${this._handleColorChange}"
+            />
           </div>
           <div class="div5 item-title">Color</div>
           <div class="div6 section-title">Nozzle Temperature</div>
@@ -123,10 +154,18 @@ export class AMSPopup extends LitElement {
           <div class="div10 item-title">Maximum</div>
           <div class="action-buttons">
             <mwc-button
+              id="set"
+              class="action-button" 
+              @click=${this._handleSet}
+              ?disabled=${!this._isSetBuildEnabled()}
+            >
+              Set
+            </mwc-button>
+            <mwc-button
               id="load"
               class="action-button" 
               @click=${this._handleLoad}
-              ?disabled=${!this._enableLoadButton()}
+              ?disabled=${!this._isLoadButtonEnabled()}
             >
               ${this._loadState === "loading" 
                 ? html`<ha-circular-progress active size="small"></ha-circular-progress>Loading` 
@@ -141,7 +180,7 @@ export class AMSPopup extends LitElement {
               id="unload"
               class="action-button" 
               @click=${this._handleUnload}
-              ?disabled=${!this._unloadButtonEnabled()}
+              ?disabled=${!this._isUnloadButtonEnabled()}
             >
               ${this._loadState === "unloading" 
                 ? html`<ha-circular-progress active size="small"></ha-circular-progress>Unloading` 

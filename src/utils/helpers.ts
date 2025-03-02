@@ -108,6 +108,27 @@ export function showEntityMoreInfo(obj: HTMLElement, entity: Entity) {
   obj.dispatchEvent(event);
 }
 
+export async function setFilament(hass, target_id, tray_info_idx, tray_type, color, min_temp, max_temp) {
+  //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
+  hass
+    .callService("bambu_lab", "set_filament", {
+       entity_id: [ target_id ],
+       tray_info_idx: tray_info_idx,
+       tray_type: tray_type,
+       tray_color: color.substring(1),
+       nozzle_temp_min: Number(min_temp),
+       nozzle_temp_max: Number(max_temp),
+    })
+    .then(() => {
+      console.log("Set filament service called successfully");
+      return true;
+    })
+    .catch((error) => {
+      console.error("Error calling set filament service:", error);
+      return false;
+    });
+}
+
 export async function loadFilament(hass, target_id) {
   //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
   hass
