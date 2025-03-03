@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
-import { HomeAssistant } from '../../types/homeassistant';
-import { MANUFACTURER, AMS_MODELS } from '../../const';
-import './ams-card-editor.css';
+import React, { useMemo } from "react";
+import { HomeAssistant } from "../../types/homeassistant";
+import { MANUFACTURER, AMS_MODELS } from "../../const";
+import "./ams-card-editor.css";
 
 // https://www.home-assistant.io/docs/blueprint/selectors/#select-selector
 const filterCombinations = AMS_MODELS.map((model) => ({
@@ -18,7 +18,7 @@ interface AMSCardEditorProps {
     custom_temperature?: string;
     show_type?: boolean;
     ams?: string;
-    style?: 'vector' | 'graphic';
+    style?: "vector" | "graphic";
   };
   setConfig: (config: any) => void;
 }
@@ -47,11 +47,7 @@ interface SchemaItem {
   };
 }
 
-export const AMSCardEditor: React.FC<AMSCardEditorProps> = ({
-  hass,
-  config,
-  setConfig,
-}) => {
+export const AMSCardEditor: React.FC<AMSCardEditorProps> = ({ hass, config, setConfig }) => {
   // Create schema based on show_info_bar and style values
   const schema = useMemo(() => {
     const baseSchema: SchemaItem[] = [
@@ -59,7 +55,7 @@ export const AMSCardEditor: React.FC<AMSCardEditorProps> = ({
         name: "show_info_bar",
         label: "Show Info Bar",
         selector: { boolean: true },
-      }
+      },
     ];
 
     if (config.show_info_bar) {
@@ -115,6 +111,7 @@ export const AMSCardEditor: React.FC<AMSCardEditorProps> = ({
 
   const handleValueChange = (ev: CustomEvent) => {
     const newConfig = ev.detail.value;
+    console.log("newconfig", newConfig);
     setConfig(newConfig);
   };
 
@@ -129,4 +126,4 @@ export const AMSCardEditor: React.FC<AMSCardEditorProps> = ({
       />
     </div>
   );
-}; 
+};
