@@ -1,0 +1,1 @@
+export { AMSCard } from './ams-card'; 

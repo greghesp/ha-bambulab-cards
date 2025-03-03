@@ -1,0 +1,9 @@
+.card {
+  display: flex;
+  justify-content: center;
+  height: 100%;
+  padding: 16px;
+  background: var(--card-background-color);
+  border-radius: var(--ha-card-border-radius, 4px);
+  box-shadow: var(--ha-card-box-shadow, none);
+} 

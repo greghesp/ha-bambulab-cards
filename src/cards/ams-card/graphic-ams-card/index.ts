@@ -1,0 +1,1 @@
+export { GraphicAMSCard } from './graphic-ams-card'; 

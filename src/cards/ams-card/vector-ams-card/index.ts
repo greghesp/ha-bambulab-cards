@@ -1,0 +1,1 @@
+export { VectorAMSCard } from './vector-ams-card'; 

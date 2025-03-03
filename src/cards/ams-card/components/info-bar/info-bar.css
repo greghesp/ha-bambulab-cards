@@ -1,0 +1,18 @@
+.info-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--primary-background-color);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.info-bar-title {
+  font-weight: bold;
+  color: var(--primary-text-color);
+}
+
+.info-bar-value {
+  color: var(--secondary-text-color);
+} 

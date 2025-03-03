@@ -1,48 +1,75 @@
-import { repository } from "../../package.json";
+import { HomeAssistant } from "../types/homeassistant";
+
+interface CardConfig {
+  type: string;
+  [key: string]: any;
+}
+
+interface CardInstance {
+  hass: HomeAssistant;
+  config: CardConfig;
+  [key: string]: any;
+}
+
+interface CardSelector {
+  querySelector: (selector: string) => Element | null;
+  [key: string]: any;
+}
 
 interface RegisterCardParams {
   type: string;
   name: string;
   description: string;
+  component?: React.ComponentType<any>;
 }
+
 export function registerCustomCard(params: RegisterCardParams) {
   const windowWithCards = window as unknown as Window & {
-    customCards: unknown[];
+    customCards: Array<{ type: string; name: string; description: string }>;
   };
-  windowWithCards.customCards = windowWithCards.customCards || [];
 
-  const cardPage = params.type.replace("-card", "").replace("ha-bambulab-", "");
+  if (!windowWithCards.customCards) {
+    windowWithCards.customCards = [];
+  }
+
   windowWithCards.customCards.push({
-    ...params,
-    preview: true,
-    documentationURL: `${repository.url}/blob/main/docs/cards/${cardPage}.md`,
+    type: params.type,
+    name: params.name,
+    description: params.description,
   });
 }
 
-export async function createCard(config, selector, instance) {
+export async function createCard(
+  config: CardConfig,
+  selector: CardSelector,
+  instance: CardInstance
+) {
   const cardHelpers = await (window as any).loadCardHelpers();
 
-  // Create the 'hui-picture-entity' card dynamically
-  const element = await cardHelpers.createCardElement(config);
+  if (!cardHelpers) {
+    throw new Error("Card helpers not found");
+  }
 
-  // Assign the hass object to the card
-  element.hass = instance._hass;
-
-  // Render the card in the DOM
-  const container = instance.shadowRoot.querySelector(selector);
-  container.innerHTML = ""; // Clear previous content
-  container.appendChild(element);
-
-  // Ensure the card updates completely
-  await element.updateComplete;
+  const card = await cardHelpers.createCardElement(config);
+  card.hass = instance.hass;
+  
+  const container = selector.querySelector("div");
+  if (container) {
+    container.appendChild(card);
+  }
 }
 
-export async function updateCard(changedProperties, selector, instance) {
-  {
-    if (changedProperties.has("hass")) {
-      const container = instance.shadowRoot.querySelector(selector);
-      if (container && container.firstChild) {
-        container.firstChild.hass = instance._hass; // Update the hass property of the card
+export async function updateCard(
+  changedProperties: Map<string, any>,
+  selector: CardSelector,
+  instance: CardInstance
+) {
+  if (changedProperties.has("hass")) {
+    const container = selector.querySelector("div");
+    if (container) {
+      const card = container.firstElementChild;
+      if (card) {
+        (card as any).hass = instance.hass;
       }
     }
   }
