@@ -1,0 +1,47 @@
+.vector-ams-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.vector-spool {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--card-background-color);
+  box-shadow: var(--ha-card-box-shadow, none);
+  transition: all 0.3s ease;
+}
+
+.vector-spool.active {
+  border: 2px solid var(--primary-color);
+}
+
+.vector-spool.empty {
+  opacity: 0.5;
+}
+
+.vector-spool-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 12px;
+  border: 1px solid var(--divider-color);
+}
+
+.vector-spool-info {
+  flex: 1;
+}
+
+.vector-spool-name {
+  font-weight: bold;
+  color: var(--primary-text-color);
+  margin-bottom: 4px;
+}
+
+.vector-spool-status {
+  font-size: 0.9em;
+  color: var(--secondary-text-color);
+} 

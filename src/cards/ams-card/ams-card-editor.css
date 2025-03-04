@@ -1,0 +1,35 @@
+.editor {
+  padding: 16px;
+}
+
+.editor ha-form {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.editor ha-form > * {
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--primary-text-color);
+}
+
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--divider-color);
+  border-radius: 4px;
+  background: var(--card-background-color);
+  color: var(--primary-text-color);
+}
+
+.form-group input[type="checkbox"] {
+  margin-right: 8px;
+} 

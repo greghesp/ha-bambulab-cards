@@ -6,6 +6,7 @@ import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import serve from "rollup-plugin-serve";
 import image from "rollup-plugin-img";
+import postcss from 'rollup-plugin-postcss';
 
 const dev = process.env.ROLLUP_WATCH;
 const ignoreErrors = dev || process.env.IGNORE_TS_ERRORS === 'true';
@@ -27,7 +28,9 @@ const plugins = [
   }),
   typescript({
     declaration: false,
-    noEmitOnError: !ignoreErrors
+    noEmitOnError: !ignoreErrors,
+    tsconfig: './tsconfig.json',
+    sourceMap: true,
   }),
   nodeResolve(),
   json(),
@@ -46,6 +49,13 @@ const plugins = [
     ],
     compact: true,
   }),
+  postcss({
+    extensions: ['.css'],
+    inject: true,
+    extract: false,
+    modules: false,
+    minimize: true
+  }),
   ...(dev ? [serve(serveOptions)] : [terser()]),
 ];
 
@@ -56,7 +66,9 @@ export default [
       dir: "dist",
       format: "es",
       inlineDynamicImports: true,
+      sourcemap: true
     },
+    external: ['react', 'react-dom'],
     plugins,
     moduleContext: (id) => {
       const thisAsWindowForModules = [

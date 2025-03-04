@@ -1,0 +1,28 @@
+.editor {
+  padding: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--primary-text-color);
+}
+
+.form-group select,
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--divider-color);
+  border-radius: 4px;
+  background: var(--card-background-color);
+  color: var(--primary-text-color);
+}
+
+.form-group input[type="text"]::placeholder {
+  color: var(--secondary-text-color);
+  opacity: 0.7;
+} 

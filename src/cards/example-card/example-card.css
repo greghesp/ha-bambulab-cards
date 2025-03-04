@@ -1,0 +1,24 @@
+.card {
+  background: var(--card-background-color);
+  border-radius: var(--ha-card-border-radius, 4px);
+  box-shadow: var(--ha-card-box-shadow, none);
+  color: var(--primary-text-color);
+  height: 100%;
+}
+
+.card-content {
+  padding: 16px;
+}
+
+.card-content h1 {
+  margin: 0 0 16px;
+  font-size: 1.4em;
+  font-weight: 500;
+  color: var(--primary-text-color);
+}
+
+.card-content p {
+  margin: 0;
+  color: var(--secondary-text-color);
+  font-size: 1.1em;
+} 

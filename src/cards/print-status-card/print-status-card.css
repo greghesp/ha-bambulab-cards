@@ -1,0 +1,67 @@
+.card {
+  padding: 16px;
+  background: var(--card-background-color);
+  border-radius: var(--ha-card-border-radius, 4px);
+  box-shadow: var(--ha-card-box-shadow, none);
+}
+
+.header {
+  margin-bottom: 16px;
+}
+
+.stage {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: var(--primary-text-color);
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--divider-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  min-width: 48px;
+  text-align: right;
+  color: var(--primary-text-color);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  padding: 8px;
+  background: var(--secondary-background-color);
+  border-radius: 4px;
+}
+
+.info-label {
+  font-size: 0.9em;
+  color: var(--secondary-text-color);
+  margin-bottom: 4px;
+}
+
+.info-value {
+  font-size: 1.1em;
+  font-weight: 500;
+  color: var(--primary-text-color);
+} 
