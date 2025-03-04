@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { HomeAssistant, Device, Entity, EntityState } from '../../types/homeassistant';
 import { MANUFACTURER } from '../../const';
+import { registerCustomCard } from '../../utils/custom-cards';
+import { PRINT_STATUS_CARD_NAME } from './const';
 import './print-status-card.css';
 
 interface PrintStatusCardProps {
@@ -167,4 +169,12 @@ export const PrintStatusCard: React.FC<PrintStatusCardProps> = ({ hass, config }
       </div>
     </div>
   );
-}; 
+};
+
+// Register the custom card after component definition
+registerCustomCard({
+  type: PRINT_STATUS_CARD_NAME,
+  name: "Bambu Lab Print Status Card",
+  description: "Print status card for Bambu Lab Printers",
+  component: PrintStatusCard
+}); 

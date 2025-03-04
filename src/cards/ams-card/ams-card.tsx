@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { HomeAssistant, Entity } from "../../types/homeassistant";
 import { Spool } from "../shared-components/spool";
-
+import { registerCustomCard } from "../../utils/custom-cards";
+import { AMS_CARD_NAME } from "./const";
 import "./ams-card.css";
 
 interface AMSCardProps {
@@ -80,3 +81,17 @@ export const AMSCard: React.FC<AMSCardProps> = ({ hass, config }) => {
     </div>
   );
 };
+
+// Register the custom card after component definition
+registerCustomCard({
+  type: AMS_CARD_NAME,
+  name: "Bambu Lab AMS Card",
+  description: "AMS card for Bambu Lab Printers",
+  component: AMSCard,
+  getStubConfig: () => ({
+    device_id: "",
+    title: "AMS",
+    style: "vector",
+    show_info_bar: true,
+  })
+});

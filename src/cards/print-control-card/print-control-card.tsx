@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { HomeAssistant } from '../../types/homeassistant';
+import { registerCustomCard } from "../../utils/custom-cards";
+import { PRINT_CONTROL_CARD_NAME } from "./const";
 import './print-control-card.css';
 
 interface PrintableObject {
@@ -202,3 +204,11 @@ export const PrintControlCard: React.FC<PrintControlCardProps> = ({ hass, config
     </div>
   );
 }; 
+
+// Register the custom card
+registerCustomCard({
+  type: PRINT_CONTROL_CARD_NAME,
+  name: "Bambu Lab Print Control Card",
+  description: "Print control card for Bambu Lab Printers",
+  component: PrintControlCard
+}); 

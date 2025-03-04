@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { HomeAssistant } from '../../types/homeassistant';
 import { Spool } from '../shared-components/spool';
+import { registerCustomCard } from '../../utils/custom-cards';
+import { SPOOL_CARD_NAME } from './const';
 import './spool-card.css';
 
 interface SpoolCardProps {
@@ -55,4 +57,16 @@ export const SpoolCard: React.FC<SpoolCardProps> = ({ hass, config }) => {
       />
     </div>
   );
-}; 
+};
+
+// Register the custom card after component definition
+registerCustomCard({
+  type: SPOOL_CARD_NAME,
+  name: "Bambu Lab Spool Card",
+  description: "Spool card for Bambu Lab Printers",
+  component: SpoolCard,
+  getStubConfig: () => ({
+    device_id: "",
+    title: "Spool",
+  })
+}); 
