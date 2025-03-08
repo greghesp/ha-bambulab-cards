@@ -508,10 +508,11 @@ export class PrintControlCard extends LitElement {
 
   private _getCoverImageUrl() {
     if (helpers.isEntityUnavailable(this._hass, this._entityList['cover_image'])) {
+      console.log("Cover image unavailable")
       return '';
     } else {
       const coverImageEntityId = this._entityList['cover_image'].entity_id;
-      return this._hass.states[coverImageEntityId].attributes.entity_picture;
+      return `${this._hass.states[coverImageEntityId].attributes.entity_picture}&state=${this._coverImageState}`;
     }
   }
 
