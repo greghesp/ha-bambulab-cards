@@ -66,21 +66,7 @@ export class AMSPopup extends LitElement {
   async #asyncHandleClick() {
     const result = await getFilamentData(this.hass, this.entity_id);
     this.filamentData = result.response;
-    this.tray_info_idx = this.hass.states[this.entity_id].attributes.filament_id;
-    if (!this.filamentData[this.tray_info_idx]) {
-      const customFilament = {
-        name: `Custom: ${this.tray_info_idx}`,
-        filament_vendor: "",
-        filament_type: this.hass.states[this.entity_id].attributes.type,
-        filament_density: 0,
-        nozzle_temperature: 0,
-        nozzle_temperature_range_high: this.hass.states[this.entity_id].attributes.nozzle_temp_max,
-        nozzle_temperature_range_low: this.hass.states[this.entity_id].attributes.nozzle_temp_min,
-      }
-      this.filamentData[this.tray_info_idx] = customFilament;
-    }
-    this.selectedFilament = this.filamentData[this.tray_info_idx];
-
+    this.#handleReset();
     this._dialogOpen = true;
   }
 
@@ -122,7 +108,7 @@ export class AMSPopup extends LitElement {
       `);
   }
 
-  #isSetBuildEnabled() {
+  #isSetEnabled() {
     return this.color.toUpperCase() != this.hass.states[this.entity_id].attributes.color.substring(0,7).toUpperCase() ||
            this.selectedFilament.nozzle_temperature_range_low != this.hass.states[this.entity_id].attributes.nozzle_temp_min ||
            this.selectedFilament.nozzle_temperature_range_high != this.hass.states[this.entity_id].attributes.nozzle_temp_max ||
@@ -145,6 +131,24 @@ export class AMSPopup extends LitElement {
   async #handleSet() {
     const rgbaColor = `${this.color}FF`.toUpperCase();
     await setFilament(this.hass, this.entity_id, this.tray_info_idx, this.selectedFilament.filament_type, rgbaColor, this.selectedFilament.nozzle_temperature_range_low, this.selectedFilament.nozzle_temperature_range_high);
+  }
+
+  async #handleReset() {
+    this.tray_info_idx = this.hass.states[this.entity_id].attributes.filament_id;
+    if (!this.filamentData[this.tray_info_idx]) {
+      const customFilament = {
+        name: `Custom: ${this.tray_info_idx}`,
+        filament_vendor: "",
+        filament_type: this.hass.states[this.entity_id].attributes.type,
+        filament_density: 0,
+        nozzle_temperature: 0,
+        nozzle_temperature_range_high: this.hass.states[this.entity_id].attributes.nozzle_temp_max,
+        nozzle_temperature_range_low: this.hass.states[this.entity_id].attributes.nozzle_temp_min,
+      }
+      this.filamentData[this.tray_info_idx] = customFilament;
+    }
+    this.selectedFilament = this.filamentData[this.tray_info_idx];
+    
   }
 
   #handleColorChange(event: InputEvent) {
@@ -244,14 +248,24 @@ export class AMSPopup extends LitElement {
             ${this.selectedFilament.nozzle_temperature_range_high}
           </div>
           <div class="action-buttons">
-            <mwc-button
-              id="set"
-              class="action-button" 
-              @click=${this.#handleSet}
-              ?disabled=${!this.#isSetBuildEnabled()}
-            >
-              Set
-            </mwc-button>
+            ${this.#isSetEnabled() ? 
+            html`
+              <mwc-button
+                id="confirm"
+                class="action-button" 
+                @click=${this.#handleSet}
+              >
+                Confirm
+              </mwc-button>
+              <mwc-button
+                id="reset"
+                class="action-button" 
+                @click=${this.#handleReset}
+              >
+                Reset
+              </mwc-button>
+            ` : 
+            html`
             <mwc-button
               id="load"
               class="action-button" 
@@ -281,7 +295,8 @@ export class AMSPopup extends LitElement {
                 ? html`<ha-icon icon="mdi:close" style="color: var(--error-color)"></ha-icon> Unload`
                 : "Unload"
               }
-            </mwc-button>            
+            </mwc-button>
+            `}
           </div>
       </ha-dialog>
     `;
