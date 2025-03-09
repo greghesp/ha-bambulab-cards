@@ -24,7 +24,7 @@ export default css`
 .buttons-container {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 0px;
 }
 #canvas {
   position: absolute;
