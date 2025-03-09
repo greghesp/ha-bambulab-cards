@@ -213,7 +213,6 @@ export default css`
   }
 
   .section-title {
-    font-family: "Inter";
     font-style: normal;
     font-weight: 700;
     font-size: 16px;
@@ -224,7 +223,6 @@ export default css`
   }
 
   .item-title {
-    font-family: "Inter";
     font-style: normal;
     font-weight: 400;
     font-size: 16px;
@@ -235,7 +233,6 @@ export default css`
   }
 
   .item-value {
-    font-family: "Inter";
     font-style: normal;
     font-weight: 400;
     font-size: 16px;
