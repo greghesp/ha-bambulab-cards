@@ -67,6 +67,18 @@ export class AMSPopup extends LitElement {
     const result = await getFilamentData(this.hass, this.entity_id);
     this.filamentData = result.response;
     this.tray_info_idx = this.hass.states[this.entity_id].attributes.filament_id;
+    if (!this.filamentData[this.tray_info_idx]) {
+      const customFilament = {
+        name: `Custom: ${this.tray_info_idx}`,
+        filament_vendor: "",
+        filament_type: this.hass.states[this.entity_id].attributes.type,
+        filament_density: 0,
+        nozzle_temperature: 0,
+        nozzle_temperature_range_high: this.hass.states[this.entity_id].attributes.nozzle_temp_max,
+        nozzle_temperature_range_low: this.hass.states[this.entity_id].attributes.nozzle_temp_min,
+      }
+      this.filamentData[this.tray_info_idx] = customFilament;
+    }
     this.selectedFilament = this.filamentData[this.tray_info_idx];
 
     this._dialogOpen = true;
