@@ -108,6 +108,15 @@ export function showEntityMoreInfo(obj: HTMLElement, entity: Entity) {
   obj.dispatchEvent(event);
 }
 
+export async function getFilamentData(hass, target_id) {
+  return hass.callService("bambu_lab", "get_filament_data", {
+    entity_id: [ target_id ]
+  },
+  undefined,
+  true,
+  true);
+}
+
 export async function setFilament(hass, target_id, tray_info_idx, tray_type, color, min_temp, max_temp) {
   //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
   hass

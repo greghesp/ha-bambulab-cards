@@ -52,33 +52,30 @@ export default css`
     color: var(--mdc-dialog-content-ink-color, #000000);
   }
 
-  .div2 {
+  .filament-type {
     grid-row-start: 2;
   }
 
-  .div3 {
-    grid-row-start: 2;
-  }
-
-  .div5 {
+  .filament-name {
     grid-row-start: 3;
+  }
+
+  .div4 {
+    grid-row-start: 4;
   }
 
   .div6 {
     grid-column: span 2 / span 2;
     margin-top: 20px;
+    grid-row-start: 5;
   }
 
   .div7 {
-    grid-row-start: 5;
-  }
-
-  .div8 {
-    grid-row-start: 5;
-  }
-
-  .div10 {
     grid-row-start: 6;
+  }
+
+  .div9 {
+    grid-row-start: 7;
   }
 
   .action-buttons {

@@ -3,8 +3,23 @@ import { html, nothing } from "lit-html";
 import { consume } from "@lit/context";
 import { customElement, property, state } from "lit/decorators.js";
 import { hassContext } from "../../../utils/context";
-import { getContrastingTextColor, setFilament, loadFilament, unloadFilament } from "../../../utils/helpers";
+import { getContrastingTextColor, getFilamentData, setFilament, loadFilament, unloadFilament } from "../../../utils/helpers";
 import styles from "./ams-popup.styles";
+
+interface FilamentInfo {
+  name: string;
+  filament_vendor: string;
+  filament_type: string;
+  filament_density: number;
+  nozzle_temperature: number;
+  nozzle_temperature_range_high: number;
+  nozzle_temperature_range_low: number;
+}
+
+interface FilamentData {
+  [key: string]: FilamentInfo | undefined;
+}
+
 @customElement("ams-popup")
 export class AMSPopup extends LitElement {
   @property({ type: String }) entity_id;
@@ -16,67 +31,119 @@ export class AMSPopup extends LitElement {
   private _dialogOpen = false;
 
   @state()
+  private selectedFilament: FilamentInfo;
+
+  @state()
   private color: string = "";
-  @state()
-  private tray_type: string = "";
-  @state()
-  private min_temp: number = 0;
-  @state()
-  private max_temp: number = 0;
   @state()
   private tray_info_idx: string = "";
 
-  firstUpdated() {
-    this.color = this.hass.states[this.entity_id].attributes.color.substring(0,7);
-    this.min_temp = this.hass.states[this.entity_id].attributes.nozzle_temp_min;
-    this.max_temp = this.hass.states[this.entity_id].attributes.nozzle_temp_max;
-    this.tray_type = this.hass.states[this.entity_id].attributes.type;
-    this.tray_info_idx = this.hass.states[this.entity_id].attributes.filament_id;
+  @state()
+  private filamentData: FilamentInfo[] = [];
+
+  constructor() {
+    super();
+    this.filamentData = [];
+    this.selectedFilament = {
+      name: "",
+      filament_vendor: "",
+      filament_type: "",
+      filament_density: 0,
+      nozzle_temperature: 0,
+      nozzle_temperature_range_high: 0,
+      nozzle_temperature_range_low: 0,
+    }
   }
 
-  private _closeDialog() {
+  firstUpdated() {
+    this.color = this.hass.states[this.entity_id].attributes.color.substring(0,7);
+  }
+
+  #closeDialog() {
     this._dialogOpen = false;
   }
 
-  private _handleClick() {
+  async #asyncHandleClick() {
+    const result = await getFilamentData(this.hass, this.entity_id);
+    this.filamentData = result.response;
+    this.tray_info_idx = this.hass.states[this.entity_id].attributes.filament_id;
+    this.selectedFilament = this.filamentData[this.tray_info_idx];
+
     this._dialogOpen = true;
   }
 
-  private _isSetBuildEnabled() {
+  #onFilamentTypeChange(event) {
+    if (this.selectedFilament.filament_type != event.target.value) {
+      if (event.target.value == this.hass.states[this.entity_id].attributes.type) {
+        this.tray_info_idx = this.hass.states[this.entity_id].attributes.filament_id  ;
+        this.selectedFilament = this.filamentData[this.tray_info_idx];
+      }
+      else {
+        const [key, filament] = Object.entries(this.filamentData)
+            .find(([_, filament]) => filament.filament_type === event.target.value) || ['', this.selectedFilament];
+        this.selectedFilament = filament;
+        this.tray_info_idx = key;
+      }
+    }
+  }
+
+  #onFilamentNameChange(event) {
+    this.tray_info_idx = event.target.value;
+    this.selectedFilament = this.filamentData[this.tray_info_idx];
+  }
+
+  // this.tray_info_idx == filament_id
+  #generateFilamentTypeOptions() {
+    const filaments = Object.values(this.filamentData)
+      .map((filament: FilamentInfo) => filament.filament_type)
+      .filter((value, index, self) => self.indexOf(value) === index);
+    return filaments.map(filament => html`
+      <option value="${filament}" ?selected=${filament === this.selectedFilament.filament_type}>${filament}</option>
+    `);
+  }
+
+  #generateFilamentNameOptions() {
+    return Object.entries(this.filamentData)
+      .filter(([_, filament]) => filament.filament_type === this.selectedFilament.filament_type)
+      .map(([key, filament]) => html`
+        <option value="${key}" ?selected=${key === this.tray_info_idx}>${filament.name}</option>
+      `);
+  }
+
+  #isSetBuildEnabled() {
     return this.color.toUpperCase() != this.hass.states[this.entity_id].attributes.color.substring(0,7).toUpperCase() ||
-           this.min_temp != this.hass.states[this.entity_id].attributes.nozzle_temp_min ||
-           this.max_temp != this.hass.states[this.entity_id].attributes.nozzle_temp_max ||
-           this.tray_type != this.hass.states[this.entity_id].attributes.type ||
+           this.selectedFilament.nozzle_temperature_range_low != this.hass.states[this.entity_id].attributes.nozzle_temp_min ||
+           this.selectedFilament.nozzle_temperature_range_high != this.hass.states[this.entity_id].attributes.nozzle_temp_max ||
+           this.selectedFilament.filament_type != this.hass.states[this.entity_id].attributes.type ||
            this.tray_info_idx != this.hass.states[this.entity_id].attributes.filament_id;
   }
 
-  private _isLoadButtonEnabled() {
+  #isLoadButtonEnabled() {
     return this._loadState === 'idle' && 
            !this.hass.states[this.entity_id].attributes.empty &&
            !this.hass.states[this.entity_id].attributes.active;
   }
 
-  private _isUnloadButtonEnabled() {
+  #isUnloadButtonEnabled() {
     return this._loadState === 'idle' && 
            !this.hass.states[this.entity_id].attributes.empty &&
            this.hass.states[this.entity_id].attributes.active;
   }
 
-  private async _handleSet() {
+  async #handleSet() {
     const rgbaColor = `${this.color}FF`.toUpperCase();
-    await setFilament(this.hass, this.entity_id, this.tray_info_idx, this.tray_type, rgbaColor, this.min_temp, this.max_temp);
+    await setFilament(this.hass, this.entity_id, this.tray_info_idx, this.selectedFilament.filament_type, rgbaColor, this.selectedFilament.nozzle_temperature_range_low, this.selectedFilament.nozzle_temperature_range_high);
   }
 
-  private _handleColorChange(event: InputEvent) {
+  #handleColorChange(event: InputEvent) {
     const input = event.target as HTMLInputElement;
     this.color = input.value;
-    console.log('Selected color:', this.color);
   }
 
   @property({ type: String })
   private _loadState: "idle" | "loading" | "unloading" | "success" | "error" = "idle";
 
-  private async _handleLoad() {
+  async #handleLoad() {
     this._loadState = "loading";
     try {
       await loadFilament(this.hass, this.entity_id);
@@ -91,7 +158,7 @@ export class AMSPopup extends LitElement {
     }
   }
 
-  private async _handleUnload() {
+  async #handleUnload() {
     this._loadState = "unloading";
     try {
       await unloadFilament(this.hass, this.entity_id);
@@ -110,7 +177,7 @@ export class AMSPopup extends LitElement {
 
   render() {
     return html`
-      <div class="popup-action-container" @click=${this._handleClick}>
+      <div class="popup-action-container" @click=${this.#asyncHandleClick}>
         <slot></slot>
       </div>
       ${this.modal()}
@@ -124,7 +191,7 @@ export class AMSPopup extends LitElement {
       <ha-dialog
         id="confirmation-popup"
         .open=${this._dialogOpen}
-        @closed=${this._closeDialog}
+        @closed=${this.#closeDialog}
         heading="title"
         hideactions
       >
@@ -136,40 +203,48 @@ export class AMSPopup extends LitElement {
         </ha-dialog-header>
         <div class="ha-bambulab-spool-modal-container">
           <div class="filament-title section-title">Filament Information</div>
-          <div class="div2 item-title">Filament</div>
-          <div class="div3 item-value">${this.hass.states[this.entity_id].attributes.name}</div>
+          <div class="filament-type item-title">Filament Type</div>
+          <select class="filament-type item-value"
+              @change="${this.#onFilamentTypeChange}">
+              ${this.#generateFilamentTypeOptions()}
+          </select>
+          <div class="filament-name item-title">Filament</div>
+          <select class="filament-name item-value" 
+              @change="${this.#onFilamentNameChange}">
+              ${this.#generateFilamentNameOptions()}
+          </select>
+          <div class="div4 item-title">Color</div>
           <div class="div4 item-value">
             <input
               type="color"
               style="padding: 0px 0px; border-radius: 5px;"
               .value="${this.hass.states[this.entity_id].attributes.color.substring(0,7)}"
-              @input="${this._handleColorChange}"
+              @input="${this.#handleColorChange}"
             />
           </div>
-          <div class="div5 item-title">Color</div>
           <div class="div6 section-title">Nozzle Temperature</div>
           <div class="div7 item-title">Minimum</div>
-          <div class="div8 item-value">
-            ${this.hass.states[this.entity_id].attributes.nozzle_temp_min}
+          <div class="div7 item-value">
+            ${this.selectedFilament.nozzle_temperature_range_low}
           </div>
+          <div class="div9 item-title">Maximum</div>
           <div class="div9 item-value ">
-            ${this.hass.states[this.entity_id].attributes.nozzle_temp_max}
+            ${this.selectedFilament.nozzle_temperature_range_high}
           </div>
-          <div class="div10 item-title">Maximum</div>
           <div class="action-buttons">
             <mwc-button
               id="set"
               class="action-button" 
-              @click=${this._handleSet}
-              ?disabled=${!this._isSetBuildEnabled()}
+              @click=${this.#handleSet}
+              ?disabled=${!this.#isSetBuildEnabled()}
             >
               Set
             </mwc-button>
             <mwc-button
               id="load"
               class="action-button" 
-              @click=${this._handleLoad}
-              ?disabled=${!this._isLoadButtonEnabled()}
+              @click=${this.#handleLoad}
+              ?disabled=${!this.#isLoadButtonEnabled()}
             >
               ${this._loadState === "loading" 
                 ? html`<ha-circular-progress active size="small"></ha-circular-progress>Loading` 
@@ -183,8 +258,8 @@ export class AMSPopup extends LitElement {
             <mwc-button
               id="unload"
               class="action-button" 
-              @click=${this._handleUnload}
-              ?disabled=${!this._isUnloadButtonEnabled()}
+              @click=${this.#handleUnload}
+              ?disabled=${!this.#isUnloadButtonEnabled()}
             >
               ${this._loadState === "unloading" 
                 ? html`<ha-circular-progress active size="small"></ha-circular-progress>Unloading` 
