@@ -73,6 +73,7 @@ export class PrintControlCard extends LitElement {
   private _temperature: string | undefined;
   private _humidity: string | undefined;
   private _power: string | undefined;
+  private _light: string | undefined;
 
   private resizeObserver: ResizeObserver;
 
@@ -187,6 +188,7 @@ export class PrintControlCard extends LitElement {
     this._humidity = undefined;
     this._temperature = undefined;
     this._power = undefined;
+    this._light = undefined;
 
     this.resizeObserver = new ResizeObserver(() => {
       this.requestUpdate();
@@ -216,6 +218,7 @@ export class PrintControlCard extends LitElement {
     this._temperature = config.custom_temperature;
     this._humidity = config.custom_humidity;
     this._power = config.custom_power;
+    this._light = config.custom_light;
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -266,6 +269,8 @@ export class PrintControlCard extends LitElement {
           this._entityList['humidity'] = value;
         } else if (value.entity_id === this._power) {
           this._entityList['power'] = value;
+        } else if (value.entity_id === this._light) {
+          this._entityList['chamber_light'] = value;
         }
       }
     

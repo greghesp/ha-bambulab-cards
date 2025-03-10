@@ -28,6 +28,11 @@ const NEW_SCHEMA = [
     name: "custom_power",
     label: "Power switch",
     selector: { entity: { domain: "switch" } },
+  },
+  {
+    name: "custom_light",
+    label: "Custom light",
+    selector: { entity: { domain: "light" } },
   }
 ];
 
