@@ -9,7 +9,7 @@ import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME } from "./const";
 import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
-import { entitiesContext, hassContext, showInfoBarContext } from "../../utils/context";
+import { entitiesContext, hassContext, showInfoBarContext, nodeRedContext } from "../../utils/context";
 
 registerCustomCard({
   type: AMS_CARD_NAME,
@@ -18,9 +18,12 @@ registerCustomCard({
 });
 
 const ENTITYLIST: string[] = [
-  "humidity_index",
-  "custom_humidity",
   "ams_temp",
+  "temp",             // Node-RED only
+  "custom_humidity",
+  "humidity_index",
+  "humidity_level",   // Node-RED only
+  "tray_0",           // Node-RED only
   "tray_1",
   "tray_2",
   "tray_3",
@@ -63,6 +66,9 @@ export class AMS_CARD extends LitElement {
   @provide({ context: showInfoBarContext })
   @state()
   private _showInfoBar: { [key: string]: any } = {};
+
+  @provide({ context: nodeRedContext })
+  private _nodeRed: boolean = false;
 
   private _customHumidity;
   private _customTemperature;
@@ -120,6 +126,16 @@ export class AMS_CARD extends LitElement {
 
     if (firstTime) {
       this._entityList = helpers.getBambuDeviceEntities(hass, this._deviceId, ENTITYLIST);
+      if (this._entityList["tray_0"]) {
+        // This is a Node-RED integration so adjust the entity list to match.
+        this._nodeRed = true;
+        this._entityList["tray_4"] = this._entityList["tray_3"];
+        this._entityList["tray_3"] = this._entityList["tray_2"];
+        this._entityList["tray_2"] = this._entityList["tray_1"];
+        this._entityList["tray_1"] = this._entityList["tray_0"];
+        this._entityList["humidity_index"] = this._entityList["humidity_level"];
+        this._entityList["ams_temp"] = this._entityList["temp"];
+      }
 
       // Set custom entities
       for (const key in hass.entities) {
@@ -137,16 +153,6 @@ export class AMS_CARD extends LitElement {
         humidity: this._entityList["humidity_index"],
         temperature: this._entityList["ams_temp"],
         spools: (() => {
-          // Try tray_0 first
-          if (this._entityList["tray_0"]) {
-            return [
-              this._entityList["tray_0"],
-              this._entityList["tray_1"],
-              this._entityList["tray_2"],
-              this._entityList["tray_3"],
-            ];
-          }
-          // Fall back to tray_1 if tray_0 doesn't exist
           return [
             this._entityList["tray_1"],
             this._entityList["tray_2"],

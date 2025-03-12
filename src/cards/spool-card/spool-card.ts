@@ -1,3 +1,4 @@
+import * as helpers from "../../utils/helpers"
 import { customElement, property, state } from "lit/decorators.js";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { SPOOL_CARD_EDITOR_NAME, SPOOL_CARD_NAME } from "./const";
@@ -73,15 +74,7 @@ export class SpoolCard extends LitElement {
   }
 
   private getSpool() {
-    let entityId = null;
-    // Loop through all hass entities, and find those that belong to the selected device
-    for (let key in this._hass.entities) {
-      const value = this._hass.entities[key];
-      if (value.device_id === this._spool) {
-        entityId = value.entity_id;
-      }
-    }
-
-    this._spoolEntityId = entityId;
+    const entities = helpers.getBambuDeviceEntities(this._hass, this._spool, ['external_spool']);
+    this._spoolEntityId = entities['external_spool'].entity_id;
   }
 }

@@ -32,7 +32,7 @@ interface EntityUX {
   y: number;
   width: number;
   height: number;
-  alternate?: string;
+  click_target?: string;
 }
 
 const _onImages: { [key: string]: any } =  {
@@ -83,12 +83,12 @@ export class PrintControlCard extends LitElement {
     //hms:                    { x: 90, y:10, width:20,  height:0 },
     power:                  { x: 95, y:9,    width:20,  height:0 },
     chamber_light:          { x: 46, y:30,   width:20,  height:0 },
-    nozzle_temp:            { x: 46, y:42,   width:25,  height:0, alternate:"target_nozzle_temperature" },
+    nozzle_temp:            { x: 46, y:42,   width:25,  height:0, click_target:"target_nozzle_temperature" },
     target_bed_temp:           undefined,
     target_nozzle_temperature: undefined,
     target_nozzle_temp:        undefined,
     cover_image:            { x: 46, y:60,   width:250, height:250 },
-    bed_temp:               { x: 46, y:81,   width:25,  height:0, alternate:"target_bed_temperature" },
+    bed_temp:               { x: 46, y:81,   width:25,  height:0, click_target:"target_bed_temperature" },
     print_progress:         { x: 85, y:81,   width:25,  height:0 },
     remaining_time:         { x: 85, y:85,   width:100, height:0 },
     stage:                  { x: 46, y:92.5, width:300, height:0 },
@@ -98,12 +98,12 @@ export class PrintControlCard extends LitElement {
     //hms:                    { x: 90, y:10, width:20,  height:0 },
     power:                  { x: 95, y:9,  width:20,  height:0 },
     chamber_light:          { x: 88, y:29, width:20,  height:0 },
-    nozzle_temp:            { x: 41, y:38, width:25,  height:0, alternate:"target_nozzle_temperature" },
+    nozzle_temp:            { x: 41, y:38, width:25,  height:0, click_target:"target_nozzle_temperature" },
     target_bed_temp:           undefined,
     target_nozzle_temperature: undefined,
     target_nozzle_temp:        undefined,
     cover_image:            { x: 41, y:59, width:250, height:250 },
-    bed_temp:               { x: 41, y:80, width:25,  height:0, alternate:"target_bed_temperature" },
+    bed_temp:               { x: 41, y:80, width:25,  height:0, click_target:"target_bed_temperature" },
     target_bed_temperature:    undefined,
     print_progress:         { x: 74, y:89, width:25,  height:0 }, 
     remaining_time:         { x: 74, y:93, width:100, height:0 },
@@ -116,7 +116,7 @@ export class PrintControlCard extends LitElement {
     remaining_time:         { x: 59, y:4.5, width:100, height:0 },
     //hms:                    { x: 90,   y:10,  width:20,  height:0 },
     chamber_light:          { x: 12, y:19,  width:20,  height:0 },
-    nozzle_temp:            { x: 50, y:33,  width:25,  height:0, alternate:"target_nozzle_temperature" },
+    nozzle_temp:            { x: 50, y:33,  width:25,  height:0, click_target:"target_nozzle_temperature" },
     target_bed_temp:           undefined,
     target_nozzle_temperature: undefined,
     target_nozzle_temp:        undefined,
@@ -124,7 +124,7 @@ export class PrintControlCard extends LitElement {
     humidity:               { x: 86, y:42,  width:20,  height:0 },
     aux_fan:                { x: 12, y:60,  width:70,  height:0 },
     cover_image:            { x: 50, y:60,  width:300, height:300 },
-    bed_temp:               { x: 50, y:86,  width:25,  height:0, alternate:"target_bed_temperature" },
+    bed_temp:               { x: 50, y:86,  width:25,  height:0, click_target:"target_bed_temperature" },
     target_bed_temperature:    undefined,
     stage:                  { x: 50, y:94,  width:300, height:0 },
   };
@@ -136,7 +136,7 @@ export class PrintControlCard extends LitElement {
     remaining_time:         { x: 59, y:5,   width:100, height:0 },
     chamber_light:          { x: 13, y:21,  width:20,  height:0 },
     chamber_fan:            { x: 86, y:21,  width:70,  height:0 },
-    nozzle_temp:            { x: 50, y:33,  width:25,  height:0, alternate:"target_nozzle_temperature" },
+    nozzle_temp:            { x: 50, y:33,  width:25,  height:0, click_target:"target_nozzle_temperature" },
     target_bed_temp:           undefined,
     target_nozzle_temperature: undefined,
     target_nozzle_temp:        undefined,
@@ -144,7 +144,7 @@ export class PrintControlCard extends LitElement {
     humidity:               { x: 86, y:42,  width:20,  height:0 },
     aux_fan:                { x: 13, y:60,  width:70,  height:0 },
     cover_image:            { x: 50, y:60,  width:300, height:300 },
-    bed_temp:               { x: 50, y:88,  width:25,  height:0, alternate:"target_bed_temperature" },
+    bed_temp:               { x: 50, y:88,  width:25,  height:0, click_target:"target_bed_temperature" },
     target_bed_temperature:    undefined,
     stage:                  { x: 50, y:95,  width:300, height:0 },
   };
@@ -156,7 +156,7 @@ export class PrintControlCard extends LitElement {
     remaining_time:         { x: 29, y:11,   width:100, height:0 },
     chamber_light:          { x: 13, y:24,   width:20,  height:0 },
     chamber_fan:            { x: 86, y:24,   width:70,  height:0 },
-    nozzle_temp:            { x: 50, y:31,   width:25,  height:0, alternate:"target_nozzle_temperature" },
+    nozzle_temp:            { x: 50, y:31,   width:25,  height:0, click_target:"target_nozzle_temperature" },
     target_bed_temp:           undefined,
     target_nozzle_temperature: undefined,
     target_nozzle_temp:        undefined,
@@ -164,7 +164,7 @@ export class PrintControlCard extends LitElement {
     humidity:               { x: 86, y:42,   width:20,  height:0 },
     aux_fan:                { x: 13, y:60,   width:70,  height:0 },
     cover_image:            { x: 50, y:60,   width:300, height:300 },
-    bed_temp:               { x: 50, y:88,   width:25,  height:0, alternate:"target_bed_temperature" },
+    bed_temp:               { x: 50, y:88,   width:25,  height:0, click_target:"target_bed_temperature" },
     target_bed_temperature:    undefined,
     stage:                  { x: 50, y:95, width:300, height:0 },
     door_open:              { x: 86, y:60,   width:20, height:0 },
@@ -358,10 +358,10 @@ export class PrintControlCard extends LitElement {
       }
 
       let clickTarget = key;
-      const alternate = this._entityUX![key].alternate
-      if (alternate != undefined) {
-        if (!helpers.isEntityUnavailable(this._hass, this._entityList[alternate])) {
-          clickTarget = alternate
+      const click_target = this._entityUX![key].click_target
+      if (click_target != undefined) {
+        if (!helpers.isEntityUnavailable(this._hass, this._entityList[click_target])) {
+          clickTarget = click_target
         }
       }
 

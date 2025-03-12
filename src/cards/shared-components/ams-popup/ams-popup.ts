@@ -109,6 +109,8 @@ export class AMSPopup extends LitElement {
   }
 
   #isSetEnabled() {
+    //console.log(this.hass.states[this.entity_id].attributes)
+    //console.log(this.selectedFilament)
     return this.color.toUpperCase() != this.hass.states[this.entity_id].attributes.color.substring(0,7).toUpperCase() ||
            this.selectedFilament.nozzle_temperature_range_low != this.hass.states[this.entity_id].attributes.nozzle_temp_min ||
            this.selectedFilament.nozzle_temperature_range_high != this.hass.states[this.entity_id].attributes.nozzle_temp_max ||
