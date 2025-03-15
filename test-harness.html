@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BambuLab Cards Test Harness</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .controls {
+        flex: 1;
+        min-width: 300px;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .preview {
+        flex: 2;
+        min-width: 500px;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2 {
+        color: #03a9f4;
+      }
+      .control-group {
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      button {
+        background-color: #03a9f4;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0288d1;
+      }
+      .card-container {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+        background-color: var(--card-background-color, #fff);
+      }
+      .card-selector {
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>BambuLab Cards Test Harness</h1>
+    <p>Use this page to test your Home Assistant custom cards with configurable dummy data.</p>
+
+    <div class="container">
+      <div class="controls">
+        <h2>Controls</h2>
+
+        <div class="card-selector">
+          <label for="card-type">Select Card Type:</label>
+          <select id="card-type" onchange="updateCardType()">
+            <option value="printer-status">Printer Status Card</option>
+            <option value="print-progress">Print Progress Card</option>
+            <option value="temperature">Temperature Card</option>
+            <!-- Add more card options as needed -->
+          </select>
+        </div>
+
+        <div id="printer-status-controls" class="control-group">
+          <h3>Printer Status</h3>
+          <label for="printer-name">Printer Name:</label>
+          <input
+            type="text"
+            id="printer-name"
+            value="My BambuLab Printer"
+            onchange="updateData()"
+          />
+
+          <label for="printer-status">Status:</label>
+          <select id="printer-status" onchange="updateData()">
+            <option value="idle">Idle</option>
+            <option value="printing">Printing</option>
+            <option value="paused">Paused</option>
+            <option value="error">Error</option>
+          </select>
+
+          <label for="printer-online">Online:</label>
+          <select id="printer-online" onchange="updateData()">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div id="print-progress-controls" class="control-group" style="display: none">
+          <h3>Print Progress</h3>
+          <label for="print-progress">Progress (%):</label>
+          <input
+            type="range"
+            id="print-progress"
+            min="0"
+            max="100"
+            value="45"
+            oninput="updateProgressValue()"
+            onchange="updateData()"
+          />
+          <span id="progress-value">45%</span>
+
+          <label for="print-time-remaining">Time Remaining (min):</label>
+          <input
+            type="number"
+            id="print-time-remaining"
+            value="120"
+            min="0"
+            onchange="updateData()"
+          />
+
+          <label for="print-filename">Filename:</label>
+          <input type="text" id="print-filename" value="benchy.gcode" onchange="updateData()" />
+        </div>
+
+        <div id="temperature-controls" class="control-group" style="display: none">
+          <h3>Temperature</h3>
+          <label for="bed-temp">Bed Temperature (°C):</label>
+          <input type="number" id="bed-temp" value="60" min="0" max="120" onchange="updateData()" />
+
+          <label for="bed-target">Bed Target (°C):</label>
+          <input
+            type="number"
+            id="bed-target"
+            value="60"
+            min="0"
+            max="120"
+            onchange="updateData()"
+          />
+
+          <label for="nozzle-temp">Nozzle Temperature (°C):</label>
+          <input
+            type="number"
+            id="nozzle-temp"
+            value="210"
+            min="0"
+            max="300"
+            onchange="updateData()"
+          />
+
+          <label for="nozzle-target">Nozzle Target (°C):</label>
+          <input
+            type="number"
+            id="nozzle-target"
+            value="215"
+            min="0"
+            max="300"
+            onchange="updateData()"
+          />
+        </div>
+
+        <button onclick="updateData()">Update Preview</button>
+      </div>
+
+      <div class="preview">
+        <h2>Preview</h2>
+        <div class="card-container" id="card-preview">
+          <!-- Card will be rendered here -->
+          <div id="card-content">
+            Select a card type and configure the parameters to see a preview.
+          </div>
+        </div>
+
+        <h3>Generated Entity Data:</h3>
+        <pre
+          id="entity-data"
+          style="background-color: #f0f0f0; padding: 10px; border-radius: 4px; overflow: auto"
+        ></pre>
+      </div>
+    </div>
+
+    <script>
+      // Mock Home Assistant frontend environment
+      window.customElements = window.customElements || {};
+      window.customCards = [];
+
+      // Store the current data
+      let currentData = {
+        printerStatus: {
+          name: "My BambuLab Printer",
+          status: "idle",
+          online: true,
+        },
+        printProgress: {
+          progress: 45,
+          timeRemaining: 120,
+          filename: "benchy.gcode",
+        },
+        temperature: {
+          bedTemp: 60,
+          bedTarget: 60,
+          nozzleTemp: 210,
+          nozzleTarget: 215,
+        },
+      };
+
+      // Update progress value display
+      function updateProgressValue() {
+        const progress = document.getElementById("print-progress").value;
+        document.getElementById("progress-value").textContent = progress + "%";
+      }
+
+      // Update which controls are visible based on card type
+      function updateCardType() {
+        const cardType = document.getElementById("card-type").value;
+
+        // Hide all control groups
+        document.querySelectorAll(".control-group").forEach((group) => {
+          group.style.display = "none";
+        });
+
+        // Show the selected control group
+        document.getElementById(cardType + "-controls").style.display = "block";
+
+        // Update the preview
+        updateData();
+      }
+
+      // Update the data and preview
+      function updateData() {
+        // Get the current card type
+        const cardType = document.getElementById("card-type").value;
+
+        // Update the current data based on the form values
+        if (cardType === "printer-status") {
+          currentData.printerStatus.name = document.getElementById("printer-name").value;
+          currentData.printerStatus.status = document.getElementById("printer-status").value;
+          currentData.printerStatus.online =
+            document.getElementById("printer-online").value === "true";
+        } else if (cardType === "print-progress") {
+          currentData.printProgress.progress = parseInt(
+            document.getElementById("print-progress").value
+          );
+          currentData.printProgress.timeRemaining = parseInt(
+            document.getElementById("print-time-remaining").value
+          );
+          currentData.printProgress.filename = document.getElementById("print-filename").value;
+        } else if (cardType === "temperature") {
+          currentData.temperature.bedTemp = parseInt(document.getElementById("bed-temp").value);
+          currentData.temperature.bedTarget = parseInt(document.getElementById("bed-target").value);
+          currentData.temperature.nozzleTemp = parseInt(
+            document.getElementById("nozzle-temp").value
+          );
+          currentData.temperature.nozzleTarget = parseInt(
+            document.getElementById("nozzle-target").value
+          );
+        }
+
+        // Generate the entity data
+        const entityData = generateEntityData(cardType);
+
+        // Update the entity data display
+        document.getElementById("entity-data").textContent = JSON.stringify(entityData, null, 2);
+
+        // Update the card preview
+        updateCardPreview(cardType, entityData);
+      }
+
+      // Generate entity data based on the current form values
+      function generateEntityData(cardType) {
+        let entityData = {};
+
+        if (cardType === "printer-status") {
+          entityData = {
+            entity_id: "sensor.bambulab_printer_status",
+            state: currentData.printerStatus.status,
+            attributes: {
+              friendly_name: currentData.printerStatus.name,
+              online: currentData.printerStatus.online,
+            },
+          };
+        } else if (cardType === "print-progress") {
+          entityData = {
+            entity_id: "sensor.bambulab_print_progress",
+            state: currentData.printProgress.progress,
+            attributes: {
+              friendly_name: "Print Progress",
+              time_remaining: currentData.printProgress.timeRemaining * 60, // Convert to seconds
+              filename: currentData.printProgress.filename,
+              unit_of_measurement: "%",
+            },
+          };
+        } else if (cardType === "temperature") {
+          entityData = {
+            bed: {
+              entity_id: "sensor.bambulab_bed_temperature",
+              state: currentData.temperature.bedTemp,
+              attributes: {
+                friendly_name: "Bed Temperature",
+                target: currentData.temperature.bedTarget,
+                unit_of_measurement: "°C",
+              },
+            },
+            nozzle: {
+              entity_id: "sensor.bambulab_nozzle_temperature",
+              state: currentData.temperature.nozzleTemp,
+              attributes: {
+                friendly_name: "Nozzle Temperature",
+                target: currentData.temperature.nozzleTarget,
+                unit_of_measurement: "°C",
+              },
+            },
+          };
+        }
+
+        return entityData;
+      }
+
+      // Update the card preview
+      function updateCardPreview(cardType, entityData) {
+        const cardContent = document.getElementById("card-content");
+
+        // Clear the current content
+        cardContent.innerHTML = "";
+
+        // Create a visual representation of the card based on the data
+        if (cardType === "printer-status") {
+          const statusClass = entityData.state;
+          const onlineStatus = entityData.attributes.online ? "Online" : "Offline";
+
+          cardContent.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h3 style="margin: 0;">${entityData.attributes.friendly_name}</h3>
+                            <div style="display: flex; align-items: center; margin-top: 8px;">
+                                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: ${getStatusColor(entityData.state)}; margin-right: 8px;"></span>
+                                <span>${capitalizeFirstLetter(entityData.state)}</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="color: ${entityData.attributes.online ? "green" : "red"};">${onlineStatus}</div>
+                        </div>
+                    </div>
+                `;
+        } else if (cardType === "print-progress") {
+          cardContent.innerHTML = `
+                    <div>
+                        <h3 style="margin: 0;">Print Progress</h3>
+                        <div style="margin: 15px 0;">
+                            <div style="height: 20px; background-color: #e0e0e0; border-radius: 10px; overflow: hidden;">
+                                <div style="height: 100%; width: ${entityData.state}%; background-color: #03a9f4; border-radius: 10px;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                                <span>${entityData.state}%</span>
+                                <span>${formatTime(entityData.attributes.time_remaining)}</span>
+                            </div>
+                        </div>
+                        <div>File: ${entityData.attributes.filename}</div>
+                    </div>
+                `;
+        } else if (cardType === "temperature") {
+          cardContent.innerHTML = `
+                    <div>
+                        <h3 style="margin: 0;">Temperature</h3>
+                        <div style="margin-top: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>Bed:</span>
+                                <span>${entityData.bed.state}°C / ${entityData.bed.attributes.target}°C</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Nozzle:</span>
+                                <span>${entityData.nozzle.state}°C / ${entityData.nozzle.attributes.target}°C</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }
+      }
+
+      // Helper function to get status color
+      function getStatusColor(status) {
+        switch (status) {
+          case "idle":
+            return "#808080";
+          case "printing":
+            return "#4CAF50";
+          case "paused":
+            return "#FFC107";
+          case "error":
+            return "#F44336";
+          default:
+            return "#808080";
+        }
+      }
+
+      // Helper function to capitalize first letter
+      function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+      }
+
+      // Helper function to format time
+      function formatTime(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+
+        if (hours > 0) {
+          return `${hours}h ${minutes}m remaining`;
+        } else {
+          return `${minutes}m remaining`;
+        }
+      }
+
+      // Initialize the page
+      window.onload = function () {
+        updateCardType();
+      };
+    </script>
+  </body>
+</html>

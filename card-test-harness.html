@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BambuLab AMS Card Test Harness</title>
+    <!-- Add Lit and Web Components polyfills -->
+    <script src="https://unpkg.com/@webcomponents/webcomponentsjs@latest/webcomponents-loader.js"></script>
+    <script src="https://unpkg.com/lit/polyfill-support.js"></script>
+    <script type="module" src="https://unpkg.com/lit@2.7.0/lit.js"></script>
+    <script type="module" src="https://unpkg.com/@lit/context@1.0.0/index.js"></script>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .controls {
+        flex: 1;
+        min-width: 300px;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .preview {
+        flex: 2;
+        min-width: 500px;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2 {
+        color: #03a9f4;
+      }
+      .control-group {
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      textarea {
+        height: 150px;
+        font-family: monospace;
+        font-size: 14px;
+      }
+      button {
+        background-color: #03a9f4;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 10px;
+        margin-bottom: 10px;
+      }
+      button:hover {
+        background-color: #0288d1;
+      }
+      .card-container {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+        background-color: var(--card-background-color, #fff);
+        min-height: 300px;
+      }
+      .error-message {
+        color: red;
+        padding: 10px;
+        border: 1px solid red;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        display: none;
+      }
+      .success-message {
+        color: green;
+        padding: 10px;
+        border: 1px solid green;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        display: none;
+      }
+      .theme-toggle {
+        margin-bottom: 20px;
+      }
+      .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+      }
+      .status-loaded {
+        background-color: #4caf50;
+      }
+      .status-not-loaded {
+        background-color: #9e9e9e;
+      }
+      .debug-info {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 12px;
+        max-height: 200px;
+        overflow: auto;
+      }
+      .manual-card {
+        padding: 16px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-top: 20px;
+      }
+      .tray-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .tray-item {
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        width: 120px;
+      }
+      .color-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>BambuLab AMS Card Test Harness</h1>
+    <p>This page focuses specifically on testing the BambuLab AMS Card with dummy data.</p>
+
+    <div id="error-message" class="error-message"></div>
+    <div id="success-message" class="success-message"></div>
+
+    <div class="container">
+      <div class="controls">
+        <h2>Controls</h2>
+
+        <div class="theme-toggle">
+          <label for="theme-select">Theme:</label>
+          <select id="theme-select" onchange="changeTheme()">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <h3>Entity Data</h3>
+          <p>Edit the JSON data below to customize the entity data:</p>
+          <textarea id="entity-data"></textarea>
+          <button onclick="updateEntityData()">Update Data</button>
+          <button onclick="resetEntityData()">Reset to Default</button>
+        </div>
+
+        <div class="control-group">
+          <h3>Manual Rendering</h3>
+          <p>
+            Since the card component may not initialize properly outside of Home Assistant, this
+            test harness provides a manual rendering of the data.
+          </p>
+          <button onclick="toggleManualCard()">Toggle Manual Card</button>
+        </div>
+      </div>
+
+      <div class="preview">
+        <h2>Preview</h2>
+        <div class="card-container" id="card-preview">
+          <!-- Card will be rendered here -->
+          <div id="card-content">
+            <p>
+              The AMS card is designed to work within the Home Assistant environment and may not
+              initialize properly in this standalone environment.
+            </p>
+            <p>Click "Toggle Manual Card" to see a manual rendering of the data.</p>
+          </div>
+        </div>
+
+        <div id="manual-card" class="manual-card" style="display: none">
+          <h3>AMS Card (Manual Rendering)</h3>
+          <p>This is a simplified representation of how the AMS card would display the data:</p>
+          <div id="manual-card-content"></div>
+        </div>
+
+        <div class="debug-info" id="debug-info">
+          <h4>Debug Information:</h4>
+          <div id="debug-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Default entity data for the AMS card
+      const defaultEntityData = {
+        "sensor.bambulab_ams_humidity_index": {
+          entity_id: "sensor.bambulab_ams_humidity_index",
+          state: "15",
+          attributes: {
+            friendly_name: "AMS Humidity",
+            unit_of_measurement: "%",
+          },
+        },
+        "sensor.bambulab_ams_temp": {
+          entity_id: "sensor.bambulab_ams_temp",
+          state: "25",
+          attributes: {
+            friendly_name: "AMS Temperature",
+            unit_of_measurement: "°C",
+          },
+        },
+        "sensor.bambulab_ams_tray_1": {
+          entity_id: "sensor.bambulab_ams_tray_1",
+          state: "PLA",
+          attributes: {
+            friendly_name: "AMS Tray 1",
+            color: "#FF0000",
+            humidity: 15,
+            temperature: 25,
+          },
+        },
+        "sensor.bambulab_ams_tray_2": {
+          entity_id: "sensor.bambulab_ams_tray_2",
+          state: "PETG",
+          attributes: {
+            friendly_name: "AMS Tray 2",
+            color: "#00FF00",
+            humidity: 20,
+            temperature: 25,
+          },
+        },
+        "sensor.bambulab_ams_tray_3": {
+          entity_id: "sensor.bambulab_ams_tray_3",
+          state: "TPU",
+          attributes: {
+            friendly_name: "AMS Tray 3",
+            color: "#0000FF",
+            humidity: 25,
+            temperature: 25,
+          },
+        },
+        "sensor.bambulab_ams_tray_4": {
+          entity_id: "sensor.bambulab_ams_tray_4",
+          state: "ASA",
+          attributes: {
+            friendly_name: "AMS Tray 4",
+            color: "#FFFF00",
+            humidity: 30,
+            temperature: 25,
+          },
+        },
+      };
+
+      // Current entity data
+      let currentEntityData = JSON.parse(JSON.stringify(defaultEntityData));
+
+      // Initialize the page
+      window.onload = function () {
+        debug("Test harness initialized");
+        document.getElementById("entity-data").value = JSON.stringify(defaultEntityData, null, 2);
+        updateManualCard();
+
+        // Add a global error handler to catch any errors
+        window.addEventListener("error", (event) => {
+          debug(`Global error: ${event.message} at ${event.filename}:${event.lineno}`);
+        });
+      };
+
+      // Update entity data from the textarea
+      function updateEntityData() {
+        try {
+          const entityData = JSON.parse(document.getElementById("entity-data").value);
+          currentEntityData = entityData;
+          updateManualCard();
+          showMessage("Entity data updated", "success");
+        } catch (error) {
+          showMessage("Invalid JSON: " + error.message, "error");
+        }
+      }
+
+      // Reset entity data to default
+      function resetEntityData() {
+        document.getElementById("entity-data").value = JSON.stringify(defaultEntityData, null, 2);
+        currentEntityData = JSON.parse(JSON.stringify(defaultEntityData));
+        updateManualCard();
+        showMessage("Entity data reset to default", "success");
+      }
+
+      // Toggle the manual card display
+      function toggleManualCard() {
+        const manualCard = document.getElementById("manual-card");
+        if (manualCard.style.display === "none") {
+          manualCard.style.display = "block";
+          updateManualCard();
+        } else {
+          manualCard.style.display = "none";
+        }
+      }
+
+      // Update the manual card with current entity data
+      function updateManualCard() {
+        const manualCardContent = document.getElementById("manual-card-content");
+
+        // Get temperature and humidity data
+        const tempEntity = currentEntityData["sensor.bambulab_ams_temp"];
+        const humidityEntity = currentEntityData["sensor.bambulab_ams_humidity_index"];
+
+        // Get tray data
+        const trayEntities = Object.keys(currentEntityData)
+          .filter((key) => key.includes("tray"))
+          .map((key) => currentEntityData[key]);
+
+        // Create the HTML content
+        let html = `
+          <div>
+            <h4>AMS Status</h4>
+            <p>Temperature: ${tempEntity?.state || "Unknown"}${tempEntity?.attributes?.unit_of_measurement || "°C"}</p>
+            <p>Humidity: ${humidityEntity?.state || "Unknown"}${humidityEntity?.attributes?.unit_of_measurement || "%"}</p>
+            
+            <h4>Trays</h4>
+            <div class="tray-container">
+        `;
+
+        // Add each tray
+        trayEntities.forEach((entity) => {
+          html += `
+            <div class="tray-item">
+              <div class="color-dot" style="background-color: ${entity.attributes.color || "#ccc"}"></div>
+              <p><strong>${entity.attributes.friendly_name || entity.entity_id}</strong></p>
+              <p>Type: ${entity.state || "Unknown"}</p>
+              <p>Humidity: ${entity.attributes.humidity || "Unknown"}%</p>
+              <p>Temp: ${entity.attributes.temperature || "Unknown"}°C</p>
+            </div>
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+        `;
+
+        manualCardContent.innerHTML = html;
+      }
+
+      // Change theme
+      function changeTheme() {
+        const theme = document.getElementById("theme-select").value;
+        const cardContainer = document.getElementById("card-preview");
+        const manualCard = document.getElementById("manual-card");
+
+        if (theme === "dark") {
+          document.body.style.backgroundColor = "#121212";
+          document.body.style.color = "#e0e0e0";
+          cardContainer.style.backgroundColor = "#1e1e1e";
+          cardContainer.style.setProperty("--card-background-color", "#1e1e1e");
+          manualCard.style.backgroundColor = "#1e1e1e";
+          manualCard.style.color = "#e0e0e0";
+        } else {
+          document.body.style.backgroundColor = "#f5f5f5";
+          document.body.style.color = "#000000";
+          cardContainer.style.backgroundColor = "#ffffff";
+          cardContainer.style.setProperty("--card-background-color", "#ffffff");
+          manualCard.style.backgroundColor = "#ffffff";
+          manualCard.style.color = "#000000";
+        }
+      }
+
+      // Show a message
+      function showMessage(message, type) {
+        const errorElement = document.getElementById("error-message");
+        const successElement = document.getElementById("success-message");
+
+        if (type === "error") {
+          errorElement.textContent = message;
+          errorElement.style.display = "block";
+          successElement.style.display = "none";
+
+          // Hide after 5 seconds
+          setTimeout(() => {
+            errorElement.style.display = "none";
+          }, 5000);
+        } else {
+          successElement.textContent = message;
+          successElement.style.display = "block";
+          errorElement.style.display = "none";
+
+          // Hide after 3 seconds
+          setTimeout(() => {
+            successElement.style.display = "none";
+          }, 3000);
+        }
+      }
+
+      // Add debug information
+      function debug(message) {
+        const debugContent = document.getElementById("debug-content");
+        const timestamp = new Date().toLocaleTimeString();
+        debugContent.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+
+        // Scroll to bottom
+        const debugInfo = document.getElementById("debug-info");
+        debugInfo.scrollTop = debugInfo.scrollHeight;
+
+        // Log to console as well
+        console.log(`[${timestamp}] ${message}`);
+      }
+    </script>
+  </body>
+</html>
