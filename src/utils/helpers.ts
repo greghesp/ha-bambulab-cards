@@ -70,7 +70,7 @@ export function getBambuDeviceEntities(
           {
             regex = new RegExp(`.*${key}$`);
           }
-          if (regex.test(value)) {
+          if (regex.test(value.entity_id)) {
             // Node red has fan entities that have the same name on both sensor/number entity categories.
             // We need to take the first one which is the fan, not the sensor.
             if (!result[key]) {
