@@ -264,7 +264,6 @@ export class PrintControlCard extends LitElement {
 
       // Override the entity list with the Node-RED entities if configured.
       for (const e in this.NodeRedEntities) {
-        console.log(e);
         const target = this.NodeRedEntities[e];
         if (this._entityList[e]) {
           this._entityList[target] = this._entityList[e];
