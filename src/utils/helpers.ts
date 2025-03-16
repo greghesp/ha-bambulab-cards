@@ -61,12 +61,17 @@ export function getBambuDeviceEntities(
       for (const key of entities) {
         if (value.platform == 'bambu_lab') {
           if (key == value.translation_key) {
+            console.log(value)
             result[key] = value;
           }
         }
         else if (value.platform == 'mqtt') {
           if (value.entity_id.endsWith(key)) {
-            result[key] = value;
+            // Node red has fan entities that have the same name on both sensor/number entity categories.
+            // We need to take the first one which is the fan, not the sensor.
+            if (!result[key]) {
+              result[key] = value;
+            }
           }
         }
       }

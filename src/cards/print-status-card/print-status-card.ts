@@ -162,6 +162,7 @@ export class PrintControlCard extends LitElement {
     "bed_temperature": "bed_temp",
     "big_fan1": "aux_fan",
     "big_fan2": "chamber_fan",
+    "chamber_temperature": "chamber_temp",
     "door": "door_open",
     "nozzle_temperature": "nozzle_temp",
     "print_preview": "cover_image",
@@ -263,6 +264,7 @@ export class PrintControlCard extends LitElement {
 
       // Override the entity list with the Node-RED entities if configured.
       for (const e in this.NodeRedEntities) {
+        console.log(e);
         const target = this.NodeRedEntities[e];
         if (this._entityList[e]) {
           this._entityList[target] = this._entityList[e];
@@ -495,7 +497,7 @@ export class PrintControlCard extends LitElement {
             </div>`;
 
         case 'door_open':
-          const icon = (text == 'on') ? 'mdi:door-open' : 'mdi:door-closed';
+          const icon = ((text == 'on') || (text == 'open')) ? 'mdi:door-open' : 'mdi:door-closed';
           return html`
             <div id="${key}" class="entity" style="${style}" @click="${() => this._clickEntity(clickTarget)}">
               <ha-icon icon="${icon}"></ha-icon>
