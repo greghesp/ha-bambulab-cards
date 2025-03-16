@@ -84,9 +84,6 @@ export class PrintControlCard extends LitElement {
     power:                  { x: 95, y:9,    width:20,  height:0 },
     chamber_light:          { x: 46, y:30,   width:20,  height:0 },
     nozzle_temp:            { x: 46, y:42,   width:25,  height:0, click_target:"target_nozzle_temperature" },
-    target_bed_temp:           undefined,
-    target_nozzle_temperature: undefined,
-    target_nozzle_temp:        undefined,
     cover_image:            { x: 46, y:60,   width:250, height:250 },
     bed_temp:               { x: 46, y:81,   width:25,  height:0, click_target:"target_bed_temperature" },
     print_progress:         { x: 85, y:81,   width:25,  height:0 },
@@ -99,12 +96,8 @@ export class PrintControlCard extends LitElement {
     power:                  { x: 95, y:9,  width:20,  height:0 },
     chamber_light:          { x: 88, y:29, width:20,  height:0 },
     nozzle_temp:            { x: 41, y:38, width:25,  height:0, click_target:"target_nozzle_temperature" },
-    target_bed_temp:           undefined,
-    target_nozzle_temperature: undefined,
-    target_nozzle_temp:        undefined,
     cover_image:            { x: 41, y:59, width:250, height:250 },
     bed_temp:               { x: 41, y:80, width:25,  height:0, click_target:"target_bed_temperature" },
-    target_bed_temperature:    undefined,
     print_progress:         { x: 74, y:89, width:25,  height:0 }, 
     remaining_time:         { x: 74, y:93, width:100, height:0 },
     stage:                  { x: 41, y:93, width:300, height:0 },
@@ -117,15 +110,11 @@ export class PrintControlCard extends LitElement {
     //hms:                    { x: 90,   y:10,  width:20,  height:0 },
     chamber_light:          { x: 12, y:19,  width:20,  height:0 },
     nozzle_temp:            { x: 50, y:33,  width:25,  height:0, click_target:"target_nozzle_temperature" },
-    target_bed_temp:           undefined,
-    target_nozzle_temperature: undefined,
-    target_nozzle_temp:        undefined,
     chamber_temp:           { x: 86, y:32,  width:20,  height:0 },
     humidity:               { x: 86, y:42,  width:20,  height:0 },
     aux_fan:                { x: 12, y:60,  width:70,  height:0 },
     cover_image:            { x: 50, y:60,  width:300, height:300 },
     bed_temp:               { x: 50, y:86,  width:25,  height:0, click_target:"target_bed_temperature" },
-    target_bed_temperature:    undefined,
     stage:                  { x: 50, y:94,  width:300, height:0 },
   };
 
@@ -137,15 +126,11 @@ export class PrintControlCard extends LitElement {
     chamber_light:          { x: 13, y:21,  width:20,  height:0 },
     chamber_fan:            { x: 86, y:21,  width:70,  height:0 },
     nozzle_temp:            { x: 50, y:33,  width:25,  height:0, click_target:"target_nozzle_temperature" },
-    target_bed_temp:           undefined,
-    target_nozzle_temperature: undefined,
-    target_nozzle_temp:        undefined,
     chamber_temp:           { x: 86, y:32,  width:20,  height:0 },
     humidity:               { x: 86, y:42,  width:20,  height:0 },
     aux_fan:                { x: 13, y:60,  width:70,  height:0 },
     cover_image:            { x: 50, y:60,  width:300, height:300 },
     bed_temp:               { x: 50, y:88,  width:25,  height:0, click_target:"target_bed_temperature" },
-    target_bed_temperature:    undefined,
     stage:                  { x: 50, y:95,  width:300, height:0 },
   };
 
@@ -157,18 +142,33 @@ export class PrintControlCard extends LitElement {
     chamber_light:          { x: 13, y:24,   width:20,  height:0 },
     chamber_fan:            { x: 86, y:24,   width:70,  height:0 },
     nozzle_temp:            { x: 50, y:31,   width:25,  height:0, click_target:"target_nozzle_temperature" },
-    target_bed_temp:           undefined,
-    target_nozzle_temperature: undefined,
-    target_nozzle_temp:        undefined,
     chamber_temp:           { x: 86, y:33,   width:20,  height:0 },
     humidity:               { x: 86, y:42,   width:20,  height:0 },
     aux_fan:                { x: 13, y:60,   width:70,  height:0 },
     cover_image:            { x: 50, y:60,   width:300, height:300 },
     bed_temp:               { x: 50, y:88,   width:25,  height:0, click_target:"target_bed_temperature" },
-    target_bed_temperature:    undefined,
-    stage:                  { x: 50, y:95, width:300, height:0 },
+    stage:                  { x: 50, y:95,   width:300, height:0 },
     door_open:              { x: 86, y:60,   width:20, height:0 },
   };
+
+  private ClickTargets: string[] = [
+    "target_bed_temp",
+    "target_nozzle_temperature",
+    "target_nozzle_temp",
+    "target_bed_temperature",
+  ]
+
+  private NodeRedEntities: { [key: string]: string } = {
+    "bed_temperature": "bed_temp",
+    "big_fan1": "aux_fan",
+    "big_fan2": "chamber_fan",
+    "door": "door_open",
+    "nozzle_temperature": "nozzle_temp",
+    "print_preview": "cover_image",
+    "print_remaining_time": "remaining_time",
+    "set_bed_temp": "target_bed_temp",
+    "set_nozzle_temp": "target_nozzle_temp",
+  }
 
   private EntityUX: { [key: string]: any } = {
     A1:     this.A1EntityUX,
@@ -193,9 +193,6 @@ export class PrintControlCard extends LitElement {
     this.resizeObserver = new ResizeObserver(() => {
       this.requestUpdate();
     });
-
-    //this._entities = [];
-    //this._lightbulb = "";
   }
 
   public static async getConfigElement() {
@@ -259,8 +256,20 @@ export class PrintControlCard extends LitElement {
         this._model = 'A1MINI';
       }
       this._entityUX = this.EntityUX[this._model];
-      this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, Object.keys(this._entityUX!));
+      let entityList = Object.keys(this._entityUX!);
+      entityList = entityList.concat(this.ClickTargets);
+      entityList = entityList.concat(Object.keys(this.NodeRedEntities));
+      this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
 
+      // Override the entity list with the Node-RED entities if configured.
+      for (const e in this.NodeRedEntities) {
+        const target = this.NodeRedEntities[e];
+        if (this._entityList[e]) {
+          this._entityList[target] = this._entityList[e];
+        }
+      }
+      
+      // Override the entity list with the custom entities if configured.
       for (const e in hass.entities) {
         const value = hass.entities[e];
         if (value.entity_id === this._temperature) {
@@ -283,11 +292,13 @@ export class PrintControlCard extends LitElement {
     super.updated(changedProperties);
 
     if (changedProperties.has("_states")) {
-      let newState = this._hass.states[this._entityList['cover_image'].entity_id].state;
-      if (newState !== this._coverImageState) {
-        console.log("Cover image updated");
-        this._coverImageState = newState;
-        this.requestUpdate();
+      if (this._entityList['cover_image']) {
+        let newState = this._hass.states[this._entityList['cover_image'].entity_id].state;
+        if (newState !== this._coverImageState) {
+          console.log("Cover image updated");
+          this._coverImageState = newState;
+          this.requestUpdate();
+        }
       }
     }
   }
@@ -431,7 +442,7 @@ export class PrintControlCard extends LitElement {
           }
 
         case 'cover_image':
-          if (helpers.isEntityUnavailable(this._hass, this._entityList[key])) {
+          if (!this._entityList[key] || helpers.isEntityUnavailable(this._hass, this._entityList[key])) {
             return html``
           } else {
             return html`
