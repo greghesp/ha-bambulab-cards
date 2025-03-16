@@ -126,6 +126,7 @@ export class AMS_CARD extends LitElement {
 
     if (firstTime) {
       this._entityList = helpers.getBambuDeviceEntities(hass, this._deviceId, ENTITYLIST);
+      console.log(this._entityList);
       if (this._entityList["tray_0"]) {
         // This is a Node-RED integration so adjust the entity list to match.
         this._nodeRed = true;
@@ -162,6 +163,7 @@ export class AMS_CARD extends LitElement {
         })(),
         type: this._hass.devices[this._deviceId].model.toUpperCase(),
       };
+      console.log(this._entities);
     }
   }
 

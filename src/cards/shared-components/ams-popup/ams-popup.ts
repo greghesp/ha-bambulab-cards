@@ -41,6 +41,8 @@ export class AMSPopup extends LitElement {
   @state()
   private filamentData: FilamentInfo[] = [];
 
+  private is_bambu_lab: boolean = false;
+
   constructor() {
     super();
     this.filamentData = [];
@@ -53,6 +55,7 @@ export class AMSPopup extends LitElement {
       nozzle_temperature_range_high: 0,
       nozzle_temperature_range_low: 0,
     }
+    //this.is_bambu_lab = this.hass.states[this.entity_id].platform == 'bambu_lab';
   }
 
   firstUpdated() {
@@ -64,8 +67,11 @@ export class AMSPopup extends LitElement {
   }
 
   async #asyncHandleClick() {
-    const result = await getFilamentData(this.hass, this.entity_id);
-    this.filamentData = result.response;
+    console.log(this.is_bambu_lab);
+    if (this.is_bambu_lab) {
+      const result = await getFilamentData(this.hass, this.entity_id);
+      this.filamentData = result.response;
+    }
     this.#handleReset();
     this._dialogOpen = true;
   }
@@ -136,7 +142,8 @@ export class AMSPopup extends LitElement {
   }
 
   async #handleReset() {
-    this.tray_info_idx = this.hass.states[this.entity_id].attributes.filament_id;
+    this.tray_info_idx = this.hass.states[this.entity_id].attributes.tray_info_idx || 
+                         this.hass.states[this.entity_id].attributes.filament_id;
     if (!this.filamentData[this.tray_info_idx]) {
       const customFilament = {
         name: `Custom: ${this.tray_info_idx}`,
@@ -189,6 +196,10 @@ export class AMSPopup extends LitElement {
         this._loadState = "idle";
       }, 2000);
     }
+  }
+
+  async #closePopup() {
+    this._dialogOpen = false;
   }
   
   static styles = styles;
@@ -249,57 +260,73 @@ export class AMSPopup extends LitElement {
           <div class="div9 item-value ">
             ${this.selectedFilament.nozzle_temperature_range_high}
           </div>
-          <div class="action-buttons">
-            ${this.#isSetEnabled() ? 
+          ${!this.is_bambu_lab ?
             html`
-              <mwc-button
-                id="confirm"
-                class="action-button" 
-                @click=${this.#handleSet}
-              >
-                Confirm
-              </mwc-button>
-              <mwc-button
-                id="reset"
-                class="action-button" 
-                @click=${this.#handleReset}
-              >
-                Reset
-              </mwc-button>
-            ` : 
+              <div class="action-buttons">
+                <mwc-button
+                  id="close"
+                  class="action-button" 
+                  @click=${this.#closePopup}
+                >
+                  Close
+                </mwc-button>
+              </div>
+            `
+            :
             html`
-            <mwc-button
-              id="load"
-              class="action-button" 
-              @click=${this.#handleLoad}
-              ?disabled=${!this.#isLoadButtonEnabled()}
-            >
-              ${this._loadState === "loading" 
-                ? html`<ha-circular-progress active size="small"></ha-circular-progress>Loading` 
-                : this._loadState === "success"
-                ? html`<ha-icon icon="mdi:check" style="color: var(--success-color)"></ha-icon>Load`
-                : this._loadState === "error"
-                ? html`<ha-icon icon="mdi:close" style="color: var(--error-color)"></ha-icon>Load`
-                : "Load"
-              }
-            </mwc-button>
-            <mwc-button
-              id="unload"
-              class="action-button" 
-              @click=${this.#handleUnload}
-              ?disabled=${!this.#isUnloadButtonEnabled()}
-            >
-              ${this._loadState === "unloading" 
-                ? html`<ha-circular-progress active size="small"></ha-circular-progress>Unloading` 
-                : this._loadState === "success"
-                ? html`<ha-icon icon="mdi:check" style="color: var(--success-color)"></ha-icon>Unload`
-                : this._loadState === "error"
-                ? html`<ha-icon icon="mdi:close" style="color: var(--error-color)"></ha-icon> Unload`
-                : "Unload"
-              }
-            </mwc-button>
+              <div class="action-buttons">
+                ${this.#isSetEnabled() ? 
+                html`
+                  <mwc-button
+                    id="confirm"
+                    class="action-button" 
+                    @click=${this.#handleSet}
+                  >
+                    Confirm
+                  </mwc-button>
+                  <mwc-button
+                    id="reset"
+                    class="action-button" 
+                    @click=${this.#handleReset}
+                  >
+                    Reset
+                  </mwc-button>
+                ` : 
+                html`
+                  <mwc-button
+                    id="load"
+                    class="action-button" 
+                    @click=${this.#handleLoad}
+                    ?disabled=${!this.#isLoadButtonEnabled()}
+                  >
+                    ${this._loadState === "loading" 
+                      ? html`<ha-circular-progress active size="small"></ha-circular-progress>Loading` 
+                      : this._loadState === "success"
+                      ? html`<ha-icon icon="mdi:check" style="color: var(--success-color)"></ha-icon>Load`
+                      : this._loadState === "error"
+                      ? html`<ha-icon icon="mdi:close" style="color: var(--error-color)"></ha-icon>Load`
+                      : "Load"
+                    }
+                  </mwc-button>
+                  <mwc-button
+                    id="unload"
+                    class="action-button" 
+                    @click=${this.#handleUnload}
+                    ?disabled=${!this.#isUnloadButtonEnabled()}
+                  >
+                    ${this._loadState === "unloading" 
+                      ? html`<ha-circular-progress active size="small"></ha-circular-progress>Unloading` 
+                      : this._loadState === "success"
+                      ? html`<ha-icon icon="mdi:check" style="color: var(--success-color)"></ha-icon>Unload`
+                      : this._loadState === "error"
+                      ? html`<ha-icon icon="mdi:close" style="color: var(--error-color)"></ha-icon> Unload`
+                      : "Unload"
+                    }
+                  </mwc-button>
             `}
-          </div>
+            </div>
+          }
+        `}
       </ha-dialog>
     `;
   }
