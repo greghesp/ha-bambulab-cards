@@ -30,11 +30,11 @@ const ENTITYLIST: string[] = [
 ];
 
 const NODEREDENTITIES: { [key: string]: string } = {
-  ".*pause_print$": "pause",
-  ".*resume_print$": "resume",
+  "pause_print": "pause",
+  "resume_print": "resume",
   "^select.*_speed$": "printing_speed",
   "^sensor.*_speed$": "speed_profile",
-  ".*stop_print$": "stop",
+  "stop_print": "stop",
 }
 
 interface PrintableObject {

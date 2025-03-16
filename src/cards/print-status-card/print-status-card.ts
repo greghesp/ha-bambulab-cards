@@ -159,18 +159,18 @@ export class PrintControlCard extends LitElement {
   ]
 
   private NODEREDENTITIES: { [key: string]: string } = {
-    ".*bed_target_temperature$": 'target_bed_temp',
-    ".*bed_temperature$": "bed_temp",
-    ".*big_fan1$": "aux_fan",
-    ".*big_fan2$": "chamber_fan",
-    ".*chamber_temperature$": "chamber_temp",
-    ".*door$": "door_open",
-    ".*nozzle_target_temperature$": 'target_nozzle_temp',
-    ".*nozzle_temperature$": "nozzle_temp",
-    ".*print_preview$": "cover_image",
-    ".*print_remaining_time$": "remaining_time",
-    ".*set_bed_temp$": "target_bed_temperature",
-    ".*set_nozzle_temp$": "target_nozzle_temperature",
+    "bed_target_temperature": 'target_bed_temp',
+    "bed_temperature": "bed_temp",
+    "big_fan1": "aux_fan",
+    "big_fan2": "chamber_fan",
+    "chamber_temperature": "chamber_temp",
+    "door": "door_open",
+    "nozzle_target_temperature": 'target_nozzle_temp',
+    "nozzle_temperature": "nozzle_temp",
+    "print_preview": "cover_image",
+    "print_remaining_time": "remaining_time",
+    "set_bed_temp": "target_bed_temperature",
+    "set_nozzle_temp": "target_nozzle_temperature",
   }
 
   private EntityUX: { [key: string]: any } = {
