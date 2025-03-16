@@ -59,8 +59,15 @@ export function getBambuDeviceEntities(
     const value = hass.entities[k];
     if (value.device_id === device_id) {
       for (const key of entities) {
-        if (key == value.translation_key) {
-          result[key] = value;
+        if (value.platform == 'bambu_lab') {
+          if (key == value.translation_key) {
+            result[key] = value;
+          }
+        }
+        else if (value.platform == 'mqtt') {
+          if (value.entity_id.endsWith(key)) {
+            result[key] = value;
+          }
         }
       }
     }
