@@ -153,17 +153,19 @@ export class PrintControlCard extends LitElement {
 
   private ClickTargets: string[] = [
     "target_bed_temp",
-    "target_nozzle_temperature",
-    "target_nozzle_temp",
     "target_bed_temperature",
+    "target_nozzle_temp",
+    "target_nozzle_temperature",
   ]
 
   private NodeRedEntities: { [key: string]: string } = {
+    "bed_target_temperature": 'target_bed_temp',
     "bed_temperature": "bed_temp",
     "big_fan1": "aux_fan",
     "big_fan2": "chamber_fan",
     "chamber_temperature": "chamber_temp",
     "door": "door_open",
+    "nozzle_target_temperature": 'target_nozzle_temp',
     "nozzle_temperature": "nozzle_temp",
     "print_preview": "cover_image",
     "print_remaining_time": "remaining_time",
@@ -344,7 +346,7 @@ export class PrintControlCard extends LitElement {
     else {
       return _offImages[this._model]
     }
-}
+  }
 
   private _addElement(key) {
     const backgroundImage = this.shadowRoot?.getElementById('printer') as HTMLImageElement;
