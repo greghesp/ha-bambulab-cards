@@ -67,7 +67,6 @@ export function getBambuDeviceEntities(
         else if (value.platform == 'mqtt') {
           let regex = new RegExp(key);
           if (!key.startsWith('^')) {
-          {
             regex = new RegExp(`.*${key}$`);
           }
           if (regex.test(value.entity_id)) {
