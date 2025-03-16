@@ -151,7 +151,7 @@ export class PrintControlCard extends LitElement {
     door_open:              { x: 86, y:60,   width:20, height:0 },
   };
 
-  private CLICKTARGETS: string[] = [
+  private EXTRAENTITIES: string[] = [
     "target_bed_temp",
     "target_bed_temperature",
     "target_nozzle_temp",
@@ -260,7 +260,7 @@ export class PrintControlCard extends LitElement {
       }
       this._entityUX = this.EntityUX[this._model];
       let entityList = Object.keys(this._entityUX!);
-      entityList = entityList.concat(this.CLICKTARGETS);
+      entityList = entityList.concat(this.EXTRAENTITIES);
       entityList = entityList.concat(Object.keys(this.NODEREDENTITIES));
       this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
 

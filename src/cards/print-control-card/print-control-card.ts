@@ -74,12 +74,14 @@ export class PrintControlCard extends LitElement {
 
   constructor() {
     super()
+    console.log("constructor")
     this.#hiddenCanvas = document.createElement('canvas');
     this.#hiddenCanvas.width = 512;
     this.#hiddenCanvas.height = 512;
     this.#hiddenContext = this.#hiddenCanvas.getContext('2d', { willReadFrequently: true });
     this._hoveredObject = 0;
     this.#entityList = {};
+    console.log("constructor done")
   }
 
   public static async getConfigElement() {
@@ -94,6 +96,7 @@ export class PrintControlCard extends LitElement {
   }
 
   setConfig(config) {
+    console.log("setConfig", config)
     this._device_id = config.printer;
 
     if (!config.printer) {
@@ -125,6 +128,7 @@ export class PrintControlCard extends LitElement {
     }
 
     if (firstTime) {
+      console.log("firstTime");
       const entityList = ENTITYLIST.concat(Object.keys(NODEREDENTITIES));
       console.log(entityList);
       this.#entityList = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
@@ -177,6 +181,7 @@ export class PrintControlCard extends LitElement {
   }
 
   #initializeCanvas() {
+    console.log("#initializeCanvas")
     if (!this.#entityList['ftp']) {
       return;
     }
@@ -231,6 +236,7 @@ export class PrintControlCard extends LitElement {
   }
 
   #colorizeCanvas() {
+    console.log("#colorizeCanvas");
     if (this.#visibleContext == undefined) {
       // Lit reactivity can come through here before we're fully initialized.
       return
@@ -359,6 +365,7 @@ export class PrintControlCard extends LitElement {
 
   updated(changedProperties) {
     super.updated(changedProperties);
+    console.log("changedProperties", changedProperties);
 
     if (changedProperties.has('_hoveredObject')) {
       this.#colorizeCanvas();
@@ -401,10 +408,12 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getSpeedProfile() {
+    console.log("_getSpeedProfile", this.#entityList);
     return helpers.getLocalizedEntityState(this._hass, this.#entityList['speed_profile'])
   }
 
   private _showSkipButton() {
+    console.log("_showSkipButton", this.#entityList);
     if (!this.#entityList['ftp']) {
       return false;
     }
@@ -432,6 +441,7 @@ export class PrintControlCard extends LitElement {
   }
 
   render() {
+    console.log("render()", this.#entityList);
     return html`
       <ha-card class="card">
         <div class="control-container">
@@ -588,6 +598,7 @@ export class PrintControlCard extends LitElement {
 
   // Function to populate the list of checkboxes
   #populateCheckboxList() {
+    console.log("#populateCheckboxList", this.#entityList);
     if (!this.#entityList['ftp']) {
       return;
     }
