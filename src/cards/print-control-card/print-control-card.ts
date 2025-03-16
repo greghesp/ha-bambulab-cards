@@ -412,7 +412,7 @@ export class PrintControlCard extends LitElement {
             ${this._getSpeedProfile()}
           </div>
           <div class="buttons-container">
-            <ha-button class="ha-button" @click="${this._showPopup}" ?disabled="${!this._enableSkipButton()}" style="display: ${this._showSkipButton() ? 'block' : 'none'};">
+            <ha-button class="ha-button" @click="${this._showPopup}" ?disabled="${!this._enableSkipButton()}" style="display: ${this._showSkipButton() ? 'flex' : 'none'};">
               <ha-icon icon="mdi:debug-step-over"></ha-icon>
             </ha-button>
             <ha-button class="ha-button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['pause'])}">

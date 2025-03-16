@@ -24,7 +24,10 @@ export default css`
 .buttons-container {
   display: flex;
   justify-content: flex-end;
-  gap: 0px;
+  flex-wrap: nowrap;
+  gap: 4px;
+  width: 100%;
+  overflow: hidden;
 }
 #canvas {
   position: absolute;
@@ -40,7 +43,7 @@ export default css`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 16px;
+  padding: 9px 8px;
   background: var(--card-background-color);
 }
 .checkbox-list {
@@ -64,6 +67,14 @@ export default css`
   justify-content: space-between;
   gap: 10px;
   width: 100%;
+}
+.ha-button {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 30px;
+  max-width: 64px;
+  align-items: center;
+  justify-content: center;
 }
 #image-container {
   position: relative;
