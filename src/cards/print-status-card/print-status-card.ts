@@ -161,8 +161,8 @@ export class PrintControlCard extends LitElement {
   private NODEREDENTITIES: { [key: string]: string } = {
     "bed_target_temperature": 'target_bed_temp',
     "bed_temperature": "bed_temp",
-    "big_fan1": "aux_fan",
-    "big_fan2": "chamber_fan",
+    "^fan.*big_fan1$": "aux_fan",
+    "^fan.*big_fan2$": "chamber_fan",
     "chamber_temperature": "chamber_temp",
     "door": "door_open",
     "nozzle_target_temperature": 'target_nozzle_temp',
