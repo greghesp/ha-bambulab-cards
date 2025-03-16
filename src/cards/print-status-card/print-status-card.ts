@@ -167,8 +167,8 @@ export class PrintControlCard extends LitElement {
     "nozzle_temperature": "nozzle_temp",
     "print_preview": "cover_image",
     "print_remaining_time": "remaining_time",
-    "set_bed_temp": "target_bed_temp",
-    "set_nozzle_temp": "target_nozzle_temp",
+    "set_bed_temp": "target_bed_temperature",
+    "set_nozzle_temp": "target_nozzle_temperature",
   }
 
   private EntityUX: { [key: string]: any } = {
