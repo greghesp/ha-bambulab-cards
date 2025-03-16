@@ -61,7 +61,6 @@ export function getBambuDeviceEntities(
       for (const key of entities) {
         if (value.platform == 'bambu_lab') {
           if (key == value.translation_key) {
-            console.log(value)
             result[key] = value;
           }
         }
