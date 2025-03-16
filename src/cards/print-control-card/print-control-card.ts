@@ -18,17 +18,24 @@ registerCustomCard({
 });
 
 const ENTITYLIST: string[] = [
-  "ftp",
+  "ftp",              // Node red does not have
   "pause",
-  "pick_image",
+  "pick_image",       // Node red does not have
   "printable_objects",
-  "printing_speed",
+  "printing_speed",   // Select - note the unique id is inconsistent as '..._Speed'
   "resume",
-  "skipped_objects",
-  "Speed",
-  "speed_profile",
+  "skipped_objects",  // Node red does not have
+  "speed_profile",    // Sensor
   "stop",
 ];
+
+const NODEREDENTITIES: { [key: string]: string } = {
+  ".*pause_print$": "pause",
+  ".*resume_print$": "resume",
+  "^select.*_speed$": "printing_speed",
+  "^sensor.*_speed$": "speed_profile",
+  ".*stop_print$": "stop",
+}
 
 interface PrintableObject {
   name: string;
@@ -54,25 +61,25 @@ export class PrintControlCard extends LitElement {
   @state() private _confirmationDialogBody: string = "";
 
   // Home assistant state references that are only used in changedProperties
-  private _pickImageState: any;
-  private _skippedObjectsState: any;
+  #pickImageState: any;
+  #skippedObjectsState: any;
 
-  private _entityList: { [key: string]: helpers.Entity };
+  #entityList: { [key: string]: helpers.Entity };
 
-  private _hiddenCanvas;
-  private _hiddenContext;
-  private _visibleContext;
-  private _confirmationAction;
+  #hiddenCanvas;
+  #hiddenContext;
+  #visibleContext;
+  #confirmationAction;
 
 
   constructor() {
     super()
-    this._hiddenCanvas = document.createElement('canvas');
-    this._hiddenCanvas.width = 512;
-    this._hiddenCanvas.height = 512;
-    this._hiddenContext = this._hiddenCanvas.getContext('2d', { willReadFrequently: true });
+    this.#hiddenCanvas = document.createElement('canvas');
+    this.#hiddenCanvas.width = 512;
+    this.#hiddenCanvas.height = 512;
+    this.#hiddenContext = this.#hiddenCanvas.getContext('2d', { willReadFrequently: true });
     this._hoveredObject = 0;
-    this._entityList = {};
+    this.#entityList = {};
   }
 
   public static async getConfigElement() {
@@ -118,11 +125,22 @@ export class PrintControlCard extends LitElement {
     }
 
     if (firstTime) {
-      this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, ENTITYLIST);
+      const entityList = ENTITYLIST.concat(Object.keys(NODEREDENTITIES));
+      console.log(entityList);
+      this.#entityList = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
+      console.log(this.#entityList);
+
+      // Override the entity list with the Node-RED entities if configured.
+      for (const e in NODEREDENTITIES) {
+        const target = NODEREDENTITIES[e];
+        if (this.#entityList[e]) {
+          this.#entityList[target] = this.#entityList[e];
+        }
+      }
     }
   }
 
-  private _handleCanvasClick(event) {
+  #handleCanvasClick(event) {
     const canvas = this.shadowRoot!.getElementById('canvas') as HTMLCanvasElement;
     // The intrinsic width and height of the canvas (512x512)
     const canvasWidth = canvas.width;
@@ -144,7 +162,7 @@ export class PrintControlCard extends LitElement {
     x = x / scaleX;
     y = y / scaleY;
 
-    const imageData = this._hiddenContext.getImageData(x, y, 1, 1).data;
+    const imageData = this.#hiddenContext.getImageData(x, y, 1, 1).data;
     const [r, g, b, a] = imageData;
 
     const key = helpers.rgbaToInt(r, g, b, 0); // For integer comparisons we set the alpha to 0.
@@ -158,37 +176,41 @@ export class PrintControlCard extends LitElement {
     }
   }
 
-  private _initializeCanvas() {
+  #initializeCanvas() {
+    if (!this.#entityList['ftp']) {
+      return;
+    }
+
     const canvas = this.shadowRoot!.getElementById('canvas') as HTMLCanvasElement;
 
-    if (this._visibleContext == null) {
+    if (this.#visibleContext == null) {
       // Find the visible canvas and set up click listener
-      this._visibleContext = canvas.getContext('2d', { willReadFrequently: true })!;
+      this.#visibleContext = canvas.getContext('2d', { willReadFrequently: true })!;
       // Add the click event listener to it that looks up the clicked pixel color and toggles any found object on or off.
-      canvas.addEventListener('click', (event) => { this._handleCanvasClick(event); });
+      canvas.addEventListener('click', (event) => { this.#handleCanvasClick(event); });
     }
 
     // Now create a the image to load the pick image into from home assistant.
     this._pickImage = new Image();
     this._pickImage.onload = () => {
       // The image has transparency so we need to wipe the background first or old images can be combined
-      this._hiddenContext.clearRect(0, 0, canvas.width, canvas.height);
-      this._hiddenContext.drawImage(this._pickImage, 0, 0)
-      this._colorizeCanvas();
+      this.#hiddenContext.clearRect(0, 0, canvas.width, canvas.height);
+      this.#hiddenContext.drawImage(this._pickImage, 0, 0)
+      this.#colorizeCanvas();
     }
 
     // Finally set the home assistant image URL into it to load the image.
-    this._pickImage.src = this._hass.states[this._entityList['pick_image'].entity_id].attributes.entity_picture;
+    this._pickImage.src = this._hass.states[this.#entityList['pick_image'].entity_id].attributes.entity_picture;
   }
 
   private _getSkippedObjects() {
-    const entity = this._entityList['skipped_objects'];
+    const entity = this.#entityList['skipped_objects'];
     const value = this._states[entity.entity_id].attributes['objects'];
     return value
   }
 
   private _getPrintableObjects() {
-    const entity = this._entityList['printable_objects'];
+    const entity = this.#entityList['printable_objects'];
     const value = this._states[entity.entity_id].attributes['objects'];
     return value
   }
@@ -208,8 +230,8 @@ export class PrintControlCard extends LitElement {
     this._hass.callService('button', 'press', data);
   }
 
-  private _colorizeCanvas() {
-    if (this._visibleContext == undefined) {
+  #colorizeCanvas() {
+    if (this.#visibleContext == undefined) {
       // Lit reactivity can come through here before we're fully initialized.
       return
     }
@@ -219,14 +241,14 @@ export class PrintControlCard extends LitElement {
     const HEIGHT = 512
 
     // Read original pick image into a data buffer so we can read the pixels.
-    const readImageData = this._hiddenContext.getImageData(0, 0, WIDTH, HEIGHT);
+    const readImageData = this.#hiddenContext.getImageData(0, 0, WIDTH, HEIGHT);
     const readData = readImageData.data;
 
     // Overwrite the display image with the starting pick image
-    this._visibleContext.putImageData(readImageData, 0, 0);
+    this.#visibleContext.putImageData(readImageData, 0, 0);
 
     // Read the data into a buffer that we'll write to to modify the pixel colors.
-    const writeImageData = this._visibleContext.getImageData(0, 0, WIDTH, HEIGHT);
+    const writeImageData = this.#visibleContext.getImageData(0, 0, WIDTH, HEIGHT);
     const writeData = writeImageData.data;
     const writeDataView = new DataView(writeData.buffer);
 
@@ -332,71 +354,77 @@ export class PrintControlCard extends LitElement {
     }
 
     // Put the modified image data back into the canvas
-    this._visibleContext.putImageData(writeImageData, 0, 0);
+    this.#visibleContext.putImageData(writeImageData, 0, 0);
   }
 
   updated(changedProperties) {
     super.updated(changedProperties);
 
     if (changedProperties.has('_hoveredObject')) {
-      this._colorizeCanvas();
+      this.#colorizeCanvas();
     }
     else if (changedProperties.has('_objects')) {
-      this._colorizeCanvas();
+      this.#colorizeCanvas();
     }
 
-    if (changedProperties.has("_states")) {
-      let newState = this._hass.states[this._entityList['pick_image'].entity_id].state;
-      if (newState !== this._pickImageState) {
-        console.log("Pick image updated");
-        this._pickImageState = newState;
-        this._initializeCanvas();
-        this._populateCheckboxList();
-      }
+    if (this.#entityList['ftp']) {
+      if (changedProperties.has("_states")) {
+        let newState = this._hass.states[this.#entityList['pick_image'].entity_id].state;
+        if (newState !== this.#pickImageState) {
+          console.log("Pick image updated");
+          this.#pickImageState = newState;
+          this.#initializeCanvas();
+          this.#populateCheckboxList();
+        }
 
-      newState = this._hass.states[this._entityList['skipped_objects'].entity_id].state;
-      if (newState !== this._skippedObjectsState) {
-        console.log("Skipped objects list updated");
-        this._skippedObjectsState = newState;
-        this._initializeCanvas();
-        this._populateCheckboxList();
+        newState = this._hass.states[this.#entityList['skipped_objects'].entity_id].state;
+        if (newState !== this.#skippedObjectsState) {
+          console.log("Skipped objects list updated");
+          this.#skippedObjectsState = newState;
+          this.#initializeCanvas();
+          this.#populateCheckboxList();
+        }
       }
     }
   }
 
   private _showPauseDialog() {
-    this._confirmationAction = () => { this._clickButton(this._entityList['pause']) }
+    this.#confirmationAction = () => { this._clickButton(this.#entityList['pause']) }
     this._confirmationDialogBody = "Are you sure you want to pause the print. This may cause quality issues.";
     this._confirmationDialogVisible = true;
   }
 
   private _showStopDialog() {
-    this._confirmationAction = () => { this._clickButton(this._entityList['stop']) };
+    this.#confirmationAction = () => { this._clickButton(this.#entityList['stop']) };
     this._confirmationDialogBody = "Are you sure you want to stop the print. This cannot be reversed.";
     this._confirmationDialogVisible = true;
   }
 
   private _getSpeedProfile() {
-    return helpers.getLocalizedEntityState(this._hass, this._entityList['speed_profile'])
+    return helpers.getLocalizedEntityState(this._hass, this.#entityList['speed_profile'])
   }
 
   private _showSkipButton() {
-    // Only show the Skip button when the integration is configured to enable model downoad off the printer.
-    const state = this._hass.states[this._entityList['ftp'].entity_id].state;
+    if (!this.#entityList['ftp']) {
+      return false;
+    }
+
+    // Only show the Skip button when the integration is configured to enable model download off the printer.
+    const state = this._hass.states[this.#entityList['ftp'].entity_id].state;
     return state == 'on';
   }
 
   private _enableSkipButton() {
     const countOfPrintableObjects = Object.keys(this._getPrintableObjects()).length;
-    if ((this._pickImageState == undefined) ||
+    if ((this.#pickImageState == undefined) ||
         (countOfPrintableObjects < 2) ||
         (countOfPrintableObjects > 64))
     {
       return false;      
     }
 
-    if (this._isEntityUnavailable(this._entityList['stop']) ||
-        this._isEntityStateUnknown(this._entityList['pick_image']))
+    if (this._isEntityUnavailable(this.#entityList['stop']) ||
+        this._isEntityStateUnknown(this.#entityList['pick_image']))
     {
       return false;
     }
@@ -407,7 +435,7 @@ export class PrintControlCard extends LitElement {
     return html`
       <ha-card class="card">
         <div class="control-container">
-          <div id="speed" @click="${() => helpers.showEntityMoreInfo(this, this._entityList['printing_speed'])}">
+          <div id="speed" @click="${() => helpers.showEntityMoreInfo(this, this.#entityList['printing_speed'])}">
             <ha-icon icon="mdi:speedometer"></ha-icon>
             ${this._getSpeedProfile()}
           </div>
@@ -415,65 +443,78 @@ export class PrintControlCard extends LitElement {
             <ha-button class="ha-button" @click="${this._showPopup}" ?disabled="${!this._enableSkipButton()}" style="display: ${this._showSkipButton() ? 'flex' : 'none'};">
               <ha-icon icon="mdi:debug-step-over"></ha-icon>
             </ha-button>
-            <ha-button class="ha-button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['pause'])}">
+            <ha-button class="ha-button" @click="${this._showPauseDialog}" ?disabled="${this._isEntityUnavailable(this.#entityList['pause'])}">
               <ha-icon icon="mdi:pause"></ha-icon>
             </ha-button>
-            <ha-button class="ha-button" @click="${() => { this._clickButton(this._entityList['resume']) }}" ?disabled="${this._isEntityUnavailable(this._entityList['resume'])}">
+            <ha-button class="ha-button" @click="${() => { this._clickButton(this.#entityList['resume']) }}" ?disabled="${this._isEntityUnavailable(this.#entityList['resume'])}">
               <ha-icon icon="mdi:play"></ha-icon>
             </ha-button>
-            <ha-button class="ha-button" @click="${this._showStopDialog}" ?disabled="${this._isEntityUnavailable(this._entityList['stop'])}">
+            <ha-button class="ha-button" @click="${this._showStopDialog}" ?disabled="${this._isEntityUnavailable(this.#entityList['stop'])}">
               <ha-icon icon="mdi:stop"></ha-icon>
             </ha-button>
           </div>
         </div>
-        ${this._confirmationDialogVisible ? html`
-          <ha-dialog id="confirmation-popup" open="true" heading="title">
-            <ha-dialog-header slot="heading">
-              <div slot="title">Please confirm</div>
-            </ha-dialog-header>
-            <div class="content">
-              ${this._confirmationDialogBody}
+        ${this.#populateConfirmationDialog()}
+        ${this.#populatePopup()}
+      </ha-card>
+    `;
+  }
+
+  #populateConfirmationDialog() {
+    if (this._confirmationDialogVisible) {
+      return html`
+      <ha-dialog id="confirmation-popup" open="true" heading="title">
+        <ha-dialog-header slot="heading">
+          <div slot="title">Please confirm</div>
+        </ha-dialog-header>
+        <div class="content">
+          ${this._confirmationDialogBody}
+        </div>
+        <mwc-button slot="primaryAction" @click="${() => { this.#confirmationAction(); this._confirmationDialogVisible = false; }}">Confirm</mwc-button>
+        <mwc-button slot="secondaryAction" @click="${() => { this._confirmationDialogVisible = false; }}">Cancel</mwc-button>
+      </ha-dialog>
+    `}
+
+    return html``
+  }
+
+  #populatePopup() {
+    return html`
+      <div class="popup-container" style="display: ${this._popupVisible ? 'block' : 'none'};">
+        <div class="popup-background" @click="${this._cancelPopup}"></div>
+        <div class="popup">
+          <div class="popup-header">Skip Objects</div>
+          <div class="popup-content">
+            <p>Select the object(s) you want to skip printing by tapping them in the image or the list.</p>
+            <div id="image-container">
+              <img id="build-plate" src="${BUILD_PLATE_IMAGE}"/>
+              <canvas id="canvas" width="512" height="512"></canvas>
             </div>
-            <mwc-button slot="primaryAction" @click="${() => { this._confirmationAction(); this._confirmationDialogVisible = false; }}">Confirm</mwc-button>
-            <mwc-button slot="secondaryAction" @click="${() => { this._confirmationDialogVisible = false; }}">Cancel</mwc-button>
-          </ha-dialog>
-        ` : ``}
-        <div class="popup-container" style="display: ${this._popupVisible ? 'block' : 'none'};">
-          <div class="popup-background" @click="${this._cancelPopup}"></div>
-          <div class="popup">
-            <div class="popup-header">Skip Objects</div>
-            <div class="popup-content">
-              <p>Select the object(s) you want to skip printing by tapping them in the image or the list.</p>
-              <div id="image-container">
-                <img id="build-plate" src="${BUILD_PLATE_IMAGE}"/>
-                <canvas id="canvas" width="512" height="512"></canvas>
+            <div class="checkbox-list">
+              ${Array.from(this._objects.keys()).map((key) => {
+                const item = this._objects.get(key)!;
+                return html`
+              <div class="checkbox-object">
+                <label @mouseover="${() => this._onMouseOverCheckBox(key)}" @mouseout="${() => this._onMouseOutCheckBox(key)}">
+                  <input type="checkbox" .checked="${item.to_skip}" @change="${(e: Event) => this._toggleCheckbox(e, key)}" />
+                  ${item.skipped ? item.name + " (already skipped)" : item.name}
+                </label>
+                <br />
               </div>
-              <div class="checkbox-list">
-                ${Array.from(this._objects.keys()).map((key) => {
-                  const item = this._objects.get(key)!;
-                  return html`
-                <div class="checkbox-object">
-                  <label @mouseover="${() => this._onMouseOverCheckBox(key)}" @mouseout="${() => this._onMouseOutCheckBox(key)}">
-                    <input type="checkbox" .checked="${item.to_skip}" @change="${(e: Event) => this._toggleCheckbox(e, key)}" />
-                    ${item.skipped ? item.name + " (already skipped)" : item.name}
-                  </label>
-                  <br />
-                </div>
-                    `;
-                  })}
-              </div>
-              <div class="popup-button-container">
-                <ha-button class="ha-button" @click="${this._cancelPopup}">
-                  Cancel
-                </ha-button>
-                <ha-button class="ha-button" @click="${this._callSkipObjectsService}" ?disabled="${this._isSkipButtonDisabled}">
-                  Skip
-                </ha-button>
-              </div>
+                  `;
+                })}
+            </div>
+            <div class="popup-button-container">
+              <ha-button class="ha-button" @click="${this._cancelPopup}">
+                Cancel
+              </ha-button>
+              <ha-button class="ha-button" @click="${this._callSkipObjectsService}" ?disabled="${this._isSkipButtonDisabled}">
+                Skip
+              </ha-button>
             </div>
           </div>
         </div>
-      </ha-card>
+      </div>    
     `;
   }
 
@@ -546,7 +587,11 @@ export class PrintControlCard extends LitElement {
   };
 
   // Function to populate the list of checkboxes
-  private _populateCheckboxList() {
+  #populateCheckboxList() {
+    if (!this.#entityList['ftp']) {
+      return;
+    }
+
     // Populate the viewmodel
     const list = this._getPrintableObjects();
     if (list == undefined) {

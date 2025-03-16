@@ -65,7 +65,8 @@ export function getBambuDeviceEntities(
           }
         }
         else if (value.platform == 'mqtt') {
-          if (value.entity_id.endsWith(key)) {
+          let regex = new RegExp(key);
+          if (regex.test(value)) {
             // Node red has fan entities that have the same name on both sensor/number entity categories.
             // We need to take the first one which is the fan, not the sensor.
             if (!result[key]) {
