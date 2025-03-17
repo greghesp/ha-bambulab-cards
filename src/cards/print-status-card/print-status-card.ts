@@ -20,6 +20,7 @@ import X1C_ON_IMAGE  from "../../images/X1C_on.png";
 import X1C_OFF_IMAGE from "../../images/X1C_off.png";
 import X1E_ON_IMAGE  from "../../images/X1E_on.png";
 import X1E_OFF_IMAGE from "../../images/X1E_off.png";
+import SCREEN_IMAGE  from "../../images/Screen.png";
 
 registerCustomCard({
   type: PRINT_STATUS_CARD_NAME,
@@ -51,6 +52,42 @@ const _offImages: { [key: string]: any } =  {
   P1S:    P1S_OFF_IMAGE,
   X1C:    X1C_OFF_IMAGE,
   X1E:    X1E_OFF_IMAGE,
+}
+
+const ENTITIES: string[] = [
+  "aux_fan",
+  "bed_temp",
+  "chamber_light",
+  "chamber_fan",
+  "chamber_temp",
+  "cover_image",
+  "door_open",
+  "humidity",
+  "nozzle_temp",
+  "power",
+  "print_progress",
+  "remaining_time",
+  "speed_profile",
+  "target_bed_temp",
+  "target_bed_temperature",
+  "target_nozzle_temp",
+  "target_nozzle_temperature",
+  "stage",
+]
+
+const NODEREDENTITIES: { [key: string]: string } = {
+  "bed_target_temperature": 'target_bed_temp',
+  "bed_temperature": "bed_temp",
+  "^fan.*big_fan1$": "aux_fan",
+  "^fan.*big_fan2$": "chamber_fan",
+  "chamber_temperature": "chamber_temp",
+  "door": "door_open",
+  "nozzle_target_temperature": 'target_nozzle_temp',
+  "nozzle_temperature": "nozzle_temp",
+  "print_preview": "cover_image",
+  "print_remaining_time": "remaining_time",
+  "set_bed_temp": "target_bed_temperature",
+  "set_nozzle_temp": "target_nozzle_temperature",
 }
 
 @customElement(PRINT_STATUS_CARD_NAME)
@@ -151,26 +188,16 @@ export class PrintControlCard extends LitElement {
     door_open:              { x: 86, y:60,   width:20, height:0 },
   };
 
-  private EXTRAENTITIES: string[] = [
-    "target_bed_temp",
-    "target_bed_temperature",
-    "target_nozzle_temp",
-    "target_nozzle_temperature",
-  ]
-
-  private NODEREDENTITIES: { [key: string]: string } = {
-    "bed_target_temperature": 'target_bed_temp',
-    "bed_temperature": "bed_temp",
-    "^fan.*big_fan1$": "aux_fan",
-    "^fan.*big_fan2$": "chamber_fan",
-    "chamber_temperature": "chamber_temp",
-    "door": "door_open",
-    "nozzle_target_temperature": 'target_nozzle_temp',
-    "nozzle_temperature": "nozzle_temp",
-    "print_preview": "cover_image",
-    "print_remaining_time": "remaining_time",
-    "set_bed_temp": "target_bed_temperature",
-    "set_nozzle_temp": "target_nozzle_temperature",
+  private ScreenUX: { [key: string]: EntityUX | undefined } = {
+    cover_image:            { x: 28, y:40,   width:66,  height:66 },
+    print_progress:         { x: 5,  y:78,   width:25,  height:0 },
+    remaining_time:         { x: 50, y:78,   width:100, height:0 },
+    stage:                  { x: 25, y:95,   width:300, height:0 },
+    chamber_light:          { x: 67, y:38,   width:20,  height:0 },
+    nozzle_temp:            { x: 89, y:14,   width:25,  height:0, click_target:"target_nozzle_temperature" },
+    bed_temp:               { x: 89, y:38,   width:25,  height:0, click_target:"target_bed_temperature" },
+    speed_profile:          { x: 89, y:68,   width:70,  height:0 },
+    aux_fan:                { x: 89, y:88,   width:70,  height:0 },
   }
 
   private EntityUX: { [key: string]: any } = {
@@ -181,6 +208,7 @@ export class PrintControlCard extends LitElement {
     X1:     this.X1CEntityUX,
     X1C:    this.X1CEntityUX,
     X1E:    this.X1CEntityUX,
+    SCREEN: this.ScreenUX,
   }
   
   constructor() {
@@ -194,6 +222,11 @@ export class PrintControlCard extends LitElement {
     this._light = undefined;
 
     this.resizeObserver = new ResizeObserver(() => {
+      const background = this.shadowRoot?.getElementById('control-container') as HTMLElement;
+      if (background) {
+        background.style.height = `${background.offsetWidth * 2/3}px`;
+      }
+
       this.requestUpdate();
     });
   }
@@ -225,8 +258,10 @@ export class PrintControlCard extends LitElement {
     // Hook up the resize observer on the background image so that we can react to it being re-layed out
     // to move all the entities to their correct positions. On initial creation this cannot be done on
     // connection as that's too early - there's no html at that point.
-    const element = this.shadowRoot?.querySelector('#printer');
-    this.resizeObserver.observe(element!);
+    const element = this.shadowRoot?.querySelector('#control-container');
+    if (element) {
+      this.resizeObserver.observe(element);
+    }
 
     // On the first render, the background image gets loaded but is not yet in the shadow DOM nor
     // at it's layed out size. So we need a second pass to update the entity positions.
@@ -258,15 +293,13 @@ export class PrintControlCard extends LitElement {
       if (this._model == 'A1 MINI') {
         this._model = 'A1MINI';
       }
-      this._entityUX = this.EntityUX[this._model];
-      let entityList = Object.keys(this._entityUX!);
-      entityList = entityList.concat(this.EXTRAENTITIES);
-      entityList = entityList.concat(Object.keys(this.NODEREDENTITIES));
+      this._entityUX = this.EntityUX['SCREEN'];//this.EntityUX[this._model];
+      let entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
       this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
 
       // Override the entity list with the Node-RED entities if configured.
-      for (const e in this.NODEREDENTITIES) {
-        const target = this.NODEREDENTITIES[e];
+      for (const e in NODEREDENTITIES) {
+        const target = NODEREDENTITIES[e];
         if (this._entityList[e]) {
           this._entityList[target] = this._entityList[e];
         }
@@ -308,7 +341,7 @@ export class PrintControlCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    const element = this.shadowRoot?.querySelector('#printer');
+    const element = this.shadowRoot?.querySelector('#control-container');
     if (element) {
       // Not accessible on first bring up but is accessible if a hidden element is re-shown.
       this.resizeObserver.observe(element);
@@ -324,21 +357,37 @@ export class PrintControlCard extends LitElement {
   }
 
   render() {
-    return html`
-      <ha-card class="card">
-        <div class="control-container">
-          <img id="printer" src="${this._getPrinterImage()}" />
-          <div id="container">
-            ${Object.keys(this._entityUX!).map((key) => {
-              return this._addElement(key);
-            })}
+    if (false) {
+      return html`
+        <ha-card class="card">
+          <div id="control-container" class="control-container">
+            <img id="printer" src="${this._getPrinterImage()}" />
+            <div id="container">
+              ${Object.keys(this._entityUX!).map((key) => {
+                return this._addElement(key);
+              })}
+            </div>
           </div>
-        </div>
-      </ha-card>
-    `;
+        </ha-card>
+      `;
+    } else {
+      return html`
+        <ha-card class="card">
+          <div id="control-container" class="control-container">
+            <img id="printer" src="${this._getPrinterImage()}" />
+            <div id="container">
+              ${Object.keys(this._entityUX!).map((key) => {
+                return this._addElement(key);
+              })}
+            </div>
+          </div>
+        </ha-card>
+      `;
+    }
   }
 
   private _getPrinterImage() {
+    return SCREEN_IMAGE;
     const lightOn = helpers.getEntityState(this._hass, this._entityList['chamber_light']) == 'on'
     if (lightOn) {
       return _onImages[this._model]
@@ -349,13 +398,13 @@ export class PrintControlCard extends LitElement {
   }
 
   private _addElement(key) {
-    const backgroundImage = this.shadowRoot?.getElementById('printer') as HTMLImageElement;
-    if (!backgroundImage) {
+    const background = this.shadowRoot?.getElementById('control-container') as HTMLElement;
+    if (!background) {
       return html``;
     }
 
-    const imageWidth = backgroundImage.width;
-    const imageHeight = backgroundImage.height;
+    const imageWidth = background.getBoundingClientRect().width;
+    const imageHeight = background.getBoundingClientRect().height;
 
     const entity = this._entityList[key];
     const e = this._entityUX![key];
@@ -445,6 +494,7 @@ export class PrintControlCard extends LitElement {
           }
 
         case 'cover_image':
+          style = `left:${left}px; top:${top}px; width:auto; height:${e.height}%;`
           if (!this._entityList[key] || helpers.isEntityUnavailable(this._hass, this._entityList[key])) {
             return html``
           } else {
