@@ -74,14 +74,12 @@ export class PrintControlCard extends LitElement {
 
   constructor() {
     super()
-    console.log("constructor")
     this.#hiddenCanvas = document.createElement('canvas');
     this.#hiddenCanvas.width = 512;
     this.#hiddenCanvas.height = 512;
     this.#hiddenContext = this.#hiddenCanvas.getContext('2d', { willReadFrequently: true });
     this._hoveredObject = 0;
     this.#entityList = {};
-    console.log("constructor done")
   }
 
   public static async getConfigElement() {
@@ -424,6 +422,11 @@ export class PrintControlCard extends LitElement {
   }
 
   private _enableSkipButton() {
+    console.log("_enableSkipButton", this.#entityList);
+    if (!this.#entityList['ftp']) {
+      return false;
+    }
+
     const countOfPrintableObjects = Object.keys(this._getPrintableObjects()).length;
     if ((this.#pickImageState == undefined) ||
         (countOfPrintableObjects < 2) ||
@@ -441,7 +444,6 @@ export class PrintControlCard extends LitElement {
   }
 
   render() {
-    console.log("render()", this.#entityList);
     return html`
       <ha-card class="card">
         <div class="control-container">
