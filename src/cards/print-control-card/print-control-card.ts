@@ -94,7 +94,6 @@ export class PrintControlCard extends LitElement {
   }
 
   setConfig(config) {
-    console.log("setConfig", config)
     this._device_id = config.printer;
 
     if (!config.printer) {
@@ -126,11 +125,8 @@ export class PrintControlCard extends LitElement {
     }
 
     if (firstTime) {
-      console.log("firstTime");
       const entityList = ENTITYLIST.concat(Object.keys(NODEREDENTITIES));
-      console.log(entityList);
       this.#entityList = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
-      console.log(this.#entityList);
 
       // Override the entity list with the Node-RED entities if configured.
       for (const e in NODEREDENTITIES) {
@@ -179,7 +175,6 @@ export class PrintControlCard extends LitElement {
   }
 
   #initializeCanvas() {
-    console.log("#initializeCanvas")
     if (!this.#entityList['ftp']) {
       return;
     }
@@ -234,7 +229,6 @@ export class PrintControlCard extends LitElement {
   }
 
   #colorizeCanvas() {
-    console.log("#colorizeCanvas");
     if (this.#visibleContext == undefined) {
       // Lit reactivity can come through here before we're fully initialized.
       return
@@ -363,7 +357,6 @@ export class PrintControlCard extends LitElement {
 
   updated(changedProperties) {
     super.updated(changedProperties);
-    console.log("changedProperties", changedProperties);
 
     if (changedProperties.has('_hoveredObject')) {
       this.#colorizeCanvas();
@@ -376,7 +369,6 @@ export class PrintControlCard extends LitElement {
       if (changedProperties.has("_states")) {
         let newState = this._hass.states[this.#entityList['pick_image'].entity_id].state;
         if (newState !== this.#pickImageState) {
-          console.log("Pick image updated");
           this.#pickImageState = newState;
           this.#initializeCanvas();
           this.#populateCheckboxList();
@@ -384,7 +376,6 @@ export class PrintControlCard extends LitElement {
 
         newState = this._hass.states[this.#entityList['skipped_objects'].entity_id].state;
         if (newState !== this.#skippedObjectsState) {
-          console.log("Skipped objects list updated");
           this.#skippedObjectsState = newState;
           this.#initializeCanvas();
           this.#populateCheckboxList();
@@ -406,12 +397,10 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getSpeedProfile() {
-    console.log("_getSpeedProfile", this.#entityList);
     return helpers.getLocalizedEntityState(this._hass, this.#entityList['speed_profile'])
   }
 
   private _showSkipButton() {
-    console.log("_showSkipButton", this.#entityList);
     if (!this.#entityList['ftp']) {
       return false;
     }
@@ -422,7 +411,6 @@ export class PrintControlCard extends LitElement {
   }
 
   private _enableSkipButton() {
-    console.log("_enableSkipButton", this.#entityList);
     if (!this.#entityList['ftp']) {
       return false;
     }
@@ -600,7 +588,6 @@ export class PrintControlCard extends LitElement {
 
   // Function to populate the list of checkboxes
   #populateCheckboxList() {
-    console.log("#populateCheckboxList", this.#entityList);
     if (!this.#entityList['ftp']) {
       return;
     }
