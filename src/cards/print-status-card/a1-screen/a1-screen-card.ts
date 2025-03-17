@@ -23,7 +23,7 @@ export class A1ScreenCard extends LitElement {
         <!-- Screen/display -->
         <rect x="6" y="6" width="12" height="8" rx="1" fill="#2a2a2a" />
         <!-- OK text on screen -->
-        <text x="8.5" y="12" font-family="Arial" font-size="6" font-weight="bold" fill="#4caf50">OK</text>
+        <text x="7.5" y="12" font-family="Arial" font-size="6" font-weight="bold" fill="#4caf50">OK</text>
         <!-- Antenna -->
         <line x1="12" y1="4" x2="12" y2="2" stroke="#aaa" stroke-width="1.5" />
         <circle cx="12" cy="1.5" r="0.5" fill="#aaa" />
@@ -88,9 +88,15 @@ export class A1ScreenCard extends LitElement {
                     <span class="temp-target">20°C</span>
                   </div>
                   <div class="temp-item">
+                    <span class="temp-value">
+                      <span><ha-icon icon="mdi:speedometer"></ha-icon></span>
+                    </span>
                     <span class="temp-target">100%</span>
                   </div>
                   <div class="temp-item">
+                    <span class="temp-value">
+                      <span><ha-icon icon="mdi:fan"></ha-icon></span>
+                    </span>
                     <span class="temp-target">100%</span>
                   </div>
                 </div>
