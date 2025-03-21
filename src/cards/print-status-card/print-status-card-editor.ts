@@ -17,7 +17,7 @@ const NEW_SCHEMA = [
   {
     name: "custom_humidity",
     label: "Custom humidity sensor",
-    selector: { entity: { domain: "sensor" }},
+    selector: { entity: { domain: "sensor" } },
   },
   {
     name: "custom_temperature",
@@ -33,7 +33,19 @@ const NEW_SCHEMA = [
     name: "custom_light",
     label: "Custom light",
     selector: { entity: { domain: "light" } },
-  }
+  },
+  {
+    name: "style",
+    label: "Card Style",
+    selector: {
+      select: {
+        options: [
+          { label: "Simple", value: "simple" },
+          { label: "Graphic", value: "graphic" },
+        ],
+      },
+    },
+  },
 ];
 
 @customElement(PRINT_STATUS_CARD_EDITOR_NAME)

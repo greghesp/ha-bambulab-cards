@@ -101,6 +101,7 @@ export class PrintControlCard extends LitElement {
 
   @state() private _states;
   @state() private _device_id: any;
+  @state() private _style;
 
   // Home assistant state references that are only used in changedProperties
   private _coverImageState: any;
@@ -244,8 +245,19 @@ export class PrintControlCard extends LitElement {
   }
 
   public getLayoutOptions() {
+    if (this._style == "simple" || this._model == "A1MINI") {
+      return {
+        grid_rows: 5,
+        grid_min_rows: 5,
+        grid_columns: 4,
+        grid_min_columns: 4,
+      };
+    }
     return {
-      grid_rows: this._model === "A1MINI" ? 5 : 4,
+      grid_rows: 5,
+      grid_min_rows: 5,
+      grid_columns: 4,
+      grid_min_columns: 4,
     };
   }
 
@@ -259,6 +271,7 @@ export class PrintControlCard extends LitElement {
     this._humidity = config.custom_humidity;
     this._power = config.custom_power;
     this._light = config.custom_light;
+    this._style = config.style;
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -300,7 +313,6 @@ export class PrintControlCard extends LitElement {
       if (this._model == "A1 MINI") {
         this._model = "A1MINI";
       }
-      this._model = "A1MINI";
       this._entityUX = this.EntityUX["SCREEN"]; //this.EntityUX[this._model];
       let entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
       this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
@@ -367,12 +379,8 @@ export class PrintControlCard extends LitElement {
   render() {
     console.log(this._model, "test2");
 
-    if (this._model == "A1MINI") {
-      return html`
-        <ha-card style="height: 100%;">
-          <a1-screen-card coverImage=${this._getCoverImageUrl()}></a1-screen-card>
-        </ha-card>
-      `;
+    if (this._model == "A1MINI" || this._style == "simple") {
+      return html` <a1-screen-card coverImage=${this._getCoverImageUrl()}></a1-screen-card> `;
     }
     if (false) {
       return html`
