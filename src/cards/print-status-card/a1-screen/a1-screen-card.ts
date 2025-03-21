@@ -14,6 +14,28 @@ export class A1ScreenCard extends LitElement {
 
   static styles = styles;
 
+  firstUpdated(changedProperties): void {
+    super.firstUpdated(changedProperties);
+    this.observeCardHeight();
+  }
+
+  observeCardHeight() {
+    const card = this.shadowRoot!.querySelector('ha-card')!;
+    const resizeObserver = new ResizeObserver(() => {
+      this.updateCondensedMode(card);
+    });
+    resizeObserver.observe(card);
+  }
+
+  updateCondensedMode(card) {
+    // Check if the height of the ha-card is below 2000px
+    if (card.offsetHeight < 250) {
+      card.classList.add('condensed-mode');
+    } else {
+      card.classList.remove('condensed-mode');
+    }
+  }
+  
   // Custom robot icon SVG
   private robotIcon() {
     return svg`
@@ -38,6 +60,7 @@ export class A1ScreenCard extends LitElement {
     console.log(this._entities);
     return html`
       <ha-card>
+        <div class="scale-container">
         <div class="screen-container">
           <div class="main-content">
             <div class="status-content">
@@ -45,7 +68,6 @@ export class A1ScreenCard extends LitElement {
                 <img src="${this.coverImage}" alt="Ice Bear" />
               </div>
               <div class="status-info">
-                <div class="status-title">Ice Bear on Ice</div>
                 <div class="status-time">~4h22m</div>
                 <div class="progress-container">
                   <div class="progress-bar">
@@ -73,36 +95,40 @@ export class A1ScreenCard extends LitElement {
               <div class="side-column">
                 <div class="temp-indicators">
                   <div class="temp-item">
-                    <span class="temp-value">
-                      <span><ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon></span>
-
-                      220°</span
-                    >
-                    <span class="temp-target">250°C</span>
-                  </div>
-                  <div class="temp-item">
-                    <span class="temp-value">
-                      <span><ha-icon icon="mdi:bed-queen"></ha-icon></span>
-                      40°</span
-                    >
-                    <span class="temp-target">20°C</span>
-                  </div>
-                  <div class="temp-item">
-                    <span class="temp-value">
-                      <span><ha-icon icon="mdi:speedometer"></ha-icon></span>
+                    <span class="icon-and-target">
+                      <span>
+                        <ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon>
+                        <span class="temp-target">250°</span>
+                      </span>
                     </span>
-                    <span class="temp-target">100%</span>
+                    <span class="temp-value">220°C</span>
                   </div>
                   <div class="temp-item">
-                    <span class="temp-value">
-                      <span><ha-icon icon="mdi:fan"></ha-icon></span>
+                    <span class="icon-and-target">
+                      <span>
+                        <ha-icon icon="mdi:bed-queen"></ha-icon>
+                        <span class="temp-target">20°</span>
+                      </span>
                     </span>
-                    <span class="temp-target">100%</span>
+                    <span class="temp-value">40°C</span>
+                  </div>
+                  <div class="temp-item">
+                    <span class="icon-and-value">
+                      <ha-icon icon="mdi:speedometer"></ha-icon>
+                      <span class="temp-value">100%</span>
+                    </span>
+                  </div>
+                  <div class="temp-item">
+                    <span class="icon-and-value">
+                      <ha-icon icon="mdi:fan"></ha-icon>
+                      <span class="temp-value">100%</span>
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
         </div>
       </ha-card>
     `;
