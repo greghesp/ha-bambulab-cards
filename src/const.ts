@@ -29,6 +29,7 @@ const NODERED_SENSORS_MAP: { [key: string]: string } = {
   task_name: "subtask",
   total_layer_count: "layer_num",
   enclosure_door: "door",
+  cover_image: "print_preview",
 };
 
 // Home Assistant entities key -> Node-RED entities value
