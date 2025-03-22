@@ -16,22 +16,39 @@ export const PRINTER_MODELS = [
 export const AMS_MODELS = ["AMS", "AMS Lite"];
 
 // Home Assistant entities key -> Node-RED entities value
-const NODEREDENTITIES_MAP: { [key: string]: string } = {
-  bed_target_temperature: "target_bed_temp",
+const NODERED_SENSORS_MAP: { [key: string]: string } = {
   aux_fan_speed: "big_fan1",
   chamber_fan_speed: "big_fan2",
-  chamber_temperature: "chamber_temp",
-  enclosure_door: "door_open",
-  nozzle_target_temperature: "target_nozzle_temp",
-  nozzle_temperature: "nozzle_temp",
-  pick_image: "cover_image",
-  remaining_time: "print_remaining_time",
-  set_bed_temp: "target_bed_temperature",
-  set_nozzle_temp: "target_nozzle_temperature",
+  target_bed_temperature: "bed_target_temperature",
+  cooling_fan_speed: "cooling_fan",
+  current_layer: "layer_num",
+  current_stage: "stage",
+  heatbreak_fan_speed: "heatbreak_fan",
+  nozzle_size: "nozzle_diameter",
+  speed_profile: "speed",
+  task_name: "subtask",
+  total_layer_count: "layer_num",
+  enclosure_door: "door",
 };
 
 // Home Assistant entities key -> Node-RED entities value
-const NODEREDSETTERS_MAP: { [key: string]: string } = {
-  target_bed_temperature: "set_bed_temp",
-  target_nozzle_temperature: "set_nozzle_temp",
+const NODERED_CONTROL_MAP: { [key: string]: string } = {
+  aux_fan: "big_fan1",
+  bed_target_temperature: "set_bed_temp",
+  chamber_fan: "big_fan2",
+  nozzle_target_temperature: "set_nozzle_temp",
+  printing_speed: "speed",
+  pause_printing: "pause_print",
+  resume_printing: "resume_print",
+  stop_printing: "stop_print",
+};
+
+// Home Assistant entities key ->  Node-RED AMS entities value
+const NODERED_AMS_MAP: { [key: string]: string } = {
+  ams_temperature: "temp",
+  humidity_index: "humidity_level",
+  tray_1: "tray_0",
+  tray_2: "tray_1",
+  tray_3: "tray_2",
+  tray_4: "tray_3",
 };
