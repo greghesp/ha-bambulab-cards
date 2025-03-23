@@ -235,7 +235,7 @@ export class PrintControlCard extends LitElement {
         grid_min_columns: 4,
       };
     }
-    return undefined;
+    return {};
   }
 
   setConfig(config) {
