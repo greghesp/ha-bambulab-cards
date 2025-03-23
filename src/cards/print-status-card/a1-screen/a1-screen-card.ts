@@ -14,61 +14,65 @@ export class A1ScreenCard extends LitElement {
 
   static styles = styles;
 
-  // firstUpdated(changedProperties): void {
-  //   super.firstUpdated(changedProperties);
-  //   this.observeCardHeight();
-  // }
+  firstUpdated(changedProperties): void {
+    super.firstUpdated(changedProperties);
+    this.observeCardHeight();
+  }
 
-  // observeCardHeight() {
-  //   const card = this.shadowRoot!.querySelector("ha-card")!;
-  //   const resizeObserver = new ResizeObserver(() => {
-  //     this.updateCondensedMode(card);
-  //   });
-  //   resizeObserver.observe(card);
-  // }
+  observeCardHeight() {
+    const card = this.shadowRoot!.querySelector("ha-card")!;
+    const resizeObserver = new ResizeObserver(() => {
+      this.updateCondensedMode(card);
+    });
+    resizeObserver.observe(card);
+  }
 
-  // updateCondensedMode(card) {
-  //   // Check if the height of the ha-card is below 2000px
-  //   if (card.offsetHeight < 250) {
-  //     card.classList.add("condensed-mode");
-  //   } else {
-  //     card.classList.remove("condensed-mode");
-  //   }
-  // }
+  updateCondensedMode(card) {
+    if (card.offsetWidth < 350) {
+      card.classList.add("condensed-mode");
+    } else {
+      console.log(card.offsetWidth);
+      card.classList.remove("condensed-mode");
+    }
+  }
 
   render() {
-    console.log("test");
     return html`
       <ha-card class="ha-bambulab-ssc">
         <div class="ha-bambulab-ssc-screen-container">
-          <div class="ha-bambulab-ssc-status-content">
-            <div class="ha-bambulab-ssc-status-icon">
-              <img src="${this.coverImage}" alt="Ice Bear" />
-            </div>
-            <div class="ha-bambulab-ssc-status-info">
-              <div class="ha-bambulab-ssc-status-time">~4h22m</div>
-              <div class="ha-bambulab-ssc-progress-container">
-                <div class="ha-bambulab-ssc-progress-bar">
-                  <div class="ha-bambulab-ssc-progress" style="width: 50%"></div>
+
+          <div class="ha-bambulab-ssc-status-and-controls">
+
+            <div class="ha-bambulab-ssc-status-content">
+              <div class="ha-bambulab-ssc-status-icon">
+                <img src="${this.coverImage}" alt="Ice Bear" />
+              </div>
+              <div class="ha-bambulab-ssc-status-info">
+                <div class="ha-bambulab-ssc-status-time">~4h22m</div>
+                <div class="ha-bambulab-ssc-progress-container">
+                  <div class="ha-bambulab-ssc-progress-bar">
+                    <div class="ha-bambulab-ssc-progress" style="width: 50%"></div>
+                  </div>
+                  <div class="ha-bambulab-ssc-progress-text">282/600</div>
                 </div>
-                <div class="ha-bambulab-ssc-progress-text">282/600</div>
               </div>
             </div>
-          </div>
 
-          <div class="ha-bambulab-ssc-control-buttons">
-            <button class="ha-bambulab-ssc-control-button ">
-              <ha-icon icon="mdi:debug-step-over"></ha-icon>
-            </button>
-            <button class="ha-bambulab-ssc-control-button">
-              <ha-icon icon="mdi:lightbulb"></ha-icon>
-            </button>
-            <button class="ha-bambulab-ssc-control-button">
-              <ha-icon icon="mdi:pause"></ha-icon>
-            </button>
-            <button class="ha-bambulab-ssc-control-button warning">
-              <ha-icon icon="mdi:stop"></ha-icon>
-            </button>
+            <div class="ha-bambulab-ssc-control-buttons">
+              <button class="ha-bambulab-ssc-control-button ">
+                <ha-icon icon="mdi:debug-step-over"></ha-icon>
+              </button>
+              <button class="ha-bambulab-ssc-control-button">
+                <ha-icon icon="mdi:lightbulb"></ha-icon>
+              </button>
+              <button class="ha-bambulab-ssc-control-button">
+                <ha-icon icon="mdi:pause"></ha-icon>
+              </button>
+              <button class="ha-bambulab-ssc-control-button warning">
+                <ha-icon icon="mdi:stop"></ha-icon>
+              </button>
+            </div>
+          
           </div>
 
           <div class="ha-bambulab-ssc-sensors">
@@ -84,7 +88,7 @@ export class A1ScreenCard extends LitElement {
             <div class="temp-item">
               <span class="icon-and-target">
                 <span>
-                  <ha-icon icon="mdi:bed-queen"></ha-icon>
+                  <ha-icon icon="mdi:radiator"></ha-icon>
                   <span class="temp-target">20°</span>
                 </span>
               </span>
@@ -103,6 +107,7 @@ export class A1ScreenCard extends LitElement {
               </span>
             </div>
           </div>
+
         </div>
       </ha-card>
     `;

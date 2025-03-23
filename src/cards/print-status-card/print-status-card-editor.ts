@@ -40,8 +40,8 @@ const NEW_SCHEMA = [
     selector: {
       select: {
         options: [
-          { label: "Simple", value: "simple" },
           { label: "Graphic", value: "graphic" },
+          { label: "Simple", value: "simple" },
         ],
       },
     },
