@@ -227,7 +227,6 @@ export class PrintControlCard extends LitElement {
   }
 
   public getLayoutOptions() {
-    console.log("style", this._style)
     if (this._style == "simple") {
       return {
         grid_rows: 5,
