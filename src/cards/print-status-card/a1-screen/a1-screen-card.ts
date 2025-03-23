@@ -31,7 +31,6 @@ export class A1ScreenCard extends LitElement {
     if (card.offsetWidth < 350) {
       card.classList.add("condensed-mode");
     } else {
-      console.log(card.offsetWidth);
       card.classList.remove("condensed-mode");
     }
   }
@@ -59,11 +58,11 @@ export class A1ScreenCard extends LitElement {
             </div>
 
             <div class="ha-bambulab-ssc-control-buttons">
-              <button class="ha-bambulab-ssc-control-button ">
-                <ha-icon icon="mdi:debug-step-over"></ha-icon>
-              </button>
               <button class="ha-bambulab-ssc-control-button">
                 <ha-icon icon="mdi:lightbulb"></ha-icon>
+              </button>
+              <button class="ha-bambulab-ssc-control-button ">
+                <ha-icon icon="mdi:debug-step-over"></ha-icon>
               </button>
               <button class="ha-bambulab-ssc-control-button">
                 <ha-icon icon="mdi:pause"></ha-icon>

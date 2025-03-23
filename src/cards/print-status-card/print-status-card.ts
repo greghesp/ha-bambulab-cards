@@ -151,7 +151,7 @@ export class PrintControlCard extends LitElement {
     chamber_temp:           { x: 86, y:32,  width:20,  height:0 },
     humidity:               { x: 86, y:42,  width:20,  height:0 },
     aux_fan:                { x: 12, y:60,  width:70,  height:0 },
-    cover_image:            { x: 50, y:60,  width:300, height:300 },
+    cover_image:            { x: 50, y:60,  width:50,  height:50 },
     bed_temp:               { x: 50, y:86,  width:25,  height:0, click_target:"target_bed_temperature" },
     stage:                  { x: 50, y:94,  width:300, height:0 },
   };
@@ -167,7 +167,7 @@ export class PrintControlCard extends LitElement {
     chamber_temp:           { x: 86, y:32,  width:20,  height:0 },
     humidity:               { x: 86, y:42,  width:20,  height:0 },
     aux_fan:                { x: 13, y:60,  width:70,  height:0 },
-    cover_image:            { x: 50, y:60,  width:300, height:300 },
+    cover_image:            { x: 50, y:60,  width:50,  height:50 },
     bed_temp:               { x: 50, y:88,  width:25,  height:0, click_target:"target_bed_temperature" },
     stage:                  { x: 50, y:95,  width:300, height:0 },
   };
@@ -183,7 +183,7 @@ export class PrintControlCard extends LitElement {
     chamber_temp:           { x: 86, y:33,   width:20,  height:0 },
     humidity:               { x: 86, y:42,   width:20,  height:0 },
     aux_fan:                { x: 13, y:60,   width:70,  height:0 },
-    cover_image:            { x: 50, y:60,   width:300, height:300 },
+    cover_image:            { x: 50, y:60,   width:50,  height:50 },
     bed_temp:               { x: 50, y:88,   width:25,  height:0, click_target:"target_bed_temperature" },
     stage:                  { x: 50, y:95,   width:300, height:0 },
     door_open:              { x: 86, y:60,   width:20, height:0 },
@@ -236,12 +236,7 @@ export class PrintControlCard extends LitElement {
         grid_min_columns: 4,
       };
     }
-    return {
-      grid_rows: 5,
-      grid_min_rows: 5,
-      grid_columns: 4,
-      grid_min_columns: 4,
-    };
+    return undefined;
   }
 
   setConfig(config) {
@@ -388,7 +383,7 @@ export class PrintControlCard extends LitElement {
   }
 
   private _addElement(key) {
-    const background = this.shadowRoot?.getElementById("control-container") as HTMLElement;
+    const background = this.shadowRoot?.getElementById("printer") as HTMLElement;
     if (!background) {
       return html``;
     }
@@ -493,7 +488,7 @@ export class PrintControlCard extends LitElement {
           }
 
         case "cover_image":
-          style = `left:${left}px; top:${top}px; width:auto; height:${e.height}px;`;
+          style = `left:${left}px; top:${top}px; width:auto; height:${e.height}%;`;
           if (
             !this._entityList[key] ||
             helpers.isEntityUnavailable(this._hass, this._entityList[key])
