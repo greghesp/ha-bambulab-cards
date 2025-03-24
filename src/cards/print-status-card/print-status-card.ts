@@ -2,11 +2,13 @@ import * as helpers from "../../utils/helpers";
 
 import { customElement, state, property, query } from "lit/decorators.js";
 import { html, LitElement, nothing, PropertyValues } from "lit";
+import { provide } from "@lit/context";
 import styles from "./card.styles";
 
 import { INTEGRATION_DOMAIN, MANUFACTURER, PRINTER_MODELS } from "../../const";
 import { PRINT_STATUS_CARD_EDITOR_NAME, PRINT_STATUS_CARD_NAME } from "./const";
 import { registerCustomCard } from "../../utils/custom-cards";
+import { entitiesContext, hassContext } from "../../utils/context";
 
 import A1_ON_IMAGE from "../../images/A1_on.png";
 import A1_OFF_IMAGE from "../../images/A1_off.png";
@@ -67,6 +69,7 @@ const ENTITIES: string[] = [
   "nozzle_temp",
   "power",
   "print_progress",
+  "printing_speed",
   "remaining_time",
   "speed_profile",
   "target_bed_temp",
@@ -95,8 +98,9 @@ const NODEREDENTITIES: { [key: string]: string } = {
 export class PrintControlCard extends LitElement {
   static styles = styles;
 
-  // private property
-  _hass;
+  @provide({ context: hassContext })
+  @state()
+  private _hass?;
 
   @state() private _states;
   @state() private _device_id: any;
@@ -105,7 +109,9 @@ export class PrintControlCard extends LitElement {
   // Home assistant state references that are only used in changedProperties
   private _coverImageState: any;
 
+  @provide({ context: entitiesContext })
   private _entityList: { [key: string]: helpers.Entity };
+
   private _entityUX: { [key: string]: EntityUX } | undefined;
   private _model: string;
   private _temperature: string | undefined;
