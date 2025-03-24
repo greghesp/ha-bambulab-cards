@@ -30,6 +30,7 @@ export default css`
   display: flex;
   flex: 1;
   flex-direction: row;
+  gap: 12px;
 }
 
 .condensed-mode .ha-bambulab-ssc-status-and-controls {
