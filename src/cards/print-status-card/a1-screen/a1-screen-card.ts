@@ -45,7 +45,6 @@ export class A1ScreenCard extends LitElement {
 
   #getPrintSpeed() {
     const speed = this._hass.states[this._entityList['speed_profile'].entity_id];
-    console.log(speed);
     return speed.attributes['modifier'];
   }
 
