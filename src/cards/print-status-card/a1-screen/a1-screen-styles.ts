@@ -33,27 +33,34 @@ export default css`
     gap: 12px;
   }
 
+  .condensed-mode .ha-bambulab-ssc-screen-container {
+    flex-direction: row;
+  }
+
   .condensed-mode .ha-bambulab-ssc-status-and-controls {
-    display: flex;
-    flex: 1;
     flex-direction: column;
-    align-items: stretch;
+    gap: 12px;
+    min-height: 0;
+  }
+
+  .condensed-mode .ha-bambulab-ssc-status-content {
+    flex: 0 1 auto;
+    min-height: 0;
   }
 
   .condensed-mode .ha-bambulab-ssc-control-buttons {
     flex-direction: row;
     max-width: none;
     width: 100%;
-    height: auto;
-    align-self: flex-end;
-    justify-content: flex-end;
+    height: 48px;
+    justify-content: space-between;
   }
 
   .ha-bambulab-ssc-status-content {
     display: flex;
     flex: 1;
     flex-direction: column;
-    min-height: 24;
+    min-height: 24px;
   }
 
   .ha-bambulab-ssc-status-icon {
@@ -131,10 +138,7 @@ export default css`
     justify-content: center;
     transition: background-color 0.2s ease;
     flex-grow: 1;
-  }
-
-  .condensed-mode .ha-bambulab-ssc-control-button {
-    padding: 4px;
+    min-height: 40px;
   }
 
   .ha-bambulab-ssc-control-button:hover {
