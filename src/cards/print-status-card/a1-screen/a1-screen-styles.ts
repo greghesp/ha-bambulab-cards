@@ -194,8 +194,8 @@ export default css`
     margin-right: 4px;
   }
 
-  // .icon-and-value .temp-value {
-  //   font-size: 1em;
-  //   color: var(--text-primary);
-  // }
+  .icon-and-value .temp-value {
+    font-size: 1em;
+    color: var(--text-primary);
+  }
 `;
