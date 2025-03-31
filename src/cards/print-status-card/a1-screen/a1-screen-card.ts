@@ -97,35 +97,27 @@ export class A1ScreenCard extends LitElement {
           </div>
 
           <div class="ha-bambulab-ssc-sensors">
-            <div class="temp-item" @click="${() => this.#clickEntity('target_nozzle_temperature')}">
+            <div class="sensor" @click="${() => this.#clickEntity('target_nozzle_temperature')}">
               <span class="icon-and-target">
-                <span>
-                  <ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon>
-                  <span class="temp-target">${this.#formattedState('target_nozzle_temp')}</span>
-                </span>
+                <ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon>
+                <span class="sensor-target-value">${this.#formattedState('target_nozzle_temp')}</span>
               </span>
-              <span class="temp-value">${this.#formattedState('nozzle_temp')}</span>
+              <span class="sensor-value">${this.#formattedState('nozzle_temp')}</span>
             </div>
-            <div class="temp-item" @click="${() => this.#clickEntity('target_bed_temperature')}">
+            <div class="sensor" @click="${() => this.#clickEntity('target_bed_temperature')}">
               <span class="icon-and-target">
-                <span>
-                  <ha-icon icon="mdi:radiator"></ha-icon>
-                  <span class="temp-target">${this.#formattedState('target_bed_temp')}</span>
-                </span>
+                <ha-icon icon="mdi:radiator"></ha-icon>
+                <span class="sensor-target-value">${this.#formattedState('target_bed_temp')}</span>
               </span>
-              <span class="temp-value">${this.#formattedState('bed_temp')}</span>
+              <span class="sensor-value">${this.#formattedState('bed_temp')}</span>
             </div>
-            <div class="temp-item" @click="${() => this.#clickEntity('printing_speed')}">
-              <span class="icon-and-value">
-                <ha-icon icon="mdi:speedometer"></ha-icon>
-                <span class="temp-value">${this.#getPrintSpeed()}%</span>
-              </span>
+            <div class="sensor" @click="${() => this.#clickEntity('printing_speed')}">
+              <ha-icon icon="mdi:speedometer"></ha-icon>
+              <span class="sensor-value">${this.#getPrintSpeed()}%</span>
             </div>
-            <div class="temp-item" @click="${() => this.#clickEntity('aux_fan')}">
-              <span class="icon-and-value">
-                <ha-icon icon="mdi:fan"></ha-icon>
-                <span class="temp-value">${this.#fanPercentage('aux_fan')}%</span>
-              </span>
+            <div class="sensor" @click="${() => this.#clickEntity('aux_fan')}">
+              <ha-icon icon="mdi:fan"></ha-icon>
+              <span class="sensor-value">${this.#fanPercentage('aux_fan')}%</span>
             </div>
           </div>
 
