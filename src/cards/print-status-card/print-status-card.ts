@@ -201,23 +201,6 @@ export class PrintControlCard extends LitElement {
     door_open: { x: 86, y: 60, width: 20, height: 0 },
   };
 
-  private PrinterEntites: string[] = [
-    "power",
-    "print_progress",
-    "remaining_time",
-    "chamber_light",
-    "nozzle_temp",
-    "chamber_temp",
-    "humidity",
-    "aux_fan",
-    "cover_image",
-    "bed_temp",
-    "stage",
-    "door_open",
-    "current_layer",
-    "total_layer_count",
-  ];
-
   private EntityUX: { [key: string]: any } = {
     A1: this.A1EntityUX,
     A1MINI: this.A1MiniEntityUX,
