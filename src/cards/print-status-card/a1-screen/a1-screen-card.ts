@@ -136,7 +136,6 @@ export class A1ScreenCard extends LitElement {
               >
                 <ha-icon icon="mdi:lightbulb"></ha-icon>
               </button>
-
               <button class="ha-bambulab-ssc-control-button ">
                 <ha-icon icon="mdi:debug-step-over"></ha-icon>
               </button>
