@@ -202,3 +202,12 @@ export function getEntityAttribute(hass, entity_id, attribute) {
   const entity = hass.states[entity_id];
   return entity.attributes[attribute];
 }
+
+export function toggleLight(hass, entity) {
+  const data = {
+    entity_id: entity.entity_id,
+  };
+  const lightOn = getEntityState(hass, entity) == "on";
+  const service = lightOn ? "turn_off" : "turn_on";
+  hass.callService("light", service, data);
+}

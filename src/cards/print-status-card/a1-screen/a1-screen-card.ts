@@ -42,6 +42,18 @@ export class A1ScreenCard extends LitElement {
     helpers.showEntityMoreInfo(this, this._entityList[key]);
   }
 
+  #state(key: string) {
+    return helpers.getEntityState(this._hass, this._entityList[key]);
+  }
+
+  #formattedState(key: string) {
+    return helpers.getFormattedEntityState(this._hass, this._entityList[key].entity_id);
+  }
+
+  #attribute(key: string, attribute: string) {
+    return helpers.getEntityAttribute(this._hass, this._entityList[key].entity_id, attribute);
+  }
+
   #calculateProgress() {
     const currentLayer = helpers.getEntityState(this._hass, this._entityList["current_layer"]);
     const totalLayers = helpers.getEntityState(this._hass, this._entityList["total_layers"]);
@@ -50,7 +62,7 @@ export class A1ScreenCard extends LitElement {
   }
 
   render() {
-    console.log("a1 screen entities", this._entityList);
+    console.log(this.#state("chamber_light"));
     return html`
       <ha-card class="ha-bambulab-ssc">
         <div class="ha-bambulab-ssc-screen-container">
@@ -61,8 +73,7 @@ export class A1ScreenCard extends LitElement {
               </div>
               <div class="ha-bambulab-ssc-status-info">
                 <div class="ha-bambulab-ssc-status-time">
-                  ~
-                  ${helpers.getLocalizedEntityState(this._hass, this._entityList["remaining_time"])}
+                  ~ ${this.#formattedState("remaining_time")}
                 </div>
                 <div class="ha-bambulab-ssc-progress-container">
                   <div class="ha-bambulab-ssc-progress-bar">
@@ -72,16 +83,21 @@ export class A1ScreenCard extends LitElement {
                     ></div>
                   </div>
                   <div class="ha-bambulab-ssc-progress-text">
-                    ${helpers.getEntityState(this._hass, this._entityList["current_layer"])}/
-                    ${helpers.getEntityState(this._hass, this._entityList["total_layers"])}
+                    ${this.#formattedState("current_layer")}/${this.#formattedState("total_layers")}
                   </div>
                 </div>
               </div>
             </div>
 
             <div class="ha-bambulab-ssc-control-buttons">
-              <button class="ha-bambulab-ssc-control-button">
-                <ha-icon icon="mdi:lightbulb"></ha-icon>
+              <button
+                class="ha-bambulab-ssc-control-button"
+                @click="${() => helpers.toggleLight(this._hass, this._entityList["chamber_light"])}"
+              >
+                <ha-icon
+                  icon="mdi:lightbulb"
+                  style="color: ${this.#state("chamber_light") == "on" ? "#ffe500" : "white"}"
+                ></ha-icon>
               </button>
               <button class="ha-bambulab-ssc-control-button ">
                 <ha-icon icon="mdi:debug-step-over"></ha-icon>
@@ -100,55 +116,25 @@ export class A1ScreenCard extends LitElement {
               <span class="icon-and-target">
                 <ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon>
                 <span class="sensor-target-value">
-                  ${helpers.getFormattedEntityState(
-                    this._hass,
-                    this._entityList["target_nozzle_temp"].entity_id
-                  )}</span
+                  ${this.#formattedState("target_nozzle_temp")}</span
                 >
               </span>
-              <span class="sensor-value">
-                ${helpers.getFormattedEntityState(
-                  this._hass,
-                  this._entityList["nozzle_temp"].entity_id
-                )}</span
-              >
+              <span class="sensor-value"> ${this.#formattedState("nozzle_temp")} </span>
             </div>
             <div class="sensor" @click="${() => this.#clickEntity("target_bed_temperature")}">
               <span class="icon-and-target">
                 <ha-icon icon="mdi:radiator"></ha-icon>
-                <span class="sensor-target-value"
-                  >${helpers.getFormattedEntityState(
-                    this._hass,
-                    this._entityList["target_bed_temp"].entity_id
-                  )}</span
-                >
+                <span class="sensor-target-value">${this.#formattedState("target_bed_temp")}</span>
               </span>
-              <span class="sensor-value"
-                >${helpers.getFormattedEntityState(
-                  this._hass,
-                  this._entityList["bed_temp"].entity_id
-                )}</span
-              >
+              <span class="sensor-value">${this.#formattedState("bed_temp")}</span>
             </div>
             <div class="sensor" @click="${() => this.#clickEntity("printing_speed")}">
               <ha-icon icon="mdi:speedometer"></ha-icon>
-              <span class="sensor-value"
-                >${helpers.getEntityAttribute(
-                  this._hass,
-                  this._entityList["speed_profile"].entity_id,
-                  "modifier"
-                )}%</span
-              >
+              <span class="sensor-value">${this.#attribute("speed_profile", "modifier")}%</span>
             </div>
             <div class="sensor" @click="${() => this.#clickEntity("aux_fan")}">
               <ha-icon icon="mdi:fan"></ha-icon>
-              <span class="sensor-value"
-                >${helpers.getEntityAttribute(
-                  this._hass,
-                  this._entityList["aux_fan"].entity_id,
-                  "percentage"
-                )}%</span
-              >
+              <span class="sensor-value">${this.#attribute("aux_fan", "percentage")}%</span>
             </div>
           </div>
         </div>
