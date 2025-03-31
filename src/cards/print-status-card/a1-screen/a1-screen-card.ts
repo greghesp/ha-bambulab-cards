@@ -42,6 +42,13 @@ export class A1ScreenCard extends LitElement {
     helpers.showEntityMoreInfo(this, this._entityList[key]);
   }
 
+  #calculateProgress() {
+    const currentLayer = helpers.getEntityState(this._hass, this._entityList["current_layer"]);
+    const totalLayers = helpers.getEntityState(this._hass, this._entityList["total_layers"]);
+    const percentage = Math.round((currentLayer / totalLayers) * 100);
+    return `${percentage}%`;
+  }
+
   render() {
     console.log("a1 screen entities", this._entityList);
     return html`
@@ -53,12 +60,21 @@ export class A1ScreenCard extends LitElement {
                 <img src="${this.coverImage}" alt="Cover Image" />
               </div>
               <div class="ha-bambulab-ssc-status-info">
-                <div class="ha-bambulab-ssc-status-time">~4h22m</div>
+                <div class="ha-bambulab-ssc-status-time">
+                  ~
+                  ${helpers.getLocalizedEntityState(this._hass, this._entityList["remaining_time"])}
+                </div>
                 <div class="ha-bambulab-ssc-progress-container">
                   <div class="ha-bambulab-ssc-progress-bar">
-                    <div class="ha-bambulab-ssc-progress" style="width: 50%"></div>
+                    <div
+                      class="ha-bambulab-ssc-progress"
+                      style="width: ${this.#calculateProgress()}"
+                    ></div>
                   </div>
-                  <div class="ha-bambulab-ssc-progress-text">282/600</div>
+                  <div class="ha-bambulab-ssc-progress-text">
+                    ${helpers.getEntityState(this._hass, this._entityList["current_layer"])}/
+                    ${helpers.getEntityState(this._hass, this._entityList["total_layers"])}
+                  </div>
                 </div>
               </div>
             </div>

@@ -63,6 +63,7 @@ const ENTITIES: string[] = [
   "chamber_light",
   "chamber_fan",
   "chamber_temp",
+  "current_layer",
   "cover_image",
   "door_open",
   "humidity",
@@ -76,6 +77,7 @@ const ENTITIES: string[] = [
   "target_bed_temperature",
   "target_nozzle_temp",
   "target_nozzle_temperature",
+  "total_layers",
   "stage",
 ];
 
@@ -125,75 +127,92 @@ export class PrintControlCard extends LitElement {
 
   private A1EntityUX: { [key: string]: EntityUX | undefined } = {
     //hms:                    { x: 90, y:10, width:20,  height:0 },
-    power:                  { x: 95, y:9,    width:20,  height:0 },
-    chamber_light:          { x: 46, y:30,   width:20,  height:0 },
-    nozzle_temp:            { x: 46, y:42,   width:25,  height:0, click_target:"target_nozzle_temperature" },
-    cover_image:            { x: 46, y:60,   width:250, height:250 },
-    bed_temp:               { x: 46, y:81,   width:25,  height:0, click_target:"target_bed_temperature" },
-    print_progress:         { x: 85, y:81,   width:25,  height:0 },
-    remaining_time:         { x: 85, y:85,   width:100, height:0 },
-    stage:                  { x: 46, y:92.5, width:300, height:0 },
+    power: { x: 95, y: 9, width: 20, height: 0 },
+    chamber_light: { x: 46, y: 30, width: 20, height: 0 },
+    nozzle_temp: { x: 46, y: 42, width: 25, height: 0, click_target: "target_nozzle_temperature" },
+    cover_image: { x: 46, y: 60, width: 250, height: 250 },
+    bed_temp: { x: 46, y: 81, width: 25, height: 0, click_target: "target_bed_temperature" },
+    print_progress: { x: 85, y: 81, width: 25, height: 0 },
+    remaining_time: { x: 85, y: 85, width: 100, height: 0 },
+    stage: { x: 46, y: 92.5, width: 300, height: 0 },
   };
 
   private A1MiniEntityUX: { [key: string]: EntityUX | undefined } = {
     //hms:                    { x: 90, y:10, width:20,  height:0 },
-    power:                  { x: 95, y:9,  width:20,  height:0 },
-    chamber_light:          { x: 88, y:29, width:20,  height:0 },
-    nozzle_temp:            { x: 41, y:38, width:25,  height:0, click_target:"target_nozzle_temperature" },
-    cover_image:            { x: 41, y:59, width:250, height:250 },
-    bed_temp:               { x: 41, y:80, width:25,  height:0, click_target:"target_bed_temperature" },
-    print_progress:         { x: 74, y:89, width:25,  height:0 }, 
-    remaining_time:         { x: 74, y:93, width:100, height:0 },
-    stage:                  { x: 41, y:93, width:300, height:0 },
+    power: { x: 95, y: 9, width: 20, height: 0 },
+    chamber_light: { x: 88, y: 29, width: 20, height: 0 },
+    nozzle_temp: { x: 41, y: 38, width: 25, height: 0, click_target: "target_nozzle_temperature" },
+    cover_image: { x: 41, y: 59, width: 250, height: 250 },
+    bed_temp: { x: 41, y: 80, width: 25, height: 0, click_target: "target_bed_temperature" },
+    print_progress: { x: 74, y: 89, width: 25, height: 0 },
+    remaining_time: { x: 74, y: 93, width: 100, height: 0 },
+    stage: { x: 41, y: 93, width: 300, height: 0 },
   };
 
   private P1PEntityUX: { [key: string]: EntityUX | undefined } = {
-    power:                  { x: 94, y:5,   width:20,  height:0 },
-    print_progress:         { x: 23, y:3.5, width:25,  height:0 },
-    remaining_time:         { x: 59, y:4.5, width:100, height:0 },
+    power: { x: 94, y: 5, width: 20, height: 0 },
+    print_progress: { x: 23, y: 3.5, width: 25, height: 0 },
+    remaining_time: { x: 59, y: 4.5, width: 100, height: 0 },
     //hms:                    { x: 90,   y:10,  width:20,  height:0 },
-    chamber_light:          { x: 12, y:19,  width:20,  height:0 },
-    nozzle_temp:            { x: 50, y:33,  width:25,  height:0, click_target:"target_nozzle_temperature" },
-    chamber_temp:           { x: 86, y:32,  width:20,  height:0 },
-    humidity:               { x: 86, y:42,  width:20,  height:0 },
-    aux_fan:                { x: 12, y:60,  width:70,  height:0 },
-    cover_image:            { x: 50, y:60,  width:50,  height:50 },
-    bed_temp:               { x: 50, y:86,  width:25,  height:0, click_target:"target_bed_temperature" },
-    stage:                  { x: 50, y:94,  width:300, height:0 },
+    chamber_light: { x: 12, y: 19, width: 20, height: 0 },
+    nozzle_temp: { x: 50, y: 33, width: 25, height: 0, click_target: "target_nozzle_temperature" },
+    chamber_temp: { x: 86, y: 32, width: 20, height: 0 },
+    humidity: { x: 86, y: 42, width: 20, height: 0 },
+    aux_fan: { x: 12, y: 60, width: 70, height: 0 },
+    cover_image: { x: 50, y: 60, width: 50, height: 50 },
+    bed_temp: { x: 50, y: 86, width: 25, height: 0, click_target: "target_bed_temperature" },
+    stage: { x: 50, y: 94, width: 300, height: 0 },
   };
 
   private P1SEntityUX: { [key: string]: EntityUX | undefined } = {
     //hms:                    { x: 90, y:10,  width:20,  height:0 },
-    power:                  { x: 95, y:5.5, width:20,  height:0 },
-    print_progress:         { x: 23, y:4,   width:25,  height:0 },
-    remaining_time:         { x: 59, y:5,   width:100, height:0 },
-    chamber_light:          { x: 13, y:21,  width:20,  height:0 },
-    chamber_fan:            { x: 86, y:21,  width:70,  height:0 },
-    nozzle_temp:            { x: 50, y:33,  width:25,  height:0, click_target:"target_nozzle_temperature" },
-    chamber_temp:           { x: 86, y:32,  width:20,  height:0 },
-    humidity:               { x: 86, y:42,  width:20,  height:0 },
-    aux_fan:                { x: 13, y:60,  width:70,  height:0 },
-    cover_image:            { x: 50, y:60,  width:50,  height:50 },
-    bed_temp:               { x: 50, y:88,  width:25,  height:0, click_target:"target_bed_temperature" },
-    stage:                  { x: 50, y:95,  width:300, height:0 },
+    power: { x: 95, y: 5.5, width: 20, height: 0 },
+    print_progress: { x: 23, y: 4, width: 25, height: 0 },
+    remaining_time: { x: 59, y: 5, width: 100, height: 0 },
+    chamber_light: { x: 13, y: 21, width: 20, height: 0 },
+    chamber_fan: { x: 86, y: 21, width: 70, height: 0 },
+    nozzle_temp: { x: 50, y: 33, width: 25, height: 0, click_target: "target_nozzle_temperature" },
+    chamber_temp: { x: 86, y: 32, width: 20, height: 0 },
+    humidity: { x: 86, y: 42, width: 20, height: 0 },
+    aux_fan: { x: 13, y: 60, width: 70, height: 0 },
+    cover_image: { x: 50, y: 60, width: 50, height: 50 },
+    bed_temp: { x: 50, y: 88, width: 25, height: 0, click_target: "target_bed_temperature" },
+    stage: { x: 50, y: 95, width: 300, height: 0 },
   };
 
   private X1CEntityUX: { [key: string]: EntityUX | undefined } = {
     //hms:                    { x: 90, y:10, width:20,  height:0 },
-    power:                  { x: 95.5, y:10, width:20,  height:0 },
-    print_progress:         { x: 29, y:6,    width:25,  height:0 },
-    remaining_time:         { x: 29, y:11,   width:100, height:0 },
-    chamber_light:          { x: 13, y:24,   width:20,  height:0 },
-    chamber_fan:            { x: 86, y:24,   width:70,  height:0 },
-    nozzle_temp:            { x: 50, y:31,   width:25,  height:0, click_target:"target_nozzle_temperature" },
-    chamber_temp:           { x: 86, y:33,   width:20,  height:0 },
-    humidity:               { x: 86, y:42,   width:20,  height:0 },
-    aux_fan:                { x: 13, y:60,   width:70,  height:0 },
-    cover_image:            { x: 50, y:60,   width:50,  height:50 },
-    bed_temp:               { x: 50, y:88,   width:25,  height:0, click_target:"target_bed_temperature" },
-    stage:                  { x: 50, y:95,   width:300, height:0 },
-    door_open:              { x: 86, y:60,   width:20, height:0 },
+    power: { x: 95.5, y: 10, width: 20, height: 0 },
+    print_progress: { x: 29, y: 6, width: 25, height: 0 },
+    remaining_time: { x: 29, y: 11, width: 100, height: 0 },
+    chamber_light: { x: 13, y: 24, width: 20, height: 0 },
+    chamber_fan: { x: 86, y: 24, width: 70, height: 0 },
+    nozzle_temp: { x: 50, y: 31, width: 25, height: 0, click_target: "target_nozzle_temperature" },
+    chamber_temp: { x: 86, y: 33, width: 20, height: 0 },
+    humidity: { x: 86, y: 42, width: 20, height: 0 },
+    aux_fan: { x: 13, y: 60, width: 70, height: 0 },
+    cover_image: { x: 50, y: 60, width: 50, height: 50 },
+    bed_temp: { x: 50, y: 88, width: 25, height: 0, click_target: "target_bed_temperature" },
+    stage: { x: 50, y: 95, width: 300, height: 0 },
+    door_open: { x: 86, y: 60, width: 20, height: 0 },
   };
+
+  private PrinterEntites: string[] = [
+    "power",
+    "print_progress",
+    "remaining_time",
+    "chamber_light",
+    "nozzle_temp",
+    "chamber_temp",
+    "humidity",
+    "aux_fan",
+    "cover_image",
+    "bed_temp",
+    "stage",
+    "door_open",
+    "current_layer",
+    "total_layer_count",
+  ];
 
   private EntityUX: { [key: string]: any } = {
     A1: this.A1EntityUX,
@@ -297,8 +316,12 @@ export class PrintControlCard extends LitElement {
         this._model = "A1MINI";
       }
       this._entityUX = this.EntityUX[this._model];
+      console.log("this._model", this._entityUX);
+
       let entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
+      console.log("entityList", entityList);
       this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
+      console.log("entityList", this._entityList);
 
       // Override the entity list with the Node-RED entities if configured.
       for (const e in NODEREDENTITIES) {
