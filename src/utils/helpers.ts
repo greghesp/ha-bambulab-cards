@@ -1,3 +1,12 @@
+export interface Entity {
+  entity_id: string;
+  device_id: string;
+  labels: any[];
+  translation_key: string;
+  platform: string;
+  name: string;
+}
+
 export function getContrastingTextColor(hexColor) {
   // Remove the '#' if present
   hexColor = hexColor.replace("#", "");
@@ -39,15 +48,6 @@ export async function asyncGetEntity(hass, entity_id) {
   });
 }
 
-export interface Entity {
-  entity_id: string;
-  device_id: string;
-  labels: any[];
-  translation_key: string;
-  platform: string;
-  name: string;
-}
-
 export function getBambuDeviceEntities(
   hass,
   device_id,
@@ -59,14 +59,13 @@ export function getBambuDeviceEntities(
     const value = hass.entities[k];
     if (value.device_id === device_id) {
       for (const key of entities) {
-        if (value.platform == 'bambu_lab') {
+        if (value.platform == "bambu_lab") {
           if (key == value.translation_key) {
             result[key] = value;
           }
-        }
-        else if (value.platform == 'mqtt') {
+        } else if (value.platform == "mqtt") {
           let regex;
-          if (key.startsWith('^')) {
+          if (key.startsWith("^")) {
             regex = new RegExp(key);
           } else {
             regex = new RegExp(`.*${key}$`);
@@ -99,6 +98,11 @@ export function getLocalizedEntityState(hass, entity: Entity) {
   }
 }
 
+export function getFormattedEntityState(hass, entity_id) {
+  let formattedString = hass.formatEntityState(hass.states[entity_id]);
+  return formattedString.replace(/\s+/g, ""); // Strip space before temperature symbol to save space.
+}
+
 export function getEntityState(hass, entity: Entity) {
   const entityId = entity.entity_id;
   const entityState = hass.states[entityId]?.state;
@@ -122,24 +126,36 @@ export function showEntityMoreInfo(obj: HTMLElement, entity: Entity) {
 }
 
 export async function getFilamentData(hass, target_id) {
-  return hass.callService("bambu_lab", "get_filament_data", {
-    entity_id: [ target_id ]
-  },
-  undefined,
-  true,
-  true);
+  return hass.callService(
+    "bambu_lab",
+    "get_filament_data",
+    {
+      entity_id: [target_id],
+    },
+    undefined,
+    true,
+    true
+  );
 }
 
-export async function setFilament(hass, target_id, tray_info_idx, tray_type, color, min_temp, max_temp) {
+export async function setFilament(
+  hass,
+  target_id,
+  tray_info_idx,
+  tray_type,
+  color,
+  min_temp,
+  max_temp
+) {
   //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
   hass
     .callService("bambu_lab", "set_filament", {
-       entity_id: [ target_id ],
-       tray_info_idx: tray_info_idx,
-       tray_type: tray_type,
-       tray_color: color.substring(1),
-       nozzle_temp_min: Number(min_temp),
-       nozzle_temp_max: Number(max_temp),
+      entity_id: [target_id],
+      tray_info_idx: tray_info_idx,
+      tray_type: tray_type,
+      tray_color: color.substring(1),
+      nozzle_temp_min: Number(min_temp),
+      nozzle_temp_max: Number(max_temp),
     })
     .then(() => {
       console.log("Set filament service called successfully");
@@ -154,7 +170,7 @@ export async function setFilament(hass, target_id, tray_info_idx, tray_type, col
 export async function loadFilament(hass, target_id) {
   //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
   hass
-    .callService("bambu_lab", "load_filament", { entity_id: [ target_id ] })
+    .callService("bambu_lab", "load_filament", { entity_id: [target_id] })
     .then(() => {
       console.log("Load filament service called successfully");
       return true;
@@ -171,7 +187,7 @@ export async function unloadFilament(hass, target_id) {
   const parentDeviceId = hass.devices[deviceId].via_device_id;
 
   hass
-    .callService("bambu_lab", "unload_filament", { device_id: [ parentDeviceId ] })
+    .callService("bambu_lab", "unload_filament", { device_id: [parentDeviceId] })
     .then(() => {
       console.log("Unload filament service called successfully");
       return true;
@@ -180,4 +196,9 @@ export async function unloadFilament(hass, target_id) {
       console.error("Error calling unload filament service:", error);
       return false;
     });
+}
+
+export function getEntityAttribute(hass, entity_id, attribute) {
+  const entity = hass.states[entity_id];
+  return entity.attributes[attribute];
 }

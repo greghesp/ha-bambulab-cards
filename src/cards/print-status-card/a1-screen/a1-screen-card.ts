@@ -38,28 +38,12 @@ export class A1ScreenCard extends LitElement {
     }
   }
 
-  #fanPercentage(key: string) {
-    const fan = this._hass.states[this._entityList[key].entity_id];
-    return fan.attributes["percentage"];
-  }
-
-  #getPrintSpeed() {
-    const speed = this._hass.states[this._entityList["speed_profile"].entity_id];
-    return speed.attributes["modifier"];
-  }
-
-  #formattedState(key: string) {
-    let formattedString = this._hass.formatEntityState(
-      this._hass.states[this._entityList[key].entity_id]
-    );
-    return formattedString.replace(/\s+/g, ""); // Strip space before temperature symbol to save space.
-  }
-
   #clickEntity(key: string) {
     helpers.showEntityMoreInfo(this, this._entityList[key]);
   }
 
   render() {
+    console.log("a1 screen entities", this._entityList);
     return html`
       <ha-card class="ha-bambulab-ssc">
         <div class="ha-bambulab-ssc-screen-container">
@@ -99,26 +83,56 @@ export class A1ScreenCard extends LitElement {
             <div class="sensor" @click="${() => this.#clickEntity("target_nozzle_temperature")}">
               <span class="icon-and-target">
                 <ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon>
-                <span class="sensor-target-value"
-                  >${this.#formattedState("target_nozzle_temp")}</span
+                <span class="sensor-target-value">
+                  ${helpers.getFormattedEntityState(
+                    this._hass,
+                    this._entityList["target_nozzle_temp"].entity_id
+                  )}</span
                 >
               </span>
-              <span class="sensor-value">${this.#formattedState("nozzle_temp")}</span>
+              <span class="sensor-value">
+                ${helpers.getFormattedEntityState(
+                  this._hass,
+                  this._entityList["nozzle_temp"].entity_id
+                )}</span
+              >
             </div>
             <div class="sensor" @click="${() => this.#clickEntity("target_bed_temperature")}">
               <span class="icon-and-target">
                 <ha-icon icon="mdi:radiator"></ha-icon>
-                <span class="sensor-target-value">${this.#formattedState("target_bed_temp")}</span>
+                <span class="sensor-target-value"
+                  >${helpers.getFormattedEntityState(
+                    this._hass,
+                    this._entityList["target_bed_temp"].entity_id
+                  )}</span
+                >
               </span>
-              <span class="sensor-value">${this.#formattedState("bed_temp")}</span>
+              <span class="sensor-value"
+                >${helpers.getFormattedEntityState(
+                  this._hass,
+                  this._entityList["bed_temp"].entity_id
+                )}</span
+              >
             </div>
             <div class="sensor" @click="${() => this.#clickEntity("printing_speed")}">
               <ha-icon icon="mdi:speedometer"></ha-icon>
-              <span class="sensor-value">${this.#getPrintSpeed()}%</span>
+              <span class="sensor-value"
+                >${helpers.getEntityAttribute(
+                  this._hass,
+                  this._entityList["speed_profile"].entity_id,
+                  "modifier"
+                )}%</span
+              >
             </div>
             <div class="sensor" @click="${() => this.#clickEntity("aux_fan")}">
               <ha-icon icon="mdi:fan"></ha-icon>
-              <span class="sensor-value">${this.#fanPercentage("aux_fan")}%</span>
+              <span class="sensor-value"
+                >${helpers.getEntityAttribute(
+                  this._hass,
+                  this._entityList["aux_fan"].entity_id,
+                  "percentage"
+                )}%</span
+              >
             </div>
           </div>
         </div>
