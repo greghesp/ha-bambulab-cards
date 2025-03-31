@@ -211,3 +211,10 @@ export function toggleLight(hass, entity) {
   const service = lightOn ? "turn_off" : "turn_on";
   hass.callService("light", service, data);
 }
+
+export function clickButton(hass: any, entity: Entity) {
+  const data = {
+    entity_id: entity.entity_id,
+  };
+  hass.callService("button", "press", data);
+}

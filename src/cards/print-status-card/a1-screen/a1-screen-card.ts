@@ -7,7 +7,7 @@ import { consume } from "@lit/context";
 import "~/cards/shared-components/confirmation-prompt/confirmation-prompt";
 type ConfirmationState = {
   show: boolean;
-  action: "stop" | "pause" | "resume" | "light" | null;
+  action: "stop" | "pause" | "resume" | null;
   title: string;
   body: string;
 };
@@ -55,6 +55,10 @@ export class A1ScreenCard extends LitElement {
 
   #clickEntity(key: string) {
     helpers.showEntityMoreInfo(this, this._entityList[key]);
+  }
+
+  #clickButton(key: string) {
+    helpers.clickButton(this._hass, this._entityList[key]);
   }
 
   #state(key: string) {
@@ -127,10 +131,6 @@ export class A1ScreenCard extends LitElement {
         title: "Resume Print",
         body: "Are you sure you want to resume printing?",
       },
-      light: {
-        title: "Toggle Light",
-        body: "Are you sure you want to toggle the chamber light?",
-      },
     };
 
     this.confirmation = {
@@ -143,30 +143,24 @@ export class A1ScreenCard extends LitElement {
   #handleConfirm() {
     switch (this.confirmation.action) {
       case "stop":
-        console.log("stop");
+        this.#clickButton("stop");
         break;
       case "pause":
-        console.log("pause");
+        this.#clickButton("pause");
         break;
       case "resume":
-        console.log("resume");
-        break;
-      case "light":
-        console.log("light");
-        helpers.toggleLight(this._hass, this._entityList["chamber_light"]);
+        this.#clickButton("resume");
         break;
     }
     this.#handleDismiss();
   }
 
   #handleDismiss() {
-    console.log("dismiss");
     this.confirmation = { ...this.confirmation, show: false, action: null, title: "", body: "" };
     this.requestUpdate();
   }
 
   render() {
-    console.log("confirmation", this.confirmation);
     return html`
       ${this.confirmation.show
         ? html`
@@ -208,7 +202,7 @@ export class A1ScreenCard extends LitElement {
               </button>
               <button
                 class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
-                @click="${() => this.#showConfirmation("light")}"
+                @click="${() => helpers.toggleLight(this._hass, this._entityList["chamber_light"])}"
               >
                 <ha-icon icon="mdi:lightbulb"></ha-icon>
               </button>
