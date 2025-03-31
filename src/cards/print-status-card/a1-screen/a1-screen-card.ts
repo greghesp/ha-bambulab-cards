@@ -152,6 +152,9 @@ export class A1ScreenCard extends LitElement {
                 <ha-icon icon="mdi:dots-horizontal"></ha-icon>
               </button>
               ${this.#getLightButtonHtml()}
+              <button class="ha-bambulab-ssc-control-button ">
+                <ha-icon icon="mdi:debug-step-over"></ha-icon>
+              </button>
               <button class="ha-bambulab-ssc-control-button" ?disabled="${this.#isPauseResumeDisabled}">
                 <ha-icon icon="${this.#getPauseResumeIcon()}"></ha-icon>
               </button>
