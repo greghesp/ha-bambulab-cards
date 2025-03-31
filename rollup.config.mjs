@@ -6,9 +6,11 @@ import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import serve from "rollup-plugin-serve";
 import image from "rollup-plugin-img";
+import alias from "@rollup/plugin-alias";
+import path from "path";
 
 const dev = process.env.ROLLUP_WATCH;
-const ignoreErrors = dev || process.env.IGNORE_TS_ERRORS === 'true';
+const ignoreErrors = dev || process.env.IGNORE_TS_ERRORS === "true";
 
 const serveOptions = {
   contentBase: ["./dist"],
@@ -27,7 +29,7 @@ const plugins = [
   }),
   typescript({
     declaration: false,
-    noEmitOnError: !ignoreErrors
+    noEmitOnError: !ignoreErrors,
   }),
   nodeResolve(),
   json(),
@@ -45,6 +47,9 @@ const plugins = [
       ],
     ],
     compact: true,
+  }),
+  alias({
+    entries: [{ find: "~", replacement: path.resolve(__dirname, "src") }],
   }),
   ...(dev ? [serve(serveOptions)] : [terser()]),
 ];

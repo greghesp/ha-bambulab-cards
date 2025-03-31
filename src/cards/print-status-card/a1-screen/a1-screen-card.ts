@@ -1,9 +1,16 @@
 import * as helpers from "../../../utils/helpers";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { html, LitElement, nothing, svg } from "lit";
 import styles from "./a1-screen-styles";
 import { hassContext, entitiesContext } from "../../../utils/context";
 import { consume } from "@lit/context";
+import "~/cards/shared-components/confirmation-prompt/confirmation-prompt";
+type ConfirmationState = {
+  show: boolean;
+  action: "stop" | "pause" | "resume" | "light" | null;
+  title: string;
+  body: string;
+};
 
 @customElement("a1-screen-card")
 export class A1ScreenCard extends LitElement {
@@ -14,6 +21,13 @@ export class A1ScreenCard extends LitElement {
 
   @consume({ context: entitiesContext, subscribe: true })
   private _entityList;
+
+  @state() private confirmation: ConfirmationState = {
+    show: false,
+    action: null,
+    title: "",
+    body: "",
+  };
 
   static styles = styles;
 
@@ -64,7 +78,7 @@ export class A1ScreenCard extends LitElement {
 
   #getRemainingTime() {
     if (this._hass.states[this._entityList["stage"].entity_id].state == "printing") {
-      return this.#formattedState("remaining_time");
+      return `~ ${this.#formattedState("remaining_time")} remaining`;
     } else {
       return "";
     }
@@ -99,8 +113,76 @@ export class A1ScreenCard extends LitElement {
     }
   }
 
+  #showConfirmation(action: Exclude<ConfirmationState["action"], null>) {
+    const confirmationConfig = {
+      stop: {
+        title: "Stop Print",
+        body: "Are you sure you want to stop the current print?",
+      },
+      pause: {
+        title: "Pause Print",
+        body: "Are you sure you want to pause the current print?",
+      },
+      resume: {
+        title: "Resume Print",
+        body: "Are you sure you want to resume printing?",
+      },
+      light: {
+        title: "Toggle Light",
+        body: "Are you sure you want to toggle the chamber light?",
+      },
+    };
+
+    this.confirmation = {
+      show: true,
+      action,
+      ...confirmationConfig[action],
+    };
+  }
+
+  #handleConfirm() {
+    switch (this.confirmation.action) {
+      case "stop":
+        console.log("stop");
+        break;
+      case "pause":
+        console.log("pause");
+        break;
+      case "resume":
+        console.log("resume");
+        break;
+      case "light":
+        console.log("light");
+        helpers.toggleLight(this._hass, this._entityList["chamber_light"]);
+        break;
+    }
+    this.#handleDismiss();
+  }
+
+  #handleDismiss() {
+    this.confirmation = {
+      show: false,
+      action: null,
+      title: "",
+      body: "",
+    };
+  }
+
   render() {
     return html`
+      ${this.confirmation.show
+        ? html`
+            <confirmation-prompt
+              .title=${this.confirmation.title}
+              .body=${this.confirmation.body}
+              .primaryActionText="Confirm"
+              .secondaryActionText="Cancel"
+              .dangerous=${this.confirmation.action === "stop"}
+              @primaryAction=${this.#handleConfirm}
+              @secondaryAction=${this.#handleDismiss}
+            ></confirmation-prompt>
+          `
+        : nothing}
       <ha-card class="ha-bambulab-ssc">
         <div class="ha-bambulab-ssc-screen-container">
           <div class="ha-bambulab-ssc-status-and-controls">
@@ -109,7 +191,7 @@ export class A1ScreenCard extends LitElement {
                 <img src="${this.coverImage}" alt="Cover Image" />
               </div>
               <div class="ha-bambulab-ssc-status-info">
-                <div class="ha-bambulab-ssc-status-time">~ ${this.#getRemainingTime()}</div>
+                <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
                 <div class="ha-bambulab-ssc-progress-container">
                   <div class="ha-bambulab-ssc-progress-bar">
                     <div
@@ -128,7 +210,7 @@ export class A1ScreenCard extends LitElement {
               </button>
               <button
                 class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
-                @click="${() => helpers.toggleLight(this._hass, this._entityList["chamber_light"])}"
+                @click="${() => this.#showConfirmation("light")}"
               >
                 <ha-icon icon="mdi:lightbulb"></ha-icon>
               </button>
@@ -138,6 +220,8 @@ export class A1ScreenCard extends LitElement {
               <button
                 class="ha-bambulab-ssc-control-button"
                 ?disabled="${this.#isPauseResumeDisabled}"
+                @click="${() =>
+                  this.#showConfirmation(this.#isPauseResumeDisabled() ? "resume" : "pause")}"
               >
                 <ha-icon icon="${this.#getPauseResumeIcon()}"></ha-icon>
               </button>
@@ -146,6 +230,7 @@ export class A1ScreenCard extends LitElement {
                   ? ""
                   : "warning"}"
                 ?disabled="${this.#isStopButtonDisabled()}}"
+                @click="${() => this.#showConfirmation("stop")}"
               >
                 <ha-icon icon="mdi:stop"></ha-icon>
               </button>
