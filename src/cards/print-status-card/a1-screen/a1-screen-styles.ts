@@ -135,7 +135,7 @@ export default css`
   }
 
   .ha-bambulab-ssc-control-button.on:hover {
-    background: rgba(255, 165, 0, 0.7)
+    background: rgba(255, 165, 0, 0.7);
   }
 
   .ha-bambulab-ssc-control-button:disabled {
@@ -169,6 +169,7 @@ export default css`
     color: var(--text-primary);
     padding: 8px;
     box-sizing: border-box;
+    cursor: pointer;
   }
 
   .sensor {

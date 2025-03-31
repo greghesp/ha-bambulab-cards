@@ -62,74 +62,12 @@ export class A1ScreenCard extends LitElement {
     return `${percentage}%`;
   }
 
-  #isEntityUnavailable(entity: helpers.Entity): boolean {
-    return this._hass.states[entity?.entity_id].state == "unavailable";
-  }
-
-  #isPauseResumeDisabled(): boolean {
-    const pauseDisabled = this.#isEntityUnavailable(this._entityList["pause"]);
-    const resumeDisabled = this.#isEntityUnavailable(this._entityList["resume"]);
-    return pauseDisabled && resumeDisabled;
-  }
-
-  #getPauseResumeIcon(): string {
-    const pauseDisabled = this.#isEntityUnavailable(this._entityList["pause"]);
-    const resumeDisabled = this.#isEntityUnavailable(this._entityList["resume"]);
-    if (pauseDisabled) {
-      return "mdi:play";
-    } else {
-      return "mdi:pause";
-    }
-  }
-
-  #toggleLight() {
-    const data = {
-      entity_id: this._entityList["chamber_light"].entity_id,
-    };
-    const lightOn = helpers.getEntityState(this._hass, this._entityList["chamber_light"]) == "on";
-    const service = lightOn ? "turn_off" : "turn_on";
-    this._hass.callService("light", service, data);
-  }
-
-  #getLightButtonHtml() {
-    const isOn = helpers.getEntityState(this._hass, this._entityList["chamber_light"]) == "on";
-    return html`
-      <button
-        class="ha-bambulab-ssc-control-button ${isOn ? "on" : ""}"
-        @click="${() => this.#toggleLight()}"
-      >
-        <ha-icon icon="mdi:lightbulb"></ha-icon>
-      </button>
-    `;
-  }
-
-  #isStopButtonDisabled() {
-    return this.#isEntityUnavailable(this._entityList["stop"]);
-  }
-
-  #getStatusText() {
-    if (this._hass.states[this._entityList["stage"].entity_id].state == "printing") {
-      const current_layer = this._hass.states[this._entityList["current_layer"].entity_id].state;
-      const total_layers = this._hass.states[this._entityList["total_layers"].entity_id].state;
-      return `${current_layer}/${total_layers}`;
-    } else {
-      return helpers.getLocalizedEntityState(this._hass, this._entityList["stage"]);
-    }
-  }
-
   #getRemainingTime() {
     if (this._hass.states[this._entityList["stage"].entity_id].state == "printing") {
-      const text = this._hass.states[this._entityList["remaining_time"].entity_id].state;
-      return helpers.formatMinutes(Number(text));
+      return this.#formattedState("remaining_time");
     } else {
       return "";
     }
-  }
-
-  #getProgress() {
-    const current_layer = this._hass.states[this._entityList["current_layer"].entity_id].state;
-    const total_layers = this._hass.states[this._entityList["total_layers"].entity_id].state;
-    return Number((current_layer / total_layers) * 100);
   }
 
   #isEntityUnavailable(entity: helpers.Entity): boolean {
@@ -144,33 +82,11 @@ export class A1ScreenCard extends LitElement {
 
   #getPauseResumeIcon(): string {
     const pauseDisabled = this.#isEntityUnavailable(this._entityList["pause"]);
-    const resumeDisabled = this.#isEntityUnavailable(this._entityList["resume"]);
     if (pauseDisabled) {
       return "mdi:play";
     } else {
       return "mdi:pause";
     }
-  }
-
-  #toggleLight() {
-    const data = {
-      entity_id: this._entityList["chamber_light"].entity_id,
-    };
-    const lightOn = helpers.getEntityState(this._hass, this._entityList["chamber_light"]) == "on";
-    const service = lightOn ? "turn_off" : "turn_on";
-    this._hass.callService("light", service, data);
-  }
-
-  #getLightButtonHtml() {
-    const isOn = helpers.getEntityState(this._hass, this._entityList["chamber_light"]) == "on";
-    return html`
-      <button
-        class="ha-bambulab-ssc-control-button ${isOn ? "on" : ""}"
-        @click="${() => this.#toggleLight()}"
-      >
-        <ha-icon icon="mdi:lightbulb"></ha-icon>
-      </button>
-    `;
   }
 
   #isStopButtonDisabled() {
@@ -185,25 +101,9 @@ export class A1ScreenCard extends LitElement {
     } else {
       return helpers.getLocalizedEntityState(this._hass, this._entityList["stage"]);
     }
-  }
-
-  #getRemainingTime() {
-    if (this._hass.states[this._entityList["stage"].entity_id].state == "printing") {
-      const text = this._hass.states[this._entityList["remaining_time"].entity_id].state;
-      return helpers.formatMinutes(Number(text));
-    } else {
-      return "";
-    }
-  }
-
-  #getProgress() {
-    const current_layer = this._hass.states[this._entityList["current_layer"].entity_id].state;
-    const total_layers = this._hass.states[this._entityList["total_layers"].entity_id].state;
-    return Number((current_layer / total_layers) * 100);
   }
 
   render() {
-    console.log(this.#state("chamber_light"));
     return html`
       <ha-card class="ha-bambulab-ssc">
         <div class="ha-bambulab-ssc-screen-container">
@@ -213,9 +113,7 @@ export class A1ScreenCard extends LitElement {
                 <img src="${this.coverImage}" alt="Cover Image" />
               </div>
               <div class="ha-bambulab-ssc-status-info">
-                <div class="ha-bambulab-ssc-status-time">
-                  ~ ${this.#formattedState("remaining_time")}
-                </div>
+                <div class="ha-bambulab-ssc-status-time">~ ${this.#getRemainingTime()}</div>
                 <div class="ha-bambulab-ssc-progress-container">
                   <div class="ha-bambulab-ssc-progress-bar">
                     <div
@@ -223,27 +121,25 @@ export class A1ScreenCard extends LitElement {
                       style="width: ${this.#calculateProgress()}"
                     ></div>
                   </div>
-                  <div class="ha-bambulab-ssc-progress-text">
-                    ${this.#formattedState("current_layer")}/${this.#formattedState("total_layers")}
-                  </div>
+                  <div class="ha-bambulab-ssc-progress-text">${this.#getStatusText()}</div>
                 </div>
               </div>
             </div>
 
             <div class="ha-bambulab-ssc-control-buttons">
-              <button
-                class="ha-bambulab-ssc-control-button"
-                @click="${() => helpers.toggleLight(this._hass, this._entityList["chamber_light"])}"
-              >
-                <ha-icon
-                  icon="mdi:lightbulb"
-                  style="color: ${this.#state("chamber_light") == "on" ? "#ffe500" : "white"}"
-                ></ha-icon>
-              </button>
               <button class="ha-bambulab-ssc-control-button ">
                 <ha-icon icon="mdi:dots-horizontal"></ha-icon>
               </button>
-              ${this.#getLightButtonHtml()}
+              <button
+                class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
+                @click="${() => helpers.toggleLight(this._hass, this._entityList["chamber_light"])}"
+              >
+                <ha-icon icon="mdi:lightbulb"></ha-icon>
+              </button>
+
+              <button class="ha-bambulab-ssc-control-button ">
+                <ha-icon icon="mdi:debug-step-over"></ha-icon>
+              </button>
               <button
                 class="ha-bambulab-ssc-control-button"
                 ?disabled="${this.#isPauseResumeDisabled}"
