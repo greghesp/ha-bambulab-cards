@@ -70,18 +70,14 @@ export class A1ScreenCard extends LitElement {
     }
   }
 
-  #isEntityUnavailable(entity: helpers.Entity): boolean {
-    return this._hass.states[entity?.entity_id].state == "unavailable";
-  }
-
   #isPauseResumeDisabled(): boolean {
-    const pauseDisabled = this.#isEntityUnavailable(this._entityList["pause"]);
-    const resumeDisabled = this.#isEntityUnavailable(this._entityList["resume"]);
+    const pauseDisabled = helpers.isEntityUnavailable(this._hass, this._entityList["pause"]);
+    const resumeDisabled = helpers.isEntityUnavailable(this._hass, this._entityList["resume"]);
     return pauseDisabled && resumeDisabled;
   }
 
   #getPauseResumeIcon(): string {
-    const pauseDisabled = this.#isEntityUnavailable(this._entityList["pause"]);
+    const pauseDisabled = helpers.isEntityUnavailable(this._hass, this._entityList["pause"]);
     if (pauseDisabled) {
       return "mdi:play";
     } else {
@@ -90,10 +86,10 @@ export class A1ScreenCard extends LitElement {
   }
 
   #isStopButtonDisabled() {
-    return this.#isEntityUnavailable(this._entityList["stop"]);
+    return helpers.isEntityUnavailable(this._hass, this._entityList["stop"]);
   }
 
-  #getStatusText() {
+  #getPrintStatusText() {
     if (this._hass.states[this._entityList["stage"].entity_id].state == "printing") {
       const current_layer = this._hass.states[this._entityList["current_layer"].entity_id].state;
       const total_layers = this._hass.states[this._entityList["total_layers"].entity_id].state;
@@ -121,7 +117,7 @@ export class A1ScreenCard extends LitElement {
                       style="width: ${this.#calculateProgress()}"
                     ></div>
                   </div>
-                  <div class="ha-bambulab-ssc-progress-text">${this.#getStatusText()}</div>
+                  <div class="ha-bambulab-ssc-progress-text">${this.#getPrintStatusText()}</div>
                 </div>
               </div>
             </div>
