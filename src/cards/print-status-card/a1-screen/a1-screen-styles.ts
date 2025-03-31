@@ -130,6 +130,21 @@ export default css`
     flex-grow: 1;
   }
 
+  .ha-bambulab-ssc-control-button.on {
+    background: rgb(255, 165, 0);
+  }
+
+  .ha-bambulab-ssc-control-button.on:hover {
+    background: rgba(255, 165, 0, 0.7)
+  }
+
+  .ha-bambulab-ssc-control-button:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
   .condensed-mode .ha-bambulab-ssc-control-button {
     padding: 4px;
   }
