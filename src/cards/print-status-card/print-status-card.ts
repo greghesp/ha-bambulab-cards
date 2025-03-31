@@ -65,13 +65,16 @@ const ENTITIES: string[] = [
   "chamber_temp",
   "current_layer",
   "cover_image",
+  "current_layer",
   "door_open",
   "humidity",
   "nozzle_temp",
   "power",
+  "pause",
   "print_progress",
   "printing_speed",
   "remaining_time",
+  "resume",
   "speed_profile",
   "target_bed_temp",
   "target_bed_temperature",
@@ -79,6 +82,7 @@ const ENTITIES: string[] = [
   "target_nozzle_temperature",
   "total_layers",
   "stage",
+  "stop",
 ];
 
 const NODEREDENTITIES: { [key: string]: string } = {
