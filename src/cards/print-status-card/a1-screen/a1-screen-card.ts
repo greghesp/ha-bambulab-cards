@@ -160,15 +160,13 @@ export class A1ScreenCard extends LitElement {
   }
 
   #handleDismiss() {
-    this.confirmation = {
-      show: false,
-      action: null,
-      title: "",
-      body: "",
-    };
+    console.log("dismiss");
+    this.confirmation = { ...this.confirmation, show: false, action: null, title: "", body: "" };
+    this.requestUpdate();
   }
 
   render() {
+    console.log("confirmation", this.confirmation);
     return html`
       ${this.confirmation.show
         ? html`
@@ -178,8 +176,8 @@ export class A1ScreenCard extends LitElement {
               .primaryActionText="Confirm"
               .secondaryActionText="Cancel"
               .dangerous=${this.confirmation.action === "stop"}
-              @primaryAction=${this.#handleConfirm}
-              @secondaryAction=${this.#handleDismiss}
+              .primaryAction=${this.#handleConfirm.bind(this)}
+              .secondaryAction=${this.#handleDismiss.bind(this)}
             ></confirmation-prompt>
           `
         : nothing}
