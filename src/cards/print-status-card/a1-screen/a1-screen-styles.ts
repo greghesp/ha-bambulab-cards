@@ -147,7 +147,6 @@ export default css`
     flex-direction: column;
     height: 100%;
     justify-content: space-between;
-    gap: 8px;
     max-width: 70px;
     width: 100%;
     background: var(--control-background);

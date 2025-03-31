@@ -31,7 +31,7 @@ export class A1ScreenCard extends LitElement {
   }
 
   updateCondensedMode(card) {
-    if (card.offsetWidth < 350) {
+    if (card.offsetWidth < 400) {
       card.classList.add("condensed-mode");
     } else {
       card.classList.remove("condensed-mode");
@@ -44,13 +44,15 @@ export class A1ScreenCard extends LitElement {
   }
 
   #getPrintSpeed() {
-    const speed = this._hass.states[this._entityList['speed_profile'].entity_id];
-    return speed.attributes['modifier'];
+    const speed = this._hass.states[this._entityList["speed_profile"].entity_id];
+    return speed.attributes["modifier"];
   }
 
   #formattedState(key: string) {
-    let formattedString = this._hass.formatEntityState(this._hass.states[this._entityList[key].entity_id]);
-    return formattedString.replace(/\s+/g, ''); // Strip space before temperature symbol to save space.
+    let formattedString = this._hass.formatEntityState(
+      this._hass.states[this._entityList[key].entity_id]
+    );
+    return formattedString.replace(/\s+/g, ""); // Strip space before temperature symbol to save space.
   }
 
   #clickEntity(key: string) {
@@ -61,9 +63,7 @@ export class A1ScreenCard extends LitElement {
     return html`
       <ha-card class="ha-bambulab-ssc">
         <div class="ha-bambulab-ssc-screen-container">
-
           <div class="ha-bambulab-ssc-status-and-controls">
-
             <div class="ha-bambulab-ssc-status-content">
               <div class="ha-bambulab-ssc-status-icon">
                 <img src="${this.coverImage}" alt="Cover Image" />
@@ -93,34 +93,34 @@ export class A1ScreenCard extends LitElement {
                 <ha-icon icon="mdi:stop"></ha-icon>
               </button>
             </div>
-          
           </div>
 
           <div class="ha-bambulab-ssc-sensors">
-            <div class="sensor" @click="${() => this.#clickEntity('target_nozzle_temperature')}">
+            <div class="sensor" @click="${() => this.#clickEntity("target_nozzle_temperature")}">
               <span class="icon-and-target">
                 <ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon>
-                <span class="sensor-target-value">${this.#formattedState('target_nozzle_temp')}</span>
+                <span class="sensor-target-value"
+                  >${this.#formattedState("target_nozzle_temp")}</span
+                >
               </span>
-              <span class="sensor-value">${this.#formattedState('nozzle_temp')}</span>
+              <span class="sensor-value">${this.#formattedState("nozzle_temp")}</span>
             </div>
-            <div class="sensor" @click="${() => this.#clickEntity('target_bed_temperature')}">
+            <div class="sensor" @click="${() => this.#clickEntity("target_bed_temperature")}">
               <span class="icon-and-target">
                 <ha-icon icon="mdi:radiator"></ha-icon>
-                <span class="sensor-target-value">${this.#formattedState('target_bed_temp')}</span>
+                <span class="sensor-target-value">${this.#formattedState("target_bed_temp")}</span>
               </span>
-              <span class="sensor-value">${this.#formattedState('bed_temp')}</span>
+              <span class="sensor-value">${this.#formattedState("bed_temp")}</span>
             </div>
-            <div class="sensor" @click="${() => this.#clickEntity('printing_speed')}">
+            <div class="sensor" @click="${() => this.#clickEntity("printing_speed")}">
               <ha-icon icon="mdi:speedometer"></ha-icon>
               <span class="sensor-value">${this.#getPrintSpeed()}%</span>
             </div>
-            <div class="sensor" @click="${() => this.#clickEntity('aux_fan')}">
+            <div class="sensor" @click="${() => this.#clickEntity("aux_fan")}">
               <ha-icon icon="mdi:fan"></ha-icon>
-              <span class="sensor-value">${this.#fanPercentage('aux_fan')}%</span>
+              <span class="sensor-value">${this.#fanPercentage("aux_fan")}%</span>
             </div>
           </div>
-
         </div>
       </ha-card>
     `;
