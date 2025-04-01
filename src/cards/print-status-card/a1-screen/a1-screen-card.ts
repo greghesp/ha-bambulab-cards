@@ -33,7 +33,7 @@ export class A1ScreenCard extends LitElement {
     body: "",
   };
 
-  @state() private showSkipObjects = false;
+  @state() private showSkipObjects = true;
 
   static styles = styles;
 
