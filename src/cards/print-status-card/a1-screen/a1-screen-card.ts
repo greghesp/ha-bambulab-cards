@@ -174,8 +174,6 @@ export class A1ScreenCard extends LitElement {
   }
 
   render() {
-    console.log("hass card", this._hass.states["light.x1c_00m00a280103660_chamber_light"].state);
-
     return html`
       ${this.confirmation.show
         ? html`
