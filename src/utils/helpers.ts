@@ -80,6 +80,17 @@ export function getBambuDeviceEntities(
   return result;
 }
 
+export function getAllBambuDeviceEntities(hass): { [key: string]: Entity } {
+  const result: { [key: string]: Entity } = {};
+  for (let k in hass.entities) {
+    const value = hass.entities[k];
+    if (value.platform == "bambu_lab") {
+      result[value.translation_key] = value;
+    }
+  }
+  return result;
+}
+
 export function isEntityUnavailable(hass, entity: Entity): boolean {
   return hass.states[entity?.entity_id]?.state == "unavailable";
 }

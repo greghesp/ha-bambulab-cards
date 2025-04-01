@@ -1,7 +1,8 @@
 import { customElement, state } from "lit/decorators.js";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { EXAMPLE_CARD_EDITOR_NAME, EXAMPLE_CARD_NAME } from "./const";
-import { html, LitElement, nothing } from "lit";
+import { html, nothing } from "lit";
+import EntityProvider from "../shared-components/entity-provider";
 
 registerCustomCard({
   type: EXAMPLE_CARD_NAME,
@@ -10,15 +11,14 @@ registerCustomCard({
 });
 
 @customElement(EXAMPLE_CARD_NAME)
-export class EXAMPLE_CARD extends LitElement {
+export class ExampleCard extends EntityProvider {
   @state() private _config?;
-  @state() private _hass: any;
 
   public getLayoutOptions() {
     return {
       grid_rows: 2,
       grid_columns: 2,
-      grid_min_rows:  2,
+      grid_min_rows: 2,
       grid_min_columns: 2,
     };
   }
@@ -33,17 +33,16 @@ export class EXAMPLE_CARD extends LitElement {
   }
 
   setConfig(config) {
-    if (this._hass) {
-      this.hass = this._hass;
+    if (!config.printer) {
+      throw new Error("You need to define a device_id");
     }
     this._config = config;
-  }
-
-  set hass(hass) {
-    this._hass = hass;
+    this._device_id = config.printer;
   }
 
   render() {
+    console.log("this._entities", this._defaultEntities);
+    console.log("this.hass", this._hass);
     return html`
       <ha-card>
         <div class="card-content">

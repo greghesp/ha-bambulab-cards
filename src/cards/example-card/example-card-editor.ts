@@ -2,6 +2,13 @@ import { EXAMPLE_CARD_EDITOR_NAME } from "./const";
 import { customElement, state } from "lit/decorators.js";
 import { LitElement, html } from "lit";
 import memoizeOne from "memoize-one";
+import { PRINTER_MODELS } from "~/const";
+import { MANUFACTURER } from "~/const";
+
+const filterCombinations = PRINTER_MODELS.map((model) => ({
+  manufacturer: MANUFACTURER,
+  model: model,
+}));
 
 @customElement(EXAMPLE_CARD_EDITOR_NAME)
 export class ExampleCardEditor extends LitElement {
@@ -32,6 +39,11 @@ export class ExampleCardEditor extends LitElement {
       name: "subtitle",
       label: "Subtitle",
       selector: { text: {} },
+    },
+    {
+      name: "printer",
+      label: "Printer",
+      selector: { device: { filter: filterCombinations } },
     },
   ]);
 

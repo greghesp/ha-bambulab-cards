@@ -1,0 +1,96 @@
+import { provide } from "@lit/context";
+import { html, LitElement, nothing } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { entitiesContext, hassContext } from "~/utils/context";
+import * as helpers from "~/utils/helpers";
+
+const ENTITIES: string[] = [
+  "aux_fan",
+  "bed_temp",
+  "chamber_fan",
+  "chamber_light",
+  "chamber_temp",
+  "cover_image",
+  "current_layer",
+  "door_open",
+  "ftp", // Node red does not have
+  "humidity",
+  "nozzle_temp",
+  "pause",
+  "pick_image", // Node red does not have
+  "power",
+  "print_progress",
+  "printable_objects",
+  "printing_speed", // Select - note the unique id is inconsistent as '..._Speed'
+  "remaining_time",
+  "resume",
+  "skipped_objects", // Node red does not have
+  "speed_profile", // Sensor
+  "stage",
+  "stop",
+  "target_bed_temp",
+  "target_bed_temperature",
+  "target_nozzle_temp",
+  "target_nozzle_temperature",
+  "total_layers",
+];
+
+const NODEREDENTITIES: { [key: string]: string } = {
+  bed_target_temperature: "target_bed_temp",
+  bed_temperature: "bed_temp",
+  "^fan.*big_fan1$": "aux_fan",
+  "^fan.*big_fan2$": "chamber_fan",
+  chamber_temperature: "chamber_temp",
+  door: "door_open",
+  nozzle_target_temperature: "target_nozzle_temp",
+  nozzle_temperature: "nozzle_temp",
+  print_preview: "cover_image",
+  print_remaining_time: "remaining_time",
+  set_bed_temp: "target_bed_temperature",
+  set_nozzle_temp: "target_nozzle_temperature",
+  pause_print: "pause",
+  resume_print: "resume",
+  "^select.*_speed$": "printing_speed",
+  "^sensor.*_speed$": "speed_profile",
+  stop_print: "stop",
+};
+
+export default class EntityProvider extends LitElement {
+  @property({ type: String }) public _device_id: string | undefined;
+  @property({ type: Object })
+  public _customEntities!: { [key: string]: string } | Object;
+
+  @state() public _hass?: any;
+
+  @state() public _defaultEntities!: { [key: string]: helpers.Entity } | Object;
+
+  set hass(hass) {
+    if (hass) {
+      this._hass = hass;
+    }
+    let entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
+    this._defaultEntities = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
+
+    // Override the entity list with the Node-RED entities if configured.
+    for (const e in NODEREDENTITIES) {
+      const target = NODEREDENTITIES[e];
+      if (this._defaultEntities[e]) {
+        this._defaultEntities[target] = this._defaultEntities[e];
+      }
+    }
+
+    // Override the entity list with the custom entities if configured.
+    if (this._customEntities) {
+      for (const [key, entityId] of Object.entries(this._customEntities)) {
+        if (entityId && this._hass.states[entityId]) {
+          this._defaultEntities[key] = this._hass.states[entityId];
+        }
+      }
+    }
+    this.requestUpdate();
+  }
+
+  render() {
+    return html` <slot></slot> `;
+  }
+}
