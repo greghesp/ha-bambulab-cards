@@ -93,6 +93,8 @@ export class A1ScreenCard extends LitElement {
   #isPauseResumeDisabled(): boolean {
     const pauseDisabled = helpers.isEntityUnavailable(this._hass, this._deviceEntities["pause"]);
     const resumeDisabled = helpers.isEntityUnavailable(this._hass, this._deviceEntities["resume"]);
+    console.log("pauseDisabled", pauseDisabled);
+    console.log("resumeDisabled", resumeDisabled);
     return pauseDisabled && resumeDisabled;
   }
 
@@ -225,9 +227,13 @@ export class A1ScreenCard extends LitElement {
               </button>
               <button
                 class="ha-bambulab-ssc-control-button"
-                ?disabled="${this.#isPauseResumeDisabled}"
+                ?disabled="${this.#isPauseResumeDisabled()}"
                 @click="${() =>
-                  this.#showConfirmation(this.#isPauseResumeDisabled() ? "resume" : "pause")}"
+                  this.#showConfirmation(
+                    helpers.isEntityUnavailable(this._hass, this._deviceEntities["pause"])
+                      ? "resume"
+                      : "pause"
+                  )}"
               >
                 <ha-icon icon="${this.#getPauseResumeIcon()}"></ha-icon>
               </button>
