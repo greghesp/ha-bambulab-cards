@@ -206,15 +206,19 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getSkippedObjects() {
-    const entity = this.#entityList["skipped_objects"];
-    const value = this._states[entity.entity_id].attributes["objects"];
-    return value;
+    return helpers.getEntityAttribute(
+      this._hass,
+      this.#entityList["skipped_objects"].entity_id,
+      "objects"
+    );
   }
 
   private _getPrintableObjects() {
-    const entity = this.#entityList["printable_objects"];
-    const value = this._states[entity.entity_id].attributes["objects"];
-    return value;
+    return helpers.getEntityAttribute(
+      this._hass,
+      this.#entityList["printable_objects"].entity_id,
+      "objects"
+    );
   }
 
   private _isEntityUnavailable(entity: helpers.Entity): boolean {

@@ -83,6 +83,8 @@ const ENTITIES: string[] = [
   "total_layers",
   "stage",
   "stop",
+  "skipped_objects",
+  "printable_objects",
 ];
 
 const NODEREDENTITIES: { [key: string]: string } = {
