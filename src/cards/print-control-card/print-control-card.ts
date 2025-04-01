@@ -401,16 +401,6 @@ export class PrintControlCard extends LitElement {
     return helpers.getLocalizedEntityState(this._hass, this.#entityList["speed_profile"]);
   }
 
-  private _showSkipButton() {
-    if (!this.#entityList["ftp"]) {
-      return false;
-    }
-
-    // Only show the Skip button when the integration is configured to enable model download off the printer.
-    const state = this._hass.states[this.#entityList["ftp"].entity_id].state;
-    return state == "on";
-  }
-
   render() {
     return html`
       <ha-card class="card">
@@ -427,7 +417,9 @@ export class PrintControlCard extends LitElement {
               class="ha-button"
               @click="${this._showPopup}"
               ?disabled="${!helpers.isSkipButtonEnabled(this._hass, this.#entityList)}"
-              style="display: ${this._showSkipButton() ? "flex" : "none"};"
+              style="display: ${helpers.isSkipButtonEnabled(this._hass, this.#entityList)
+                ? "flex"
+                : "none"};"
             >
               <ha-icon icon="mdi:debug-step-over"></ha-icon>
             </ha-button>
