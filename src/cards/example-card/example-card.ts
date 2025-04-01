@@ -41,8 +41,6 @@ export class ExampleCard extends EntityProvider {
   }
 
   render() {
-    console.log("this._entities", this._defaultEntities);
-    console.log("this.hass", this._hass);
     return html`
       <ha-card>
         <div class="card-content">

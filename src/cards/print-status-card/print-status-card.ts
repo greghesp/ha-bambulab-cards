@@ -62,7 +62,6 @@ const _offImages: { [key: string]: any } = {
 export class PrintStatusCard extends EntityProvider {
   static styles = styles;
 
-  @state() private _states;
   @state() private _style;
 
   // Home assistant state references that are only used in changedProperties
@@ -76,12 +75,12 @@ export class PrintStatusCard extends EntityProvider {
   @query("#cover-image") coverImageElement: HTMLImageElement | undefined;
 
   @provide({ context: hassContext })
-  @property({ attribute: false })
+  @state()
   public _hass;
 
   @provide({ context: entitiesContext })
-  @property({ attribute: false })
-  public _defaultEntities;
+  @state()
+  public _deviceEntities;
 
   private A1EntityUX: { [key: string]: EntityUX | undefined } = {
     //hms:                    { x: 90, y:10, width:20,  height:0 },
@@ -228,25 +227,22 @@ export class PrintStatusCard extends EntityProvider {
     this.requestUpdate();
   }
 
-  set hass(hass) {
-    // Call the parent class's setter first
-    super.hass = hass;
-
-    this._model = hass?.devices?.[this._device_id]?.model?.toUpperCase() || "";
-    if (this._model == "A1 MINI") {
-      this._model = "A1MINI";
-    }
-    this._entityUX = this.EntityUX[this._model];
-
-    this.requestUpdate();
-  }
-
   updated(changedProperties) {
     super.updated(changedProperties);
 
+    if (changedProperties.has("_hass")) {
+      if (this._device_id) {
+        this._model = this._hass.devices[this._device_id]?.model?.toUpperCase() || "";
+        if (this._model == "A1 MINI") {
+          this._model = "A1MINI";
+        }
+        this._entityUX = this.EntityUX[this._model];
+      }
+    }
+
     if (changedProperties.has("_states")) {
-      if (this._defaultEntities["cover_image"]) {
-        let newState = this._hass.states[this._defaultEntities["cover_image"].entity_id].state;
+      if (this._deviceEntities["cover_image"]) {
+        let newState = this._hass.states[this._deviceEntities["cover_image"].entity_id].state;
         if (newState !== this._coverImageState) {
           console.log("Cover image updated");
           this._coverImageState = newState;
@@ -274,13 +270,8 @@ export class PrintStatusCard extends EntityProvider {
   }
 
   render() {
-    console.log("print status card render", this._hass);
     if (this._style == "simple") {
-      return html`
-        <div class="context-provider">
-          <a1-screen-card coverImage=${this._getCoverImageUrl()}></a1-screen-card>
-        </div>
-      `;
+      return html` <a1-screen-card .coverImage=${this._getCoverImageUrl()}></a1-screen-card> `;
     } else {
       return html`
         <ha-card class="card">
@@ -299,7 +290,7 @@ export class PrintStatusCard extends EntityProvider {
 
   private _getPrinterImage() {
     const lightOn =
-      helpers.getEntityState(this._hass, this._defaultEntities["chamber_light"]) == "on";
+      helpers.getEntityState(this._hass, this._deviceEntities["chamber_light"]) == "on";
     if (lightOn) {
       return _onImages[this._model];
     } else {
@@ -316,7 +307,7 @@ export class PrintStatusCard extends EntityProvider {
     const imageWidth = background.getBoundingClientRect().width;
     const imageHeight = background.getBoundingClientRect().height;
 
-    const entity = this._defaultEntities[key];
+    const entity = this._deviceEntities[key];
     const e = this._entityUX![key];
     if (entity != undefined && e != undefined) {
       // Determine element type
@@ -333,20 +324,20 @@ export class PrintStatusCard extends EntityProvider {
       let clickTarget = key;
       const click_target = this._entityUX![key].click_target;
       if (click_target != undefined) {
-        if (!helpers.isEntityUnavailable(this._hass, this._defaultEntities[click_target])) {
+        if (!helpers.isEntityUnavailable(this._hass, this._deviceEntities[click_target])) {
           clickTarget = click_target;
         }
       }
 
-      const entity = this._hass.entities[this._defaultEntities[key].entity_id];
+      const entity = this._hass.entities[this._deviceEntities[key].entity_id];
 
       // Build the HTML string for each element
       let target_temperature: string | undefined = undefined;
-      let text = helpers.getLocalizedEntityState(this._hass, this._defaultEntities[key]);
+      let text = helpers.getLocalizedEntityState(this._hass, this._deviceEntities[key]);
       switch (key) {
         case "aux_fan":
         case "chamber_fan":
-          const fan = this._hass.states[this._defaultEntities[key].entity_id];
+          const fan = this._hass.states[this._deviceEntities[key].entity_id];
           text = fan.attributes["percentage"];
           if (text != "0") {
             style = `${style} background-color: rgba(0,0,255,0.1); box-shadow: 0 0 24px rgba(0,0,255,0.4);`;
@@ -376,7 +367,7 @@ export class PrintStatusCard extends EntityProvider {
           if (target_temperature != "") {
             const target = helpers.getEntityState(
               this._hass,
-              this._defaultEntities[target_temperature]
+              this._deviceEntities[target_temperature]
             );
             if (target != "0") {
               style = `${style} background-color: rgba(255,100,0,0.2); box-shadow: 0 0 24px rgba(255,100,0,0.5);`;
@@ -418,8 +409,8 @@ export class PrintStatusCard extends EntityProvider {
         case "cover_image":
           style = `left:${left}px; top:${top}px; width:auto; height:${e.height}%;`;
           if (
-            !this._defaultEntities[key] ||
-            helpers.isEntityUnavailable(this._hass, this._defaultEntities[key])
+            !this._deviceEntities[key] ||
+            helpers.isEntityUnavailable(this._hass, this._deviceEntities[key])
           ) {
             return html``;
           } else {
@@ -503,25 +494,25 @@ export class PrintStatusCard extends EntityProvider {
   }
 
   private _clickEntity(key) {
-    helpers.showEntityMoreInfo(this, this._defaultEntities[key]);
+    helpers.showEntityMoreInfo(this, this._deviceEntities[key]);
   }
 
   private _toggleLight() {
     const data = {
-      entity_id: this._defaultEntities["chamber_light"].entity_id,
+      entity_id: this._deviceEntities["chamber_light"].entity_id,
     };
     const lightOn =
-      helpers.getEntityState(this._hass, this._defaultEntities["chamber_light"]) == "on";
+      helpers.getEntityState(this._hass, this._deviceEntities["chamber_light"]) == "on";
     const service = lightOn ? "turn_off" : "turn_on";
     this._hass.callService("light", service, data);
   }
 
   private _getCoverImageUrl() {
-    if (helpers.isEntityUnavailable(this._hass, this._defaultEntities["cover_image"])) {
+    if (helpers.isEntityUnavailable(this._hass, this._deviceEntities["cover_image"])) {
       console.log("Cover image unavailable");
       return "";
     } else {
-      const coverImageEntityId = this._defaultEntities["cover_image"].entity_id;
+      const coverImageEntityId = this._deviceEntities["cover_image"].entity_id;
       return `${this._hass.states[coverImageEntityId].attributes.entity_picture}&state=${this._coverImageState}`;
     }
   }

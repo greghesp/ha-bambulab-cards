@@ -64,14 +64,14 @@ export default class EntityProvider extends LitElement {
 
   @state() public _hass?: any;
 
-  @state() public _defaultEntities!: { [key: string]: helpers.Entity } | Object;
+  @state() public _deviceEntities!: { [key: string]: helpers.Entity } | Object;
 
   set hass(hass) {
     if (hass) {
       this._hass = hass;
     }
     let entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
-    this._defaultEntities = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
+    this._deviceEntities = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
 
     if (this._device_id == "MOCK") {
       Object.keys(this._hass.devices).forEach((key) => {
@@ -87,8 +87,8 @@ export default class EntityProvider extends LitElement {
     // Override the entity list with the Node-RED entities if configured.
     for (const e in NODEREDENTITIES) {
       const target = NODEREDENTITIES[e];
-      if (this._defaultEntities[e]) {
-        this._defaultEntities[target] = this._defaultEntities[e];
+      if (this._deviceEntities[e]) {
+        this._deviceEntities[target] = this._deviceEntities[e];
       }
     }
 
@@ -96,16 +96,11 @@ export default class EntityProvider extends LitElement {
     if (this._customEntities) {
       for (const [key, entityId] of Object.entries(this._customEntities)) {
         if (entityId && this._hass.states[entityId]) {
-          this._defaultEntities[key] = this._hass.states[entityId];
+          this._deviceEntities[key] = this._hass.states[entityId];
         }
       }
     }
 
-    console.log("EntityProvider defaultEntities", this._defaultEntities);
     this.requestUpdate();
-  }
-
-  render() {
-    return html` <slot></slot> `;
   }
 }

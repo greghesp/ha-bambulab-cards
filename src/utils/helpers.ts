@@ -220,6 +220,7 @@ export function toggleLight(hass, entity) {
   };
   const lightOn = getEntityState(hass, entity) == "on";
   const service = lightOn ? "turn_off" : "turn_on";
+  console.log("toggleLight is", data, service);
   hass.callService("light", service, data);
 }
 
