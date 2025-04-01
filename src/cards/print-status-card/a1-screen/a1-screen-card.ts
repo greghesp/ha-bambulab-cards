@@ -117,6 +117,16 @@ export class A1ScreenCard extends LitElement {
     }
   }
 
+  #iSkipEnabled() {}
+
+  #getPrintableObjects() {
+    return helpers.getEntityAttribute(
+      this._hass,
+      this._entityList["printable_objects"].entity_id,
+      "objects"
+    );
+  }
+
   #showConfirmation(action: Exclude<ConfirmationState["action"], null>) {
     const confirmationConfig = {
       stop: {
