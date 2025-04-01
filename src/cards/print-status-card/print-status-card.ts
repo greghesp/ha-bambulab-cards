@@ -2,7 +2,7 @@ import * as helpers from "../../utils/helpers";
 
 import { customElement, state, property, query } from "lit/decorators.js";
 import { html, LitElement, nothing, PropertyValues } from "lit";
-import { provide } from "@lit/context";
+import { provide, consume } from "@lit/context";
 import styles from "./card.styles";
 
 import { INTEGRATION_DOMAIN, MANUFACTURER, PRINTER_MODELS } from "../../const";
@@ -24,6 +24,7 @@ import X1E_ON_IMAGE from "../../images/X1E_on.png";
 import X1E_OFF_IMAGE from "../../images/X1E_off.png";
 
 import "./a1-screen/a1-screen-card";
+import EntityProvider from "../shared-components/entity-provider";
 
 registerCustomCard({
   type: PRINT_STATUS_CARD_NAME,
@@ -57,80 +58,30 @@ const _offImages: { [key: string]: any } = {
   X1E: X1E_OFF_IMAGE,
 };
 
-const ENTITIES: string[] = [
-  "aux_fan",
-  "bed_temp",
-  "chamber_fan",
-  "chamber_light",
-  "chamber_temp",
-  "cover_image",
-  "current_layer",
-  "door_open",
-  "ftp",
-  "humidity",
-  "nozzle_temp",
-  "pause",
-  "pick_image",
-  "power",
-  "print_progress",
-  "printable_objects",
-  "printing_speed",
-  "remaining_time",
-  "resume",
-  "skipped_objects",
-  "speed_profile",
-  "stage",
-  "stop",
-  "target_bed_temp",
-  "target_bed_temperature",
-  "target_nozzle_temp",
-  "target_nozzle_temperature",
-  "total_layers",
-];
-
-const NODEREDENTITIES: { [key: string]: string } = {
-  bed_target_temperature: "target_bed_temp",
-  bed_temperature: "bed_temp",
-  "^fan.*big_fan1$": "aux_fan",
-  "^fan.*big_fan2$": "chamber_fan",
-  chamber_temperature: "chamber_temp",
-  door: "door_open",
-  nozzle_target_temperature: "target_nozzle_temp",
-  nozzle_temperature: "nozzle_temp",
-  print_preview: "cover_image",
-  print_remaining_time: "remaining_time",
-  set_bed_temp: "target_bed_temperature",
-  set_nozzle_temp: "target_nozzle_temperature",
-};
-
 @customElement(PRINT_STATUS_CARD_NAME)
-export class PrintControlCard extends LitElement {
+export class PrintStatusCard extends EntityProvider {
   static styles = styles;
 
-  @provide({ context: hassContext })
-  @state()
-  private _hass?;
-
   @state() private _states;
-  @state() private _device_id: any;
   @state() private _style;
 
   // Home assistant state references that are only used in changedProperties
   private _coverImageState: any;
 
-  @provide({ context: entitiesContext })
-  private _entityList: { [key: string]: helpers.Entity };
-
   private _entityUX: { [key: string]: EntityUX } | undefined;
   private _model: string;
-  private _temperature: string | undefined;
-  private _humidity: string | undefined;
-  private _power: string | undefined;
-  private _light: string | undefined;
 
   private resizeObserver: ResizeObserver;
 
   @query("#cover-image") coverImageElement: HTMLImageElement | undefined;
+
+  @provide({ context: hassContext })
+  @property({ attribute: false })
+  public _hass;
+
+  @provide({ context: entitiesContext })
+  @property({ attribute: false })
+  public _defaultEntities;
 
   private A1EntityUX: { [key: string]: EntityUX | undefined } = {
     //hms:                    { x: 90, y:10, width:20,  height:0 },
@@ -217,12 +168,7 @@ export class PrintControlCard extends LitElement {
   constructor() {
     super();
     this._model = "";
-    this._entityList = {};
     this._entityUX = undefined; // Initialized once we know what model printer it is.
-    this._humidity = undefined;
-    this._temperature = undefined;
-    this._power = undefined;
-    this._light = undefined;
 
     this.resizeObserver = new ResizeObserver(() => {
       const background = this.shadowRoot?.getElementById("control-container") as HTMLElement;
@@ -258,12 +204,14 @@ export class PrintControlCard extends LitElement {
       throw new Error("You need to select a Printer");
     }
 
-    this._device_id = config.printer;
-    this._temperature = config.custom_temperature;
-    this._humidity = config.custom_humidity;
-    this._power = config.custom_power;
-    this._light = config.custom_light;
     this._style = config.style;
+    this._device_id = config.printer;
+    this._customEntities = {
+      chamber_temp: config.custom_temperature,
+      humidity: config.custom_humidity,
+      power: config.custom_power,
+      chamber_light: config.custom_light,
+    };
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -281,71 +229,24 @@ export class PrintControlCard extends LitElement {
   }
 
   set hass(hass) {
-    const firstTime = hass && !this._hass;
+    // Call the parent class's setter first
+    super.hass = hass;
 
-    // This will be called repetitively since the states are constantly changing.
-    if (hass) {
-      this._hass = hass;
-      this._states = hass.states;
+    this._model = hass?.devices?.[this._device_id]?.model?.toUpperCase() || "";
+    if (this._model == "A1 MINI") {
+      this._model = "A1MINI";
     }
+    this._entityUX = this.EntityUX[this._model];
 
-    if (this._device_id == "MOCK") {
-      Object.keys(this._hass.devices).forEach((key) => {
-        const device = this._hass.devices[key];
-        if (device.manufacturer == MANUFACTURER) {
-          if (PRINTER_MODELS.includes(device.model)) {
-            this._device_id = key;
-          }
-        }
-      });
-    }
-
-    if (firstTime) {
-      this._model = this._hass.devices[this._device_id].model.toUpperCase();
-      if (this._model == "A1 MINI") {
-        this._model = "A1MINI";
-      }
-      this._entityUX = this.EntityUX[this._model];
-      console.log("this._model", this._entityUX);
-
-      let entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
-      console.log("entityList", entityList);
-      this._entityList = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
-      console.log("entityList", this._entityList);
-
-      // Override the entity list with the Node-RED entities if configured.
-      for (const e in NODEREDENTITIES) {
-        const target = NODEREDENTITIES[e];
-        if (this._entityList[e]) {
-          this._entityList[target] = this._entityList[e];
-        }
-      }
-
-      // Override the entity list with the custom entities if configured.
-      for (const e in hass.entities) {
-        const value = hass.entities[e];
-        if (value.entity_id === this._temperature) {
-          this._entityList["chamber_temp"] = value;
-        } else if (value.entity_id === this._humidity) {
-          this._entityList["humidity"] = value;
-        } else if (value.entity_id === this._power) {
-          this._entityList["power"] = value;
-        } else if (value.entity_id === this._light) {
-          this._entityList["chamber_light"] = value;
-        }
-      }
-
-      // We have the model and the chamber light entity - kick off the background image load asap.
-      this.requestUpdate();
-    }
+    this.requestUpdate();
   }
 
   updated(changedProperties) {
     super.updated(changedProperties);
 
     if (changedProperties.has("_states")) {
-      if (this._entityList["cover_image"]) {
-        let newState = this._hass.states[this._entityList["cover_image"].entity_id].state;
+      if (this._defaultEntities["cover_image"]) {
+        let newState = this._hass.states[this._defaultEntities["cover_image"].entity_id].state;
         if (newState !== this._coverImageState) {
           console.log("Cover image updated");
           this._coverImageState = newState;
@@ -373,8 +274,13 @@ export class PrintControlCard extends LitElement {
   }
 
   render() {
+    console.log("print status card render", this._hass);
     if (this._style == "simple") {
-      return html` <a1-screen-card coverImage=${this._getCoverImageUrl()}></a1-screen-card> `;
+      return html`
+        <div class="context-provider">
+          <a1-screen-card coverImage=${this._getCoverImageUrl()}></a1-screen-card>
+        </div>
+      `;
     } else {
       return html`
         <ha-card class="card">
@@ -392,7 +298,8 @@ export class PrintControlCard extends LitElement {
   }
 
   private _getPrinterImage() {
-    const lightOn = helpers.getEntityState(this._hass, this._entityList["chamber_light"]) == "on";
+    const lightOn =
+      helpers.getEntityState(this._hass, this._defaultEntities["chamber_light"]) == "on";
     if (lightOn) {
       return _onImages[this._model];
     } else {
@@ -409,7 +316,7 @@ export class PrintControlCard extends LitElement {
     const imageWidth = background.getBoundingClientRect().width;
     const imageHeight = background.getBoundingClientRect().height;
 
-    const entity = this._entityList[key];
+    const entity = this._defaultEntities[key];
     const e = this._entityUX![key];
     if (entity != undefined && e != undefined) {
       // Determine element type
@@ -426,20 +333,20 @@ export class PrintControlCard extends LitElement {
       let clickTarget = key;
       const click_target = this._entityUX![key].click_target;
       if (click_target != undefined) {
-        if (!helpers.isEntityUnavailable(this._hass, this._entityList[click_target])) {
+        if (!helpers.isEntityUnavailable(this._hass, this._defaultEntities[click_target])) {
           clickTarget = click_target;
         }
       }
 
-      const entity = this._hass.entities[this._entityList[key].entity_id];
+      const entity = this._hass.entities[this._defaultEntities[key].entity_id];
 
       // Build the HTML string for each element
       let target_temperature: string | undefined = undefined;
-      let text = helpers.getLocalizedEntityState(this._hass, this._entityList[key]);
+      let text = helpers.getLocalizedEntityState(this._hass, this._defaultEntities[key]);
       switch (key) {
         case "aux_fan":
         case "chamber_fan":
-          const fan = this._states[this._entityList[key].entity_id];
+          const fan = this._hass.states[this._defaultEntities[key].entity_id];
           text = fan.attributes["percentage"];
           if (text != "0") {
             style = `${style} background-color: rgba(0,0,255,0.1); box-shadow: 0 0 24px rgba(0,0,255,0.4);`;
@@ -467,7 +374,10 @@ export class PrintControlCard extends LitElement {
           target_temperature =
             target_temperature == undefined ? "target_nozzle_temp" : target_temperature;
           if (target_temperature != "") {
-            const target = helpers.getEntityState(this._hass, this._entityList[target_temperature]);
+            const target = helpers.getEntityState(
+              this._hass,
+              this._defaultEntities[target_temperature]
+            );
             if (target != "0") {
               style = `${style} background-color: rgba(255,100,0,0.2); box-shadow: 0 0 24px rgba(255,100,0,0.5);`;
             }
@@ -508,8 +418,8 @@ export class PrintControlCard extends LitElement {
         case "cover_image":
           style = `left:${left}px; top:${top}px; width:auto; height:${e.height}%;`;
           if (
-            !this._entityList[key] ||
-            helpers.isEntityUnavailable(this._hass, this._entityList[key])
+            !this._defaultEntities[key] ||
+            helpers.isEntityUnavailable(this._hass, this._defaultEntities[key])
           ) {
             return html``;
           } else {
@@ -593,24 +503,25 @@ export class PrintControlCard extends LitElement {
   }
 
   private _clickEntity(key) {
-    helpers.showEntityMoreInfo(this, this._entityList[key]);
+    helpers.showEntityMoreInfo(this, this._defaultEntities[key]);
   }
 
   private _toggleLight() {
     const data = {
-      entity_id: this._entityList["chamber_light"].entity_id,
+      entity_id: this._defaultEntities["chamber_light"].entity_id,
     };
-    const lightOn = helpers.getEntityState(this._hass, this._entityList["chamber_light"]) == "on";
+    const lightOn =
+      helpers.getEntityState(this._hass, this._defaultEntities["chamber_light"]) == "on";
     const service = lightOn ? "turn_off" : "turn_on";
     this._hass.callService("light", service, data);
   }
 
   private _getCoverImageUrl() {
-    if (helpers.isEntityUnavailable(this._hass, this._entityList["cover_image"])) {
+    if (helpers.isEntityUnavailable(this._hass, this._defaultEntities["cover_image"])) {
       console.log("Cover image unavailable");
       return "";
     } else {
-      const coverImageEntityId = this._entityList["cover_image"].entity_id;
+      const coverImageEntityId = this._defaultEntities["cover_image"].entity_id;
       return `${this._hass.states[coverImageEntityId].attributes.entity_picture}&state=${this._coverImageState}`;
     }
   }

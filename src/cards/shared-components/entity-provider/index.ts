@@ -1,6 +1,8 @@
 import { provide } from "@lit/context";
 import { html, LitElement, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { PRINTER_MODELS } from "~/const";
+import { MANUFACTURER } from "~/const";
 import { entitiesContext, hassContext } from "~/utils/context";
 import * as helpers from "~/utils/helpers";
 
@@ -71,6 +73,17 @@ export default class EntityProvider extends LitElement {
     let entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
     this._defaultEntities = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
 
+    if (this._device_id == "MOCK") {
+      Object.keys(this._hass.devices).forEach((key) => {
+        const device = this._hass.devices[key];
+        if (device.manufacturer == MANUFACTURER) {
+          if (PRINTER_MODELS.includes(device.model)) {
+            this._device_id = key;
+          }
+        }
+      });
+    }
+
     // Override the entity list with the Node-RED entities if configured.
     for (const e in NODEREDENTITIES) {
       const target = NODEREDENTITIES[e];
@@ -87,6 +100,8 @@ export default class EntityProvider extends LitElement {
         }
       }
     }
+
+    console.log("EntityProvider defaultEntities", this._defaultEntities);
     this.requestUpdate();
   }
 

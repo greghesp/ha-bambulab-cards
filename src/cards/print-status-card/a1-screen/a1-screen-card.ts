@@ -5,6 +5,7 @@ import styles from "./a1-screen-styles";
 import { hassContext, entitiesContext } from "../../../utils/context";
 import { consume } from "@lit/context";
 import "~/cards/shared-components/confirmation-prompt/confirmation-prompt";
+
 type ConfirmationState = {
   show: boolean;
   action: "stop" | "pause" | "resume" | null;
@@ -16,11 +17,13 @@ type ConfirmationState = {
 export class A1ScreenCard extends LitElement {
   @property() public coverImage;
 
-  @consume({ context: hassContext, subscribe: true })
-  private _hass;
+  @consume({ context: hassContext })
+  @property({ attribute: false })
+  public _hass;
 
-  @consume({ context: entitiesContext, subscribe: true })
-  private _entityList;
+  @consume({ context: entitiesContext })
+  @property({ attribute: false })
+  public _defaultEntities;
 
   @state() private confirmation: ConfirmationState = {
     show: false,
@@ -34,7 +37,7 @@ export class A1ScreenCard extends LitElement {
   firstUpdated(changedProperties): void {
     super.firstUpdated(changedProperties);
     this.observeCardHeight();
-    console.log(this._entityList);
+    console.log(this._defaultEntities);
   }
 
   observeCardHeight() {
@@ -54,34 +57,34 @@ export class A1ScreenCard extends LitElement {
   }
 
   #clickEntity(key: string) {
-    helpers.showEntityMoreInfo(this, this._entityList[key]);
+    helpers.showEntityMoreInfo(this, this._defaultEntities[key]);
   }
 
   #clickButton(key: string) {
-    helpers.clickButton(this._hass, this._entityList[key]);
+    helpers.clickButton(this._hass, this._defaultEntities[key]);
   }
 
   #state(key: string) {
-    return helpers.getEntityState(this._hass, this._entityList[key]);
+    return helpers.getEntityState(this._hass, this._defaultEntities[key]);
   }
 
   #formattedState(key: string) {
-    return helpers.getFormattedEntityState(this._hass, this._entityList[key].entity_id);
+    return helpers.getFormattedEntityState(this._hass, this._defaultEntities[key].entity_id);
   }
 
   #attribute(key: string, attribute: string) {
-    return helpers.getEntityAttribute(this._hass, this._entityList[key].entity_id, attribute);
+    return helpers.getEntityAttribute(this._hass, this._defaultEntities[key].entity_id, attribute);
   }
 
   #calculateProgress() {
-    const currentLayer = helpers.getEntityState(this._hass, this._entityList["current_layer"]);
-    const totalLayers = helpers.getEntityState(this._hass, this._entityList["total_layers"]);
+    const currentLayer = helpers.getEntityState(this._hass, this._defaultEntities["current_layer"]);
+    const totalLayers = helpers.getEntityState(this._hass, this._defaultEntities["total_layers"]);
     const percentage = Math.round((currentLayer / totalLayers) * 100);
     return `${percentage}%`;
   }
 
   #getRemainingTime() {
-    if (this._hass.states[this._entityList["stage"].entity_id].state == "printing") {
+    if (this._hass.states[this._defaultEntities["stage"].entity_id].state == "printing") {
       return `~ ${this.#formattedState("remaining_time")} remaining`;
     } else {
       return "";
@@ -89,13 +92,13 @@ export class A1ScreenCard extends LitElement {
   }
 
   #isPauseResumeDisabled(): boolean {
-    const pauseDisabled = helpers.isEntityUnavailable(this._hass, this._entityList["pause"]);
-    const resumeDisabled = helpers.isEntityUnavailable(this._hass, this._entityList["resume"]);
+    const pauseDisabled = helpers.isEntityUnavailable(this._hass, this._defaultEntities["pause"]);
+    const resumeDisabled = helpers.isEntityUnavailable(this._hass, this._defaultEntities["resume"]);
     return pauseDisabled && resumeDisabled;
   }
 
   #getPauseResumeIcon(): string {
-    const pauseDisabled = helpers.isEntityUnavailable(this._hass, this._entityList["pause"]);
+    const pauseDisabled = helpers.isEntityUnavailable(this._hass, this._defaultEntities["pause"]);
     if (pauseDisabled) {
       return "mdi:play";
     } else {
@@ -104,16 +107,17 @@ export class A1ScreenCard extends LitElement {
   }
 
   #isStopButtonDisabled() {
-    return helpers.isEntityUnavailable(this._hass, this._entityList["stop"]);
+    return helpers.isEntityUnavailable(this._hass, this._defaultEntities["stop"]);
   }
 
   #getPrintStatusText() {
-    if (this._hass.states[this._entityList["stage"].entity_id].state == "printing") {
-      const current_layer = this._hass.states[this._entityList["current_layer"].entity_id].state;
-      const total_layers = this._hass.states[this._entityList["total_layers"].entity_id].state;
+    if (this._hass.states[this._defaultEntities["stage"].entity_id].state == "printing") {
+      const current_layer =
+        this._hass.states[this._defaultEntities["current_layer"].entity_id].state;
+      const total_layers = this._hass.states[this._defaultEntities["total_layers"].entity_id].state;
       return `${current_layer}/${total_layers}`;
     } else {
-      return helpers.getLocalizedEntityState(this._hass, this._entityList["stage"]);
+      return helpers.getLocalizedEntityState(this._hass, this._defaultEntities["stage"]);
     }
   }
 
@@ -122,7 +126,7 @@ export class A1ScreenCard extends LitElement {
   #getPrintableObjects() {
     return helpers.getEntityAttribute(
       this._hass,
-      this._entityList["printable_objects"].entity_id,
+      this._defaultEntities["printable_objects"].entity_id,
       "objects"
     );
   }
@@ -212,7 +216,8 @@ export class A1ScreenCard extends LitElement {
               </button>
               <button
                 class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
-                @click="${() => helpers.toggleLight(this._hass, this._entityList["chamber_light"])}"
+                @click="${() =>
+                  helpers.toggleLight(this._hass, this._defaultEntities["chamber_light"])}"
               >
                 <ha-icon icon="mdi:lightbulb"></ha-icon>
               </button>
