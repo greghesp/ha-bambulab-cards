@@ -411,29 +411,6 @@ export class PrintControlCard extends LitElement {
     return state == "on";
   }
 
-  private _enableSkipButton() {
-    if (!this.#entityList["ftp"]) {
-      return false;
-    }
-
-    const countOfPrintableObjects = Object.keys(this._getPrintableObjects()).length;
-    if (
-      this.#pickImageState == undefined ||
-      countOfPrintableObjects < 2 ||
-      countOfPrintableObjects > 64
-    ) {
-      return false;
-    }
-
-    if (
-      this._isEntityUnavailable(this.#entityList["stop"]) ||
-      this._isEntityStateUnknown(this.#entityList["pick_image"])
-    ) {
-      return false;
-    }
-    return true;
-  }
-
   render() {
     return html`
       <ha-card class="card">
@@ -449,7 +426,7 @@ export class PrintControlCard extends LitElement {
             <ha-button
               class="ha-button"
               @click="${this._showPopup}"
-              ?disabled="${!this._enableSkipButton()}"
+              ?disabled="${!helpers.isSkipButtonEnabled(this._hass, this.#entityList)}"
               style="display: ${this._showSkipButton() ? "flex" : "none"};"
             >
               <ha-icon icon="mdi:debug-step-over"></ha-icon>

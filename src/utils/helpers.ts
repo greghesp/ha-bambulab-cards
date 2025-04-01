@@ -229,3 +229,34 @@ export function clickButton(hass: any, entity: Entity) {
   };
   hass.callService("button", "press", data);
 }
+
+export function isSkipButtonEnabled(hass, entities) {
+  if (!entities["ftp"]) {
+    return false;
+  }
+
+  const printableObjects = getEntityAttribute(
+    hass,
+    entities["printable_objects"].entity_id,
+    "objects"
+  );
+
+  const countOfPrintableObjects = Object.keys(printableObjects).length;
+
+  const pickImageState = hass.states[entities["pick_image"].entity_id].state;
+  if (pickImageState == undefined || countOfPrintableObjects < 2 || countOfPrintableObjects > 64) {
+    return false;
+  }
+
+  if (
+    isEntityUnavailable(hass, entities["stop"]) ||
+    isEntityStateUnknown(hass, entities["pick_image"])
+  ) {
+    return false;
+  }
+  return true;
+}
+
+export function isEntityStateUnknown(hass, entity: Entity): boolean {
+  return hass.states[entity?.entity_id]?.state == undefined;
+}

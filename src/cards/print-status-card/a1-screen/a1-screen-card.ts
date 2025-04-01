@@ -220,7 +220,10 @@ export class A1ScreenCard extends LitElement {
               >
                 <ha-icon icon="mdi:lightbulb"></ha-icon>
               </button>
-              <button class="ha-bambulab-ssc-control-button ">
+              <button
+                class="ha-bambulab-ssc-control-button"
+                ?disabled="${!helpers.isSkipButtonEnabled(this._hass, this._deviceEntities)}"
+              >
                 <ha-icon icon="mdi:debug-step-over"></ha-icon>
               </button>
               <button
