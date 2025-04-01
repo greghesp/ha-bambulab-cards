@@ -11,9 +11,9 @@ export class ConfirmationPrompt extends LitElement {
 
   @property({ type: Object }) body!: TemplateResult;
   @property({ type: Object }) styles?: CSSResult;
-  @property({ type: String }) title: string = "Please Confirm";
-  @property({ type: String }) primaryActionText: string = "Confirm";
-  @property({ type: String }) secondaryActionText: string = "Cancel";
+  @property({ type: String, attribute: true }) title: string = "Please Confirm";
+  @property({ type: String, attribute: true }) primaryActionText: string = "Confirm";
+  @property({ type: String, attribute: true }) secondaryActionText: string = "Cancel";
 
   @property() primaryAction!: () => void;
   @property() secondaryAction!: () => void;

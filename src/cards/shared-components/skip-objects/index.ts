@@ -112,10 +112,10 @@ export class SkipObjects extends LitElement {
   render() {
     return html`
       <confirmation-prompt
-        .title="Skip Objects"
+        title="Skip Objects"
         .body=${this.#body()}
-        .primaryActionText="Confirm Skip"
-        .secondaryActionText="Cancel"
+        primaryActionText="Skip"
+        secondaryActionText="Cancel"
         .primaryAction=${this.#handleConfirm.bind(this)}
         .secondaryAction=${this.secondaryAction}
         .styles=${styles}
