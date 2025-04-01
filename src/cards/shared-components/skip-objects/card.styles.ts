@@ -39,6 +39,11 @@ export default css`
     flex-shrink: 1;
   }
 
+  .checkbox-object {
+    width: calc(50% - 10px);
+    align-items: left;
+  }
+
   .popup-content {
     font-size: 14px;
     display: flex;

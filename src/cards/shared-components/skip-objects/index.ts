@@ -3,6 +3,7 @@ import { consume } from "@lit/context";
 import { customElement, property, state } from "lit/decorators.js";
 import styles from "./card.styles";
 import * as helpers from "../../../utils/helpers";
+import { css } from "lit";
 
 import BUILD_PLATE_IMAGE from "~/images/bambu_smooth_plate.png";
 import { entitiesContext, hassContext } from "~/utils/context";
@@ -117,6 +118,7 @@ export class SkipObjects extends LitElement {
         .secondaryActionText="Cancel"
         .primaryAction=${this.#handleConfirm.bind(this)}
         .secondaryAction=${this.secondaryAction}
+        .styles=${styles}
       ></confirmation-prompt>
     `;
   }

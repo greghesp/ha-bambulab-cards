@@ -1,15 +1,41 @@
-import { html, LitElement, nothing } from "lit";
+import { html, LitElement, nothing, TemplateResult, css, CSSResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
 @customElement("confirmation-prompt")
 export class ConfirmationPrompt extends LitElement {
-  @property({ type: String }) body!: string;
+  static styles = css`
+    :host {
+      display: block;
+    }
+  `;
+
+  @property({ type: Object }) body!: TemplateResult;
+  @property({ type: Object }) styles?: CSSResult;
   @property({ type: String }) title: string = "Please Confirm";
   @property({ type: String }) primaryActionText: string = "Confirm";
   @property({ type: String }) secondaryActionText: string = "Cancel";
 
   @property() primaryAction!: () => void;
   @property() secondaryAction!: () => void;
+
+  protected createRenderRoot(): ShadowRoot {
+    const root = super.createRenderRoot() as ShadowRoot;
+    if (this.styles) {
+      const styleSheet = new CSSStyleSheet();
+      styleSheet.replaceSync(this.styles.cssText);
+      root.adoptedStyleSheets = [styleSheet];
+    }
+    return root;
+  }
+
+  protected updated(changedProperties) {
+    super.updated(changedProperties);
+    if (changedProperties.has("styles") && this.styles && this.shadowRoot) {
+      const styleSheet = new CSSStyleSheet();
+      styleSheet.replaceSync(this.styles.cssText);
+      this.shadowRoot.adoptedStyleSheets = [styleSheet];
+    }
+  }
 
   render() {
     return html`
