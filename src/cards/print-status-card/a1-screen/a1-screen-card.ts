@@ -5,6 +5,7 @@ import styles from "./a1-screen-styles";
 import { hassContext, entitiesContext } from "../../../utils/context";
 import { consume } from "@lit/context";
 import "~/cards/shared-components/confirmation-prompt/confirmation-prompt";
+import "~/cards/shared-components/skip-objects";
 
 type ConfirmationState = {
   show: boolean;
@@ -31,6 +32,8 @@ export class A1ScreenCard extends LitElement {
     title: "",
     body: "",
   };
+
+  @state() private showSkipObjects = true;
 
   static styles = styles;
 
@@ -164,6 +167,11 @@ export class A1ScreenCard extends LitElement {
     this.requestUpdate();
   }
 
+  #handleSkipObjectsDismiss() {
+    this.showSkipObjects = false;
+    this.requestUpdate();
+  }
+
   render() {
     return html`
       ${this.confirmation.show
@@ -178,6 +186,11 @@ export class A1ScreenCard extends LitElement {
               .secondaryAction=${this.#handleDismiss.bind(this)}
             ></confirmation-prompt>
           `
+        : nothing}
+      ${this.showSkipObjects
+        ? html`<skip-objects
+            secondaryAction=${this.#handleSkipObjectsDismiss.bind(this)}
+          ></skip-objects>`
         : nothing}
       <ha-card class="ha-bambulab-ssc">
         <div class="ha-bambulab-ssc-screen-container">
@@ -214,6 +227,7 @@ export class A1ScreenCard extends LitElement {
               <button
                 class="ha-bambulab-ssc-control-button"
                 ?disabled="${!helpers.isSkipButtonEnabled(this._hass, this._deviceEntities)}"
+                @click="${() => (this.showSkipObjects = true)}"
               >
                 <ha-icon icon="mdi:debug-step-over"></ha-icon>
               </button>
