@@ -7,6 +7,21 @@ export interface Entity {
   name: string;
 }
 
+export function formatTimeRemaining(minutes: number): string {
+  if (minutes <= 0) return "0m";
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) {
+    return `${remainingMinutes}m`;
+  } else if (remainingMinutes === 0) {
+    return `${hours}hr`;
+  } else {
+    return `${hours}hr ${remainingMinutes}m`;
+  }
+}
+
 export function getContrastingTextColor(hexColor) {
   // Remove the '#' if present
   hexColor = hexColor.replace("#", "");
@@ -237,6 +252,7 @@ export function isSkipButtonEnabled(hass, entities) {
 
   const ftpState = hass.states[entities["ftp"].entity_id].state;
 
+  // Only show the Skip button when the integration is configured to enable model download off the printer.
   if (ftpState == "on") {
     const printableObjects = getEntityAttribute(
       hass,
