@@ -87,7 +87,7 @@ export class A1ScreenCard extends LitElement {
       const minutes = Number(this.#state("remaining_time"));
       return `~ ${helpers.formatTimeRemaining(minutes)} remaining`;
     } else {
-      return "";
+      return nothing;
     }
   }
 
@@ -119,16 +119,6 @@ export class A1ScreenCard extends LitElement {
     } else {
       return helpers.getLocalizedEntityState(this._hass, this._deviceEntities["stage"]);
     }
-  }
-
-  #iSkipEnabled() {}
-
-  #getPrintableObjects() {
-    return helpers.getEntityAttribute(
-      this._hass,
-      this._deviceEntities["printable_objects"].entity_id,
-      "objects"
-    );
   }
 
   #showConfirmation(action: Exclude<ConfirmationState["action"], null>) {
