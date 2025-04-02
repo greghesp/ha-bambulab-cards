@@ -69,9 +69,7 @@ export class SkipObjects extends LitElement {
         }
       }
 
-      if (changedProperties.has("hoveredObject")) {
-        this.#colorizeCanvas();
-      } else if (changedProperties.has("printableObjects")) {
+      if (changedProperties.has("hoveredObject") || changedProperties.has("printableObjects")) {
         this.#colorizeCanvas();
       }      
     }
