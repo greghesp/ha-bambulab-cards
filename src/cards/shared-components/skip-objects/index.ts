@@ -25,10 +25,7 @@ export class SkipObjects extends LitElement {
   @state() private _visibleContext: CanvasRenderingContext2D | null = null;
   @state() private _pickImage: HTMLImageElement | null = null;
   @state() private _hiddenContext: CanvasRenderingContext2D | null = null;
-  @state() private _pickImageState: any;
-  @state() private _skippedObjectsState: any;
   @state() private _hoveredObject: number = 0;
-  @state() private _lastColorizedHover: number = 0;
 
   @consume({ context: hassContext, subscribe: true })
   @state()

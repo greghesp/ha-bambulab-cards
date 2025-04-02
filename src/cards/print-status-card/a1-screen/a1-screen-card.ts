@@ -1,6 +1,6 @@
 import * as helpers from "../../../utils/helpers";
 import { customElement, property, state } from "lit/decorators.js";
-import { html, LitElement, nothing, svg } from "lit";
+import { html, LitElement, nothing } from "lit";
 import styles from "./a1-screen-styles";
 import { hassContext, entitiesContext } from "../../../utils/context";
 import { consume } from "@lit/context";
@@ -34,7 +34,7 @@ export class A1ScreenCard extends LitElement {
     body: "",
   };
 
-  @state() private showSkipObjects = true;
+  @state() private showSkipObjects = false;
 
   static styles = styles;
 
