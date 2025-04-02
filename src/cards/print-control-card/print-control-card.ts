@@ -13,7 +13,7 @@ import {
   PRINT_CONTROL_CARD_NAME_LEGACY,
 } from "./const";
 
-import BUILD_PLATE_IMAGE from "../../images/bambu_smooth_plate.png";
+import BUILD_PLATE_IMAGE from "../../images/build_plate.svg";
 
 registerCustomCard({
   type: PRINT_CONTROL_CARD_NAME,

@@ -5,7 +5,7 @@ import styles from "./card.styles";
 import * as helpers from "../../../utils/helpers";
 import { css } from "lit";
 
-import BUILD_PLATE_IMAGE from "~/images/bambu_smooth_plate.png";
+import BUILD_PLATE_IMAGE from "~/images/build_plate.svg";
 import { entitiesContext, hassContext } from "~/utils/context";
 
 interface PrintableObject {
@@ -135,8 +135,34 @@ export class SkipObjects extends LitElement {
     `;
   }
 
-  #handleCanvasClick() {
-    console.log("Canvas Clicked");
+  #handleCanvasClick(event: MouseEvent) {
+    if (!this._hiddenContext) return;
+
+    const canvas = event.target as HTMLCanvasElement;
+    const rect = canvas.getBoundingClientRect();
+
+    // Get click coordinates relative to canvas
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Scale coordinates if canvas display size differs from internal size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    // Get the pixel data at click location
+    const pixel = this._hiddenContext.getImageData(x * scaleX, y * scaleY, 1, 1).data;
+    const key = helpers.rgbaToInt(pixel[0], pixel[1], pixel[2], 0);
+
+    if (key !== 0) {
+      const object = this.printableObjects.get(key);
+      if (object) {
+        // Don't allow toggling already skipped objects
+        if (!object.skipped) {
+          object.to_skip = !object.to_skip;
+          this._updateObject(key, object);
+        }
+      }
+    }
   }
 
   #initializeCanvas() {
@@ -144,7 +170,6 @@ export class SkipObjects extends LitElement {
       return;
     }
 
-    console.log("Initializing Canvas");
     const confirmationPrompt = this.shadowRoot?.querySelector("confirmation-prompt");
     if (!confirmationPrompt) return;
 
@@ -153,8 +178,6 @@ export class SkipObjects extends LitElement {
 
     const canvas = content.querySelector("#canvas") as HTMLCanvasElement;
     if (!canvas) return;
-
-    console.log("Canvas found", canvas);
 
     // Create hidden canvas for original image
     const hiddenCanvas = document.createElement("canvas");
@@ -165,8 +188,12 @@ export class SkipObjects extends LitElement {
     this._visibleContext = canvas.getContext("2d", { willReadFrequently: true });
     if (!this._visibleContext || !this._hiddenContext) return;
 
-    canvas.addEventListener("click", (event) => {
-      this.#handleCanvasClick();
+    // Add click and hover events to canvas
+    canvas.addEventListener("click", this.#handleCanvasClick.bind(this));
+    canvas.addEventListener("mousemove", this.#handleCanvasHover.bind(this));
+    canvas.addEventListener("mouseout", () => {
+      this._hoveredObject = 0;
+      this.#colorizeCanvas();
     });
 
     // Now create the image to load the pick image into from home assistant.
@@ -180,6 +207,30 @@ export class SkipObjects extends LitElement {
 
     this._pickImage.src =
       this._hass.states[this._deviceEntities["pick_image"].entity_id].attributes.entity_picture;
+  }
+
+  #handleCanvasHover(event: MouseEvent) {
+    if (!this._hiddenContext) return;
+
+    const canvas = event.target as HTMLCanvasElement;
+    const rect = canvas.getBoundingClientRect();
+
+    // Get hover coordinates relative to canvas
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Scale coordinates if canvas display size differs from internal size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    // Get the pixel data at hover location
+    const pixel = this._hiddenContext.getImageData(x * scaleX, y * scaleY, 1, 1).data;
+    const key = helpers.rgbaToInt(pixel[0], pixel[1], pixel[2], 0);
+
+    if (this._hoveredObject !== key) {
+      this._hoveredObject = key;
+      this.#colorizeCanvas();
+    }
   }
 
   #colorizeCanvas() {
