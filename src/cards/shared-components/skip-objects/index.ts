@@ -225,7 +225,6 @@ export class SkipObjects extends LitElement {
     canvas.addEventListener("mousemove", this.#handleCanvasHover.bind(this));
     canvas.addEventListener("mouseout", () => {
       this.hoveredObject = 0;
-      this.#colorizeCanvas();
     });
 
     // Now create the image to load the pick image into from home assistant.
