@@ -6,7 +6,7 @@ import * as helpers from "../../../utils/helpers";
 import { css } from "lit";
 
 import BUILD_PLATE_IMAGE from "~/images/build_plate.svg";
-import { entitiesContext, hassContext } from "~/utils/context";
+import { entitiesContext, hassContext } from "../../../utils/context";
 
 interface PrintableObject {
   name: string;
@@ -35,6 +35,10 @@ export class SkipObjects extends LitElement {
   @state()
   public _deviceEntities;
 
+  // Home assistant state references that are only used in changedProperties
+  #pickImageState: any;
+  #skippedObjectsState: any;
+  
   constructor() {
     super();
   }
@@ -47,9 +51,22 @@ export class SkipObjects extends LitElement {
   updated(changedProperties) {
     super.updated(changedProperties);
 
-    // Only handle updates for _hass and _deviceEntities
-    if (changedProperties.has("_hass") || changedProperties.has("_deviceEntities")) {
-      this.#populateCheckboxList();
+    if (this._deviceEntities["ftp"]) {
+      if (changedProperties.has("_hass")) {
+        let newState = this._hass.states[this._deviceEntities["pick_image"].entity_id].state;
+        if (newState !== this.#pickImageState) {
+          this.#pickImageState = newState;
+          this.#initializeCanvas();
+          this.#populateCheckboxList();
+        }
+
+        newState = this._hass.states[this._deviceEntities["skipped_objects"].entity_id].state;
+        if (newState !== this.#skippedObjectsState) {
+          this.#skippedObjectsState = newState;
+          this.#initializeCanvas();
+          this.#populateCheckboxList();
+        }
+      }
     }
   }
 
@@ -132,32 +149,45 @@ export class SkipObjects extends LitElement {
     `;
   }
 
-  #handleCanvasClick(event: MouseEvent) {
-    if (!this._hiddenContext) return;
+  #handleCanvasClick(event) {
+    const confirmationPrompt = this.shadowRoot?.querySelector("confirmation-prompt");
+    if (!confirmationPrompt) return;
 
-    const canvas = event.target as HTMLCanvasElement;
-    const rect = canvas.getBoundingClientRect();
+    const content = confirmationPrompt.shadowRoot?.querySelector(".content");
+    if (!content) return;
 
-    // Get click coordinates relative to canvas
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const canvas = content.querySelector("#canvas") as HTMLCanvasElement;
+    if (!canvas) return;
 
-    // Scale coordinates if canvas display size differs from internal size
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    // The intrinsic width and height of the canvas (512x512)
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    // The CSS width and height of the canvas (which might be different)
+    const canvasStyleWidth = canvas.offsetWidth;
+    const canvasStyleHeight = canvas.offsetHeight;
+    // Calculate the scaling factors
+    const scaleX = canvasStyleWidth / canvasWidth;
+    const scaleY = canvasStyleHeight / canvasHeight;
 
-    // Get the pixel data at click location
-    const pixel = this._hiddenContext.getImageData(x * scaleX, y * scaleY, 1, 1).data;
-    const key = helpers.rgbaToInt(pixel[0], pixel[1], pixel[2], 0);
+    const rect = event.target.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+    // Get x & y in scaled coordinates.
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
+    // Upscale to native canvas size.
+    x = x / scaleX;
+    y = y / scaleY;
 
-    if (key !== 0) {
-      const object = this.printableObjects.get(key);
-      if (object) {
-        // Don't allow toggling already skipped objects
-        if (!object.skipped) {
-          object.to_skip = !object.to_skip;
-          this._updateObject(key, object);
-        }
+    const imageData = this._hiddenContext?.getImageData(x, y, 1, 1).data;
+    const [r, g, b, a] = imageData;
+
+    const key = helpers.rgbaToInt(r, g, b, 0); // For integer comparisons we set the alpha to 0.
+    if (key != 0) {
+      if (!this.printableObjects.get(key)!.skipped) {
+        const value = this.printableObjects.get(key)!;
+        value.to_skip = !value.to_skip;
+        this._updateObject(key, value);
       }
     }
   }
@@ -232,57 +262,120 @@ export class SkipObjects extends LitElement {
 
   #colorizeCanvas() {
     if (!this._visibleContext || !this._hiddenContext) {
+      // Lit reactivity can come through here before we're fully initialized.
       return;
     }
 
+    // Now we colorize the image based on the list of skipped objects.
     const WIDTH = 512;
     const HEIGHT = 512;
 
-    // Clear the visible canvas
-    this._visibleContext.clearRect(0, 0, WIDTH, HEIGHT);
+    // Read original pick image into a data buffer so we can read the pixels.
+    const readImageData = this._hiddenContext!.getImageData(0, 0, WIDTH, HEIGHT);
+    const readData = readImageData.data;
 
-    // Get the original image data
-    const imageData = this._hiddenContext.getImageData(0, 0, WIDTH, HEIGHT);
-    const data = imageData.data;
+    // Overwrite the display image with the starting pick image
+    this._visibleContext.putImageData(readImageData, 0, 0);
 
-    // Create output image data
-    const outputData = this._visibleContext.createImageData(WIDTH, HEIGHT);
-    const outData = outputData.data;
+    // Read the data into a buffer that we'll write to to modify the pixel colors.
+    const writeImageData = this._visibleContext!.getImageData(0, 0, WIDTH, HEIGHT);
+    const writeData = writeImageData.data;
+    const writeDataView = new DataView(writeData.buffer);
 
-    // Process the image
-    for (let i = 0; i < data.length; i += 4) {
-      const key = helpers.rgbaToInt(data[i], data[i + 1], data[i + 2], 0);
+    const red = helpers.rgbaToInt(255, 0, 0, 255); // For writes we set alpha to 255 (fully opaque).
+    const green = helpers.rgbaToInt(0, 255, 0, 255); // For writes we set alpha to 255 (fully opaque).
+    const blue = helpers.rgbaToInt(0, 0, 255, 255); // For writes we set alpha to 255 (fully opaque).
 
-      if (key !== 0) {
-        const object = this.printableObjects.get(key);
-        if (object) {
-          if (object.to_skip) {
-            // Red for skipped
-            outData[i] = 255;
-            outData[i + 1] = 0;
-            outData[i + 2] = 0;
+    let lastPixelWasHoveredObject = false;
+    for (let y = 0; y < HEIGHT; y++) {
+      for (let x = 0; x < WIDTH; x++) {
+        const i = y * 4 * HEIGHT + x * 4;
+        const key = helpers.rgbaToInt(readData[i], readData[i + 1], readData[i + 2], 0); // For integer comparisons we set the alpha to 0.
+
+        // If the pixel is not clear we need to change it.
+        if (key != 0) {
+          // Color the object based on it's to_skip state.
+          if (this.printableObjects.get(key)?.to_skip) {
+            writeDataView.setUint32(i, red, true);
           } else {
-            // Green for not skipped
-            outData[i] = 0;
-            outData[i + 1] = 255;
-            outData[i + 2] = 0;
+            writeDataView.setUint32(i, green, true);
           }
-          // Set alpha
-          outData[i + 3] = 255;
 
-          // Blue highlight for hovered object
-          if (key === this._hoveredObject) {
-            outData[i] = 0;
-            outData[i + 1] = 0;
-            outData[i + 2] = 255;
-            outData[i + 3] = 255;
+          if (key == this._hoveredObject) {
+            // Check to see if we need to render the left border if the pixel to the left is not the hovered object.
+            if (x > 0) {
+              const j = i - 4;
+              const left = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
+              if (left != key) {
+                writeDataView.setUint32(i, blue, true);
+              }
+            }
+            // And the next pixel out too for a 2 pixel border.
+            if (x > 1) {
+              const j = i - 4 * 2;
+              const left = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
+              if (left != key) {
+                writeDataView.setUint32(i, blue, true);
+              }
+            }
+
+            // Check to see if we need to render the top border if the pixel above is not the hovered object.
+            if (y > 0) {
+              const j = i - WIDTH * 4;
+              const top = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
+              if (top != key) {
+                writeDataView.setUint32(i, blue, true);
+              }
+            }
+            // And the next pixel out too for a 2 pixel border.
+            if (y > 1) {
+              const j = i - WIDTH * 4 * 2;
+              const top = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
+              if (top != key) {
+                writeDataView.setUint32(i, blue, true);
+              }
+            }
+
+            // Check to see if pixel to the right is not the hovered object to draw right border.
+            if (x < WIDTH - 1) {
+              const j = i + 4;
+              const right = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
+              if (right != this._hoveredObject) {
+                writeDataView.setUint32(i, blue, true);
+              }
+            }
+            // And the next pixel out too for a 2 pixel border.
+            if (x < WIDTH - 2) {
+              const j = i + 4 * 2;
+              const right = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
+              if (right != this._hoveredObject) {
+                writeDataView.setUint32(i, blue, true);
+              }
+            }
+
+            // Check to see if pixel above was the hovered object to draw bottom border.
+            if (y < HEIGHT - 1) {
+              const j = i + WIDTH * 4;
+              const below = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
+              if (below != this._hoveredObject) {
+                writeDataView.setUint32(i, blue, true);
+              }
+            }
+            // And the next pixel out too for a 2 pixel border.
+            if (y < HEIGHT - 2) {
+              const j = i + WIDTH * 4 * 2;
+              const below = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
+              if (below != this._hoveredObject) {
+                writeDataView.setUint32(i, blue, true);
+              }
+            }
           }
         }
       }
     }
 
-    // Put the image data back
-    this._visibleContext.putImageData(outputData, 0, 0);
+    // Put the modified image data back into the canvas
+    this._visibleContext.putImageData(writeImageData, 0, 0);
   }
 
   _onMouseOverCheckBox(key: number) {
@@ -324,7 +417,7 @@ export class SkipObjects extends LitElement {
     this.printableObjects = new Map(this.printableObjects); // Trigger Lit reactivity
   }
 
-  private _callSkipObjectsService() {
+  #callSkipObjectsService() {
     const list = Array.from(this.printableObjects.keys())
       .filter((key) => this.printableObjects.get(key)!.to_skip)
       .map((key) => key)
@@ -347,7 +440,7 @@ export class SkipObjects extends LitElement {
         .body=${this.#body()}
         primaryActionText="Skip"
         secondaryActionText="Cancel"
-        .primaryAction=${this._callSkipObjectsService.bind(this)}
+        .primaryAction=${this.#callSkipObjectsService.bind(this)}
         .secondaryAction=${this.secondaryAction}
         .styles=${styles}
         @content-ready=${this.#handleContentReady}
