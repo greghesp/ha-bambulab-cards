@@ -18,6 +18,7 @@ type ConfirmationState = {
 export class A1ScreenCard extends LitElement {
   @property() public coverImage;
   @property() public _device_id;
+  @state() private processedImage: string | null = null;
 
   @consume({ context: hassContext, subscribe: true })
   @state()
@@ -38,9 +39,95 @@ export class A1ScreenCard extends LitElement {
 
   static styles = styles;
 
-  firstUpdated(changedProperties): void {
+  async #processCoverImage() {
+    if (!this.coverImage) return null;
+
+    return new Promise<string>((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d")!;
+
+        // Set initial canvas size to image dimensions
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        // Draw the image
+        ctx.drawImage(img, 0, 0);
+
+        // Get the image data
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Find the boundaries of non-transparent pixels
+        let minX = canvas.width;
+        let minY = canvas.height;
+        let maxX = 0;
+        let maxY = 0;
+
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            const alpha = data[(y * canvas.width + x) * 4 + 3];
+            if (alpha > 0) {
+              minX = Math.min(minX, x);
+              minY = Math.min(minY, y);
+              maxX = Math.max(maxX, x);
+              maxY = Math.max(maxY, y);
+            }
+          }
+        }
+
+        // Add a small padding
+        const padding = 10;
+        minX = Math.max(0, minX - padding);
+        minY = Math.max(0, minY - padding);
+        maxX = Math.min(canvas.width, maxX + padding);
+        maxY = Math.min(canvas.height, maxY + padding);
+
+        // Create a new canvas with the cropped dimensions
+        const croppedCanvas = document.createElement("canvas");
+        croppedCanvas.width = maxX - minX;
+        croppedCanvas.height = maxY - minY;
+
+        // Draw the cropped image
+        const croppedCtx = croppedCanvas.getContext("2d")!;
+        croppedCtx.drawImage(
+          canvas,
+          minX,
+          minY,
+          maxX - minX,
+          maxY - minY,
+          0,
+          0,
+          maxX - minX,
+          maxY - minY
+        );
+
+        resolve(croppedCanvas.toDataURL("image/png"));
+      };
+
+      img.onerror = () => {
+        resolve(this.coverImage);
+      };
+
+      img.src = this.coverImage;
+    });
+  }
+
+  async firstUpdated(changedProperties): Promise<void> {
     super.firstUpdated(changedProperties);
     this.observeCardHeight();
+    this.processedImage = await this.#processCoverImage();
+  }
+
+  updated(changedProperties) {
+    if (changedProperties.has("coverImage")) {
+      this.#processCoverImage().then((processedImage) => {
+        this.processedImage = processedImage;
+      });
+    }
   }
 
   observeCardHeight() {
@@ -202,7 +289,7 @@ export class A1ScreenCard extends LitElement {
           <div class="ha-bambulab-ssc-status-and-controls">
             <div class="ha-bambulab-ssc-status-content">
               <div class="ha-bambulab-ssc-status-icon">
-                <img src="${this.coverImage}" alt="Cover Image" />
+                <img src="${this.processedImage || this.coverImage}" alt="Cover Image" />
               </div>
               <div class="ha-bambulab-ssc-status-info">
                 <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
