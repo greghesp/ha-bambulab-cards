@@ -6,7 +6,7 @@ import * as helpers from "../../../utils/helpers";
 import { css } from "lit";
 
 import BUILD_PLATE_IMAGE from "~/images/build_plate.svg";
-import { entitiesContext, hassContext } from "../../../utils/context";
+import { entitiesContext, hassContext } from "~/utils/context";
 
 interface PrintableObject {
   name: string;
@@ -22,8 +22,10 @@ export class SkipObjects extends LitElement {
   @property({ type: String }) _device_id!: string;
   @property() secondaryAction!: () => void;
   @state() private printableObjects: Map<number, PrintableObject> = new Map();
-  @state() private pickImage: HTMLImageElement | null = null;
-  @state() private hoveredObject: number = 0;
+  @state() private _visibleContext: CanvasRenderingContext2D | null = null;
+  @state() private _pickImage: HTMLImageElement | null = null;
+  @state() private _hiddenContext: CanvasRenderingContext2D | null = null;
+  @state() private _hoveredObject: number = 0;
 
   @consume({ context: hassContext, subscribe: true })
   @state()
@@ -33,13 +35,6 @@ export class SkipObjects extends LitElement {
   @state()
   public _deviceEntities;
 
-  #visibleContext: CanvasRenderingContext2D | null = null;
-  #hiddenContext: CanvasRenderingContext2D | null = null;
-
-  // Home assistant state references that are only used in changedProperties
-  #pickImageState: any;
-  #skippedObjectsState: any;
-  
   constructor() {
     super();
   }
@@ -52,26 +47,9 @@ export class SkipObjects extends LitElement {
   updated(changedProperties) {
     super.updated(changedProperties);
 
-    if (this._deviceEntities["ftp"]) {
-      if (changedProperties.has("_hass")) {
-        let newState = this._hass.states[this._deviceEntities["pick_image"].entity_id].state;
-        if (newState !== this.#pickImageState) {
-          this.#pickImageState = newState;
-          this.#initializeCanvas();
-          this.#populateCheckboxList();
-        }
-
-        newState = this._hass.states[this._deviceEntities["skipped_objects"].entity_id].state;
-        if (newState !== this.#skippedObjectsState) {
-          this.#skippedObjectsState = newState;
-          this.#initializeCanvas();
-          this.#populateCheckboxList();
-        }
-      }
-
-      if (changedProperties.has("hoveredObject") || changedProperties.has("printableObjects")) {
-        this.#colorizeCanvas();
-      }      
+    // Only handle updates for _hass and _deviceEntities
+    if (changedProperties.has("_hass") || changedProperties.has("_deviceEntities")) {
+      this.#populateCheckboxList();
     }
   }
 
@@ -81,7 +59,7 @@ export class SkipObjects extends LitElement {
       const content = confirmationPrompt.shadowRoot?.querySelector(".content");
       if (content) {
         const canvas = content.querySelector("#canvas");
-        if (canvas && (!this.#visibleContext || !this.#hiddenContext)) {
+        if (canvas && (!this._visibleContext || !this._hiddenContext)) {
           this.#initializeCanvas();
         }
       }
@@ -134,13 +112,13 @@ export class SkipObjects extends LitElement {
                 return html`
                   <div class="checkbox-object">
                     <label
-                      @mouseover="${() => this.#onMouseOverCheckBox(key)}"
-                      @mouseout="${() => this.#onMouseOutCheckBox(key)}}"
+                      @mouseover="${() => this._onMouseOverCheckBox(key)}"
+                      @mouseout="${() => this._onMouseOutCheckBox(key)}}"
                     >
                       <input
                         type="checkbox"
                         .checked="${item.to_skip}"
-                        @change="${(e: Event) => this.#toggleCheckbox(e, key)}"
+                        @change="${(e: Event) => this._toggleCheckbox(e, key)}"
                       />
                       ${item.skipped ? item.name + " (already skipped)" : item.name}
                     </label>
@@ -154,43 +132,32 @@ export class SkipObjects extends LitElement {
     `;
   }
 
-  #handleCanvasClick(event) {
-    const confirmationPrompt = this.shadowRoot?.querySelector("confirmation-prompt");
-    if (!confirmationPrompt) return;
+  #handleCanvasClick(event: MouseEvent) {
+    if (!this._hiddenContext) return;
 
-    const content = confirmationPrompt.shadowRoot?.querySelector(".content");
-    if (!content) return;
+    const canvas = event.target as HTMLCanvasElement;
+    const rect = canvas.getBoundingClientRect();
 
-    const canvas = content.querySelector("#canvas") as HTMLCanvasElement;
-    if (!canvas) return;
+    // Get click coordinates relative to canvas
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
 
-    // The intrinsic width and height of the canvas (512x512)
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
-    // The CSS width and height of the canvas (which might be different)
-    const canvasStyleWidth = canvas.offsetWidth;
-    const canvasStyleHeight = canvas.offsetHeight;
-    // Calculate the scaling factors
-    const scaleX = canvasStyleWidth / canvasWidth;
-    const scaleY = canvasStyleHeight / canvasHeight;
+    // Scale coordinates if canvas display size differs from internal size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
 
-    const rect = event.target.getBoundingClientRect();
-    // Get x & y in scaled coordinates.
-    let x = event.clientX - rect.left;
-    let y = event.clientY - rect.top;
-    // Upscale to native canvas size.
-    x = x / scaleX;
-    y = y / scaleY;
+    // Get the pixel data at click location
+    const pixel = this._hiddenContext.getImageData(x * scaleX, y * scaleY, 1, 1).data;
+    const key = helpers.rgbaToInt(pixel[0], pixel[1], pixel[2], 0);
 
-    const imageData = this.#hiddenContext?.getImageData(x, y, 1, 1).data!;
-    const [r, g, b, a] = imageData;
-
-    const key = helpers.rgbaToInt(r, g, b, 0); // For integer comparisons we set the alpha to 0.
-    if (key != 0) {
-      if (!this.printableObjects.get(key)!.skipped) {
-        const value = this.printableObjects.get(key)!;
-        value.to_skip = !value.to_skip;
-        this.#updateObject(key, value);
+    if (key !== 0) {
+      const object = this.printableObjects.get(key);
+      if (object) {
+        // Don't allow toggling already skipped objects
+        if (!object.skipped) {
+          object.to_skip = !object.to_skip;
+          this._updateObject(key, object);
+        }
       }
     }
   }
@@ -200,46 +167,42 @@ export class SkipObjects extends LitElement {
       return;
     }
 
-    const confirmationPrompt = this.shadowRoot?.querySelector("confirmation-prompt");
-    if (!confirmationPrompt) return;
-
-    const content = confirmationPrompt.shadowRoot?.querySelector(".content");
-    if (!content) return;
-
+    const confirmationPrompt = this.shadowRoot!.querySelector("confirmation-prompt")!;
+    const content = confirmationPrompt.shadowRoot!.querySelector(".content")!;
     const canvas = content.querySelector("#canvas") as HTMLCanvasElement;
-    if (!canvas) return;
 
     // Create hidden canvas for original image
     const hiddenCanvas = document.createElement("canvas");
     hiddenCanvas.width = 512;
     hiddenCanvas.height = 512;
-    this.#hiddenContext = hiddenCanvas.getContext("2d", { willReadFrequently: true });
+    this._hiddenContext = hiddenCanvas.getContext("2d", { willReadFrequently: true });
 
-    this.#visibleContext = canvas.getContext("2d", { willReadFrequently: true });
-    if (!this.#visibleContext || !this.#hiddenContext) return;
+    this._visibleContext = canvas.getContext("2d", { willReadFrequently: true });
+    if (!this._visibleContext || !this._hiddenContext) return;
 
     // Add click and hover events to canvas
     canvas.addEventListener("click", this.#handleCanvasClick.bind(this));
     canvas.addEventListener("mousemove", this.#handleCanvasHover.bind(this));
     canvas.addEventListener("mouseout", () => {
-      this.hoveredObject = 0;
+      this._hoveredObject = 0;
+      this.#colorizeCanvas();
     });
 
     // Now create the image to load the pick image into from home assistant.
-    this.pickImage = new Image();
-    this.pickImage.onload = () => {
-      if (!this.#hiddenContext || !this.pickImage) return;
-      this.#hiddenContext.clearRect(0, 0, canvas.width, canvas.height);
-      this.#hiddenContext.drawImage(this.pickImage, 0, 0);
+    this._pickImage = new Image();
+    this._pickImage.onload = () => {
+      if (!this._hiddenContext || !this._pickImage) return;
+      this._hiddenContext.clearRect(0, 0, canvas.width, canvas.height);
+      this._hiddenContext.drawImage(this._pickImage, 0, 0);
       this.#colorizeCanvas();
     };
 
-    this.pickImage.src =
+    this._pickImage.src =
       this._hass.states[this._deviceEntities["pick_image"].entity_id].attributes.entity_picture;
   }
 
   #handleCanvasHover(event: MouseEvent) {
-    if (!this.#hiddenContext) return;
+    if (!this._hiddenContext) return;
 
     const canvas = event.target as HTMLCanvasElement;
     const rect = canvas.getBoundingClientRect();
@@ -253,149 +216,89 @@ export class SkipObjects extends LitElement {
     const scaleY = canvas.height / rect.height;
 
     // Get the pixel data at hover location
-    const pixel = this.#hiddenContext.getImageData(x * scaleX, y * scaleY, 1, 1).data;
+    const pixel = this._hiddenContext.getImageData(x * scaleX, y * scaleY, 1, 1).data;
     const key = helpers.rgbaToInt(pixel[0], pixel[1], pixel[2], 0);
 
-    if (this.hoveredObject !== key) {
-      this.hoveredObject = key;
+    if (this._hoveredObject !== key) {
+      this._hoveredObject = key;
+      this.#colorizeCanvas();
     }
   }
 
   #colorizeCanvas() {
-    if (!this.#visibleContext || !this.#hiddenContext) {
-      // Lit reactivity can come through here before we're fully initialized.
+    if (!this._visibleContext || !this._hiddenContext) {
       return;
     }
 
-    // Now we colorize the image based on the list of skipped objects.
     const WIDTH = 512;
     const HEIGHT = 512;
 
-    // Read original pick image into a data buffer so we can read the pixels.
-    const readImageData = this.#hiddenContext!.getImageData(0, 0, WIDTH, HEIGHT);
-    const readData = readImageData.data;
+    // Clear the visible canvas
+    this._visibleContext.clearRect(0, 0, WIDTH, HEIGHT);
 
-    // Overwrite the display image with the starting pick image
-    this.#visibleContext.putImageData(readImageData, 0, 0);
+    // Get the original image data
+    const imageData = this._hiddenContext.getImageData(0, 0, WIDTH, HEIGHT);
+    const data = imageData.data;
 
-    // Read the data into a buffer that we'll write to to modify the pixel colors.
-    const writeImageData = this.#visibleContext!.getImageData(0, 0, WIDTH, HEIGHT);
-    const writeData = writeImageData.data;
-    const writeDataView = new DataView(writeData.buffer);
+    // Create output image data
+    const outputData = this._visibleContext.createImageData(WIDTH, HEIGHT);
+    const outData = outputData.data;
 
-    const red = helpers.rgbaToInt(255, 0, 0, 255); // For writes we set alpha to 255 (fully opaque).
-    const green = helpers.rgbaToInt(0, 255, 0, 255); // For writes we set alpha to 255 (fully opaque).
-    const blue = helpers.rgbaToInt(0, 0, 255, 255); // For writes we set alpha to 255 (fully opaque).
+    // Process the image
+    for (let i = 0; i < data.length; i += 4) {
+      const key = helpers.rgbaToInt(data[i], data[i + 1], data[i + 2], 0);
 
-    let lastPixelWasHoveredObject = false;
-    for (let y = 0; y < HEIGHT; y++) {
-      for (let x = 0; x < WIDTH; x++) {
-        const i = y * 4 * HEIGHT + x * 4;
-        const key = helpers.rgbaToInt(readData[i], readData[i + 1], readData[i + 2], 0); // For integer comparisons we set the alpha to 0.
-
-        // If the pixel is not clear we need to change it.
-        if (key != 0) {
-          // Color the object based on it's to_skip state.
-          if (this.printableObjects.get(key)?.to_skip) {
-            writeDataView.setUint32(i, red, true);
+      if (key !== 0) {
+        const object = this.printableObjects.get(key);
+        if (object) {
+          if (object.to_skip) {
+            // Red for skipped
+            outData[i] = 255;
+            outData[i + 1] = 0;
+            outData[i + 2] = 0;
           } else {
-            writeDataView.setUint32(i, green, true);
+            // Green for not skipped
+            outData[i] = 0;
+            outData[i + 1] = 255;
+            outData[i + 2] = 0;
           }
+          // Set alpha
+          outData[i + 3] = 255;
 
-          if (key == this.hoveredObject) {
-            // Check to see if we need to render the left border if the pixel to the left is not the hovered object.
-            if (x > 0) {
-              const j = i - 4;
-              const left = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
-              if (left != key) {
-                writeDataView.setUint32(i, blue, true);
-              }
-            }
-            // And the next pixel out too for a 2 pixel border.
-            if (x > 1) {
-              const j = i - 4 * 2;
-              const left = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
-              if (left != key) {
-                writeDataView.setUint32(i, blue, true);
-              }
-            }
-
-            // Check to see if we need to render the top border if the pixel above is not the hovered object.
-            if (y > 0) {
-              const j = i - WIDTH * 4;
-              const top = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
-              if (top != key) {
-                writeDataView.setUint32(i, blue, true);
-              }
-            }
-            // And the next pixel out too for a 2 pixel border.
-            if (y > 1) {
-              const j = i - WIDTH * 4 * 2;
-              const top = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
-              if (top != key) {
-                writeDataView.setUint32(i, blue, true);
-              }
-            }
-
-            // Check to see if pixel to the right is not the hovered object to draw right border.
-            if (x < WIDTH - 1) {
-              const j = i + 4;
-              const right = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
-              if (right != this.hoveredObject) {
-                writeDataView.setUint32(i, blue, true);
-              }
-            }
-            // And the next pixel out too for a 2 pixel border.
-            if (x < WIDTH - 2) {
-              const j = i + 4 * 2;
-              const right = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
-              if (right != this.hoveredObject) {
-                writeDataView.setUint32(i, blue, true);
-              }
-            }
-
-            // Check to see if pixel above was the hovered object to draw bottom border.
-            if (y < HEIGHT - 1) {
-              const j = i + WIDTH * 4;
-              const below = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
-              if (below != this.hoveredObject) {
-                writeDataView.setUint32(i, blue, true);
-              }
-            }
-            // And the next pixel out too for a 2 pixel border.
-            if (y < HEIGHT - 2) {
-              const j = i + WIDTH * 4 * 2;
-              const below = helpers.rgbaToInt(readData[j], readData[j + 1], readData[j + 2], 0);
-              if (below != this.hoveredObject) {
-                writeDataView.setUint32(i, blue, true);
-              }
-            }
+          // Blue highlight for hovered object
+          if (key === this._hoveredObject) {
+            outData[i] = 0;
+            outData[i + 1] = 0;
+            outData[i + 2] = 255;
+            outData[i + 3] = 255;
           }
         }
       }
     }
 
-    // Put the modified image data back into the canvas
-    this.#visibleContext.putImageData(writeImageData, 0, 0);
+    // Put the image data back
+    this._visibleContext.putImageData(outputData, 0, 0);
   }
 
-  #onMouseOverCheckBox(key: number) {
+  _onMouseOverCheckBox(key: number) {
     requestAnimationFrame(() => {
-      if (this.hoveredObject !== key) {
-        this.hoveredObject = key;
+      if (this._hoveredObject !== key) {
+        this._hoveredObject = key;
+        this.#colorizeCanvas();
       }
     });
   }
 
-  #onMouseOutCheckBox(key: number) {
+  _onMouseOutCheckBox(key: number) {
     requestAnimationFrame(() => {
-      if (this.hoveredObject === key) {
-        this.hoveredObject = 0;
+      if (this._hoveredObject === key) {
+        this._hoveredObject = 0;
+        this.#colorizeCanvas();
       }
     });
   }
 
-  #toggleCheckbox(e: Event, key: number) {
+  private _toggleCheckbox(e: Event, key: number) {
     const skippedBool = this.printableObjects.get(key)?.skipped;
     if (skippedBool) {
       // Force the checkbox to remain checked if the object has already been skipped.
@@ -403,17 +306,20 @@ export class SkipObjects extends LitElement {
     } else {
       const value = this.printableObjects.get(key)!;
       value.to_skip = !value.to_skip;
-      this.#updateObject(key, value);
-      this.hoveredObject = 0;
+      this._updateObject(key, value);
+      this._hoveredObject = 0;
+      requestAnimationFrame(() => {
+        this.#colorizeCanvas();
+      });
     }
   }
 
-  #updateObject(key: number, value: PrintableObject) {
+  private _updateObject(key: number, value: PrintableObject) {
     this.printableObjects.set(key, value);
     this.printableObjects = new Map(this.printableObjects); // Trigger Lit reactivity
   }
 
-  #callSkipObjectsService() {
+  private _callSkipObjectsService() {
     const list = Array.from(this.printableObjects.keys())
       .filter((key) => this.printableObjects.get(key)!.to_skip)
       .map((key) => key)
@@ -436,7 +342,7 @@ export class SkipObjects extends LitElement {
         .body=${this.#body()}
         primaryActionText="Skip"
         secondaryActionText="Cancel"
-        .primaryAction=${this.#callSkipObjectsService.bind(this)}
+        .primaryAction=${this._callSkipObjectsService.bind(this)}
         .secondaryAction=${this.secondaryAction}
         .styles=${styles}
         @content-ready=${this.#handleContentReady}
