@@ -14,27 +14,18 @@ export class ConfirmationPrompt extends LitElement {
   @property({ type: String, attribute: true }) title: string = "Please Confirm";
   @property({ type: String, attribute: true }) primaryActionText: string = "Confirm";
   @property({ type: String, attribute: true }) secondaryActionText: string = "Cancel";
-
   @property() primaryAction!: () => void;
   @property() secondaryAction!: () => void;
 
-  protected createRenderRoot(): ShadowRoot {
-    const root = super.createRenderRoot() as ShadowRoot;
+  protected firstUpdated(): void {
+    // Apply styles once when first rendered
     if (this.styles) {
       const styleSheet = new CSSStyleSheet();
       styleSheet.replaceSync(this.styles.cssText);
-      root.adoptedStyleSheets = [styleSheet];
+      this.shadowRoot!.adoptedStyleSheets = [styleSheet];
     }
-    return root;
-  }
-
-  protected updated(changedProperties) {
-    super.updated(changedProperties);
-    if (changedProperties.has("styles") && this.styles && this.shadowRoot) {
-      const styleSheet = new CSSStyleSheet();
-      styleSheet.replaceSync(this.styles.cssText);
-      this.shadowRoot.adoptedStyleSheets = [styleSheet];
-    }
+    // Emit content-ready once when first rendered
+    this.dispatchEvent(new CustomEvent("content-ready"));
   }
 
   render() {

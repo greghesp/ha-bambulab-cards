@@ -17,6 +17,7 @@ type ConfirmationState = {
 @customElement("a1-screen-card")
 export class A1ScreenCard extends LitElement {
   @property() public coverImage;
+  @property() public _device_id;
 
   @consume({ context: hassContext, subscribe: true })
   @state()
@@ -193,6 +194,7 @@ export class A1ScreenCard extends LitElement {
       ${this.showSkipObjects
         ? html`<skip-objects
             secondaryAction=${this.#handleSkipObjectsDismiss.bind(this)}
+            _device_id=${this._device_id}
           ></skip-objects>`
         : nothing}
       <ha-card class="ha-bambulab-ssc">

@@ -279,7 +279,12 @@ export class PrintStatusCard extends EntityProvider {
 
   render() {
     if (this._style == "simple") {
-      return html` <a1-screen-card .coverImage=${this._getCoverImageUrl()}></a1-screen-card> `;
+      return html`
+        <a1-screen-card
+          .coverImage=${this._getCoverImageUrl()}
+          _device_id=${this._device_id}
+        ></a1-screen-card>
+      `;
     } else {
       // Add guard for when _entityUX is not yet initialized
       if (!this._entityUX) {
