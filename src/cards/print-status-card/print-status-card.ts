@@ -209,7 +209,6 @@ export class PrintStatusCard extends EntityProvider {
   }
 
   setConfig(config) {
-    console.log("setConfig called", config);
     if (!config.printer) {
       throw new Error("You need to select a Printer");
     }
