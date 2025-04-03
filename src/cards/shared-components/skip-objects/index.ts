@@ -172,10 +172,9 @@ export class SkipObjects extends LitElement {
     const [r, g, b, a] = imageData;
 
     const key = helpers.rgbaToInt(r, g, b, 0); // For integer comparisons we set the alpha to 0.
-    console.log(key)
     if (key != 0) {
       if (!this.printableObjects.get(key)!.skipped) {
-        const value = this.printableObjects.get(key)!;
+        let value = this.printableObjects.get(key)!;
         value.to_skip = !value.to_skip;
         this.#updateObject(key, value);
       }
@@ -200,31 +199,31 @@ export class SkipObjects extends LitElement {
       return;
     }
 
-    // Create hidden canvas for original image
-    const hiddenCanvas = document.createElement("canvas");
-    hiddenCanvas.width = 512;
-    hiddenCanvas.height = 512;
-    this.#hiddenContext = hiddenCanvas.getContext("2d", { willReadFrequently: true });
+    if (this.#visibleContext == null) {
+      // Find the visible canvas and set up click listener
+      this.#visibleContext = canvas.getContext("2d", { willReadFrequently: true })!;
+      // Add the click event listener to it that looks up the clicked pixel color and toggles any found object on or off.
+      canvas.addEventListener("click", this.#handleCanvasClick.bind(this));
+      canvas.addEventListener("mousemove", this.#handleCanvasHover.bind(this));
+      canvas.addEventListener("mouseout", () => { this.hoveredObject = 0; });
 
-    this.#visibleContext = canvas.getContext("2d", { willReadFrequently: true });
-    if (!this.#visibleContext || !this.#hiddenContext) return;
-
-    // Add click and hover events to canvas
-    canvas.addEventListener("click", this.#handleCanvasClick.bind(this));
-    canvas.addEventListener("mousemove", this.#handleCanvasHover.bind(this));
-    canvas.addEventListener("mouseout", () => {
-      this.hoveredObject = 0;
-    });
+      // Create hidden canvas for original image
+      const hiddenCanvas = document.createElement("canvas");
+      hiddenCanvas.width = 512;
+      hiddenCanvas.height = 512;
+      this.#hiddenContext = hiddenCanvas.getContext("2d", { willReadFrequently: true });
+    }
 
     // Now create the image to load the pick image into from home assistant.
     this.pickImage = new Image();
     this.pickImage.onload = () => {
-      if (!this.#hiddenContext || !this.pickImage) return;
-      this.#hiddenContext.clearRect(0, 0, canvas.width, canvas.height);
-      this.#hiddenContext.drawImage(this.pickImage, 0, 0);
+      // The image has transparency so we need to wipe the background first or old images can be combined
+      this.#hiddenContext!.clearRect(0, 0, canvas.width, canvas.height);
+      this.#hiddenContext!.drawImage(this.pickImage!, 0, 0);
       this.#colorizeCanvas();
     };
 
+    // Finally set the home assistant image URL into it to load the image.
     this.pickImage.src =
       this._hass.states[this._deviceEntities["pick_image"].entity_id].attributes.entity_picture;
   }
@@ -392,7 +391,7 @@ export class SkipObjects extends LitElement {
       // Force the checkbox to remain checked if the object has already been skipped.
       (e.target as HTMLInputElement).checked = true;
     } else {
-      const value = this.printableObjects.get(key)!;
+      let value = this.printableObjects.get(key)!;
       value.to_skip = !value.to_skip;
       this.#updateObject(key, value);
       this.hoveredObject = 0;
