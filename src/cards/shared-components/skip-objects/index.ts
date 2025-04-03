@@ -76,16 +76,7 @@ export class SkipObjects extends LitElement {
   }
 
   #handleContentReady() {
-    const confirmationPrompt = this.shadowRoot?.querySelector("confirmation-prompt");
-    if (confirmationPrompt) {
-      const content = confirmationPrompt.shadowRoot?.querySelector(".content");
-      if (content) {
-        const canvas = content.querySelector("#canvas");
-        if (canvas && (!this.#visibleContext || !this.#hiddenContext)) {
-          this.#initializeCanvas();
-        }
-      }
-    }
+    this.#initializeCanvas();
   }
 
   #populateCheckboxList() {
@@ -155,14 +146,9 @@ export class SkipObjects extends LitElement {
   }
 
   #handleCanvasClick(event) {
-    const confirmationPrompt = this.shadowRoot?.querySelector("confirmation-prompt");
-    if (!confirmationPrompt) return;
+    if (!this.#hiddenContext) return;
 
-    const content = confirmationPrompt.shadowRoot?.querySelector(".content");
-    if (!content) return;
-
-    const canvas = content.querySelector("#canvas") as HTMLCanvasElement;
-    if (!canvas) return;
+    const canvas = event.target as HTMLCanvasElement;
 
     // The intrinsic width and height of the canvas (512x512)
     const canvasWidth = canvas.width;
@@ -186,6 +172,7 @@ export class SkipObjects extends LitElement {
     const [r, g, b, a] = imageData;
 
     const key = helpers.rgbaToInt(r, g, b, 0); // For integer comparisons we set the alpha to 0.
+    console.log(key)
     if (key != 0) {
       if (!this.printableObjects.get(key)!.skipped) {
         const value = this.printableObjects.get(key)!;
@@ -201,13 +188,17 @@ export class SkipObjects extends LitElement {
     }
 
     const confirmationPrompt = this.shadowRoot?.querySelector("confirmation-prompt");
-    if (!confirmationPrompt) return;
-
+    if (!confirmationPrompt) {
+      return;
+    }
     const content = confirmationPrompt.shadowRoot?.querySelector(".content");
-    if (!content) return;
-
+    if (!content) {
+      return;
+    }
     const canvas = content.querySelector("#canvas") as HTMLCanvasElement;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
 
     // Create hidden canvas for original image
     const hiddenCanvas = document.createElement("canvas");
