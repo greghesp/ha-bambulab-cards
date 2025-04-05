@@ -64,8 +64,7 @@ export class PrintStatusCard extends EntityProvider {
 
   @state() private _style;
 
-  // Home assistant state references that are only used in changedProperties
-  private _coverImageState: any;
+  @state() private _coverImageUrl: string | undefined;
 
   private _entityUX: { [key: string]: EntityUX } | undefined;
   private _model: string;
@@ -176,8 +175,8 @@ export class PrintStatusCard extends EntityProvider {
   }
 
   private _initializeModelAndUX() {
-    if (this._hass && this._device_id) {
-      this._model = this._hass.devices[this._device_id]?.model?.toUpperCase() || "";
+    if (!this._model) {
+      this._model = this._hass.devices[this._device_id!]?.model?.toUpperCase() || "";
       if (this._model == "A1 MINI") {
         this._model = "A1MINI";
       }
@@ -208,6 +207,11 @@ export class PrintStatusCard extends EntityProvider {
     return {};
   }
 
+  set hass(hass) {
+    super.hass = hass;
+    this._initializeModelAndUX()
+  }
+
   setConfig(config) {
     if (!config.printer) {
       throw new Error("You need to select a Printer");
@@ -224,7 +228,6 @@ export class PrintStatusCard extends EntityProvider {
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
-    this._initializeModelAndUX();
     // Hook up the resize observer on the background image so that we can react to it being re-layed out
     // to move all the entities to their correct positions. On initial creation this cannot be done on
     // connection as that's too early - there's no html at that point.
@@ -242,18 +245,7 @@ export class PrintStatusCard extends EntityProvider {
     super.updated(changedProperties);
 
     if (changedProperties.has("_hass")) {
-      this._initializeModelAndUX();
-    }
-
-    if (changedProperties.has("_states")) {
-      if (this._deviceEntities["cover_image"]) {
-        let newState = this._hass.states[this._deviceEntities["cover_image"].entity_id].state;
-        if (newState !== this._coverImageState) {
-          console.log("Cover image updated");
-          this._coverImageState = newState;
-          this.requestUpdate();
-        }
-      }
+      this._coverImageUrl = helpers.getImageUrl(this._hass, this._deviceEntities["cover_image"]);
     }
   }
 
@@ -264,8 +256,6 @@ export class PrintStatusCard extends EntityProvider {
       // Not accessible on first bring up but is accessible if a hidden element is re-shown.
       this.resizeObserver.observe(element);
     }
-    // Try to initialize here since we know this runs after setConfig
-    this._initializeModelAndUX();
   }
 
   disconnectedCallback() {
@@ -280,21 +270,17 @@ export class PrintStatusCard extends EntityProvider {
     if (this._style == "simple") {
       return html`
         <a1-screen-card
-          .coverImage=${this._getCoverImageUrl()}
+          .coverImage=${this._coverImageUrl}
           _device_id=${this._device_id}
         ></a1-screen-card>
       `;
     } else {
-      // Add guard for when _entityUX is not yet initialized
-      if (!this._entityUX) {
-        return html`<ha-card class="card">Loading...</ha-card>`;
-      }
       return html`
         <ha-card class="card">
           <div id="control-container" class="control-container">
             <img id="printer" src="${this._getPrinterImage()}" />
             <div id="container">
-              ${Object.keys(this._entityUX).map((key) => {
+              ${Object.keys(this._entityUX!).map((key) => {
                 return this._addElement(key);
               })}
             </div>
@@ -435,7 +421,7 @@ export class PrintStatusCard extends EntityProvider {
                 id="cover-image"
                 class="cover-image"
                 style="${style} z-index: 1;"
-                src="${this._getCoverImageUrl()}"
+                src="${this._coverImageUrl}"
                 @error="${this._handleCoverImageError}"
                 @load="${this._handleCoverImageLoad}"
                 alt="Cover Image"
@@ -521,16 +507,6 @@ export class PrintStatusCard extends EntityProvider {
       helpers.getEntityState(this._hass, this._deviceEntities["chamber_light"]) == "on";
     const service = lightOn ? "turn_off" : "turn_on";
     this._hass.callService("light", service, data);
-  }
-
-  private _getCoverImageUrl() {
-    if (helpers.isEntityUnavailable(this._hass, this._deviceEntities["cover_image"])) {
-      console.log("Cover image unavailable");
-      return "";
-    } else {
-      const coverImageEntityId = this._deviceEntities["cover_image"].entity_id;
-      return `${this._hass.states[coverImageEntityId].attributes.entity_picture}&state=${this._coverImageState}`;
-    }
   }
 
   private _handleCoverImageError() {

@@ -67,9 +67,13 @@ export default class EntityProvider extends LitElement {
   @state() public _deviceEntities!: { [key: string]: helpers.Entity } | Object;
 
   set hass(hass) {
-    if (hass) {
+    if (this._hass) {
       this._hass = hass;
+      return
     }
+    
+    this._hass = hass;
+
     let entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
     this._deviceEntities = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
 
@@ -100,7 +104,5 @@ export default class EntityProvider extends LitElement {
         }
       }
     }
-
-    this.requestUpdate();
   }
 }

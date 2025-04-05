@@ -286,3 +286,14 @@ export function isSkipButtonEnabled(hass, entities) {
 export function isEntityStateUnknown(hass, entity: Entity): boolean {
   return hass.states[entity?.entity_id]?.state == undefined;
 }
+
+export function getImageUrl(hass, entity: Entity): string {
+  if (isEntityUnavailable(hass, entity)) {
+    console.log("Image unavailable");
+    return "";
+  } else {
+    const imageEntityId = entity.entity_id;
+    const imageState = hass.states[imageEntityId].state;
+    return `${hass.states[imageEntityId].attributes.entity_picture}&state=${imageState}`;
+  }
+}
