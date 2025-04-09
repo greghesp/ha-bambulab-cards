@@ -86,23 +86,40 @@ export class A1ScreenCard extends LitElement {
         maxX = Math.min(canvas.width, maxX + padding);
         maxY = Math.min(canvas.height, maxY + padding);
 
-        // Create a new canvas with the cropped dimensions
-        const croppedCanvas = document.createElement("canvas");
-        croppedCanvas.width = maxX - minX;
-        croppedCanvas.height = maxY - minY;
+        // Calculate the original aspect ratio
+        const originalAspectRatio = canvas.width / canvas.height;
 
-        // Draw the cropped image
+        // Calculate the trimmed content dimensions
+        const trimmedWidth = maxX - minX;
+        const trimmedHeight = maxY - minY;
+
+        // Create a new canvas that maintains the original aspect ratio
+        const croppedCanvas = document.createElement("canvas");
+        if (originalAspectRatio > 1) {
+          // Original was wider than tall
+          croppedCanvas.width = trimmedWidth;
+          croppedCanvas.height = trimmedWidth / originalAspectRatio;
+        } else {
+          // Original was taller than wide
+          croppedCanvas.width = trimmedHeight * originalAspectRatio;
+          croppedCanvas.height = trimmedHeight;
+        }
+
+        // Draw the cropped image centered in the new canvas
         const croppedCtx = croppedCanvas.getContext("2d")!;
+        const xOffset = (croppedCanvas.width - trimmedWidth) / 2;
+        const yOffset = (croppedCanvas.height - trimmedHeight) / 2;
+
         croppedCtx.drawImage(
           canvas,
           minX,
           minY,
-          maxX - minX,
-          maxY - minY,
-          0,
-          0,
-          maxX - minX,
-          maxY - minY
+          trimmedWidth,
+          trimmedHeight,
+          xOffset,
+          yOffset,
+          trimmedWidth,
+          trimmedHeight
         );
 
         resolve(croppedCanvas.toDataURL("image/png"));
