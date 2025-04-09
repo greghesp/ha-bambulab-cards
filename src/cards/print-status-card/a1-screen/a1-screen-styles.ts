@@ -160,7 +160,6 @@ export default css`
   .ha-bambulab-ssc-sensors {
     display: flex;
     flex-direction: column;
-    height: 100%;
     justify-content: space-between;
     max-width: 70px;
     width: 100%;
