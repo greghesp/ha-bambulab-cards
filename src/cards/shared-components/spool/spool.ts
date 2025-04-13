@@ -11,6 +11,8 @@ export class Spool extends LitElement {
   private hass;
 
   @property({ type: Boolean }) public show_type: boolean = false;
+  @property({ type: Boolean }) public spool_anim_reflection: boolean = false;
+  @property({ type: Boolean }) public spool_anim_wiggle: boolean = false;
   @property({ type: String }) public entity_id!: string;
   @property({ type: Number }) private remainHeight = 95;
   @property() private resizeObserver: ResizeObserver | null = null;
@@ -62,9 +64,10 @@ export class Spool extends LitElement {
               <div class="ha-bambulab-spool-side"></div>
               <div
                 class="string-roll-container"
-                style="${this.hass.states[this.entity_id]?.attributes.active
+                style="${this.hass.states[this.entity_id]?.attributes.active &&
+                this.spool_anim_wiggle
                   ? "animation: wiggle 3s linear infinite"
-                  : nothing}"
+                  : ""}"
               >
                 <div
                   class="v-string-roll"
@@ -72,7 +75,8 @@ export class Spool extends LitElement {
                   style="background: ${this.hass.states[this.entity_id]?.attributes
                     .color}; height: ${this.remainHeight.toFixed(2)}%"
                 >
-                  ${this.hass.states[this.entity_id]?.attributes.active
+                  ${this.hass.states[this.entity_id]?.attributes.active &&
+                  this.spool_anim_reflection
                     ? html`<div class="v-reflection"></div>`
                     : nothing}
                   ${this.hass.states[this.entity_id]?.attributes?.remain > 0

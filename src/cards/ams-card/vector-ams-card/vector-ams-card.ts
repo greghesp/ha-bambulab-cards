@@ -9,6 +9,8 @@ import { consume } from "@lit/context";
 @customElement("vector-ams-card")
 export class VectorAmsCard extends LitElement {
   @property() public showType;
+  @property() public spoolAnimReflection;
+  @property() public spoolAnimWiggle;
 
   @consume({ context: entitiesContext, subscribe: true })
   private _entities;
@@ -28,6 +30,8 @@ export class VectorAmsCard extends LitElement {
                   style="padding: 0px 5px"
                   .entity_id="${spool.entity_id}"
                   .show_type=${this.showType}
+                  .spool_anim_reflection=${this.spoolAnimReflection}
+                  .spool_anim_wiggle=${this.spoolAnimWiggle}
                 ></ha-bambulab-spool>
               `
             )}

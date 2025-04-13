@@ -54,6 +54,8 @@ export class AMS_CARD extends LitElement {
   @state() private _states;
   @state() private _style;
   @state() private _showType;
+  @state() private _spoolAnimReflection;
+  @state() private _spoolAnimWiggle;
   private _entityList: { [key: string]: helpers.Entity } = {};
 
   @provide({ context: hassContext })
@@ -97,6 +99,8 @@ export class AMS_CARD extends LitElement {
     this._deviceId = config.ams;
     this._style = config.style;
     this._showType = config.show_type ? true : false;
+    this._spoolAnimReflection = config.spool_anim_reflection ? true : false;
+    this._spoolAnimWiggle = config.spool_anim_wiggle ? true : false;
     this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
     this._customTemperature =
       config.custom_temperature === "" ? nothing : config.custom_temperature;
@@ -169,7 +173,13 @@ export class AMS_CARD extends LitElement {
     if (this._style == "graphic") {
       return html` <graphic-ams-card /> `;
     } else {
-      return html` <vector-ams-card .showType=${this._showType} /> `;
+      return html`
+        <vector-ams-card
+          .showType=${this._showType}
+          .spoolAnimReflection=${this._spoolAnimReflection}
+          .spoolAnimWiggle=${this._spoolAnimWiggle}
+        />
+      `;
     }
   }
 
