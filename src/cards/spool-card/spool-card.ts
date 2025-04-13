@@ -21,6 +21,8 @@ export class SpoolCard extends LitElement {
   @property() public states;
   @property() public _spoolEntityId;
   @property() public _showType;
+  @property() public _spoolAnimReflection;
+  @property() public _spoolAnimWiggle;
 
   @provide({ context: hassContext })
   @state()
@@ -52,6 +54,8 @@ export class SpoolCard extends LitElement {
     }
     this._spool = config.spool;
     this._showType = config.show_type;
+    this._spoolAnimReflection = config.spool_anim_reflection;
+    this._spoolAnimWiggle = config.spool_anim_wiggle;
   }
 
   set hass(hass) {
@@ -68,6 +72,8 @@ export class SpoolCard extends LitElement {
           .entity_id="${this._spoolEntityId}"
           .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
           .show_type=${this._showType}
+          .spoolAnimReflection=${this._spoolAnimReflection}
+          .spoolAnimWiggle=${this._spoolAnimWiggle}
         ></ha-bambulab-spool>
       </ha-card>
     `;

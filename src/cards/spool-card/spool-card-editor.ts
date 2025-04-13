@@ -19,6 +19,16 @@ export class SpoolCardEditor extends LitElement {
       selector: { device: {} },
     },
     { name: "show_type", label: "Show Filament Types", selector: { boolean: true } },
+    {
+      name: "spool_anim_reflection",
+      label: "Active spool animation: Light Reflection",
+      selector: { boolean: true },
+    },
+    {
+      name: "spool_anim_wiggle",
+      label: "Active spool animation: Wiggle",
+      selector: { boolean: true },
+    },
   ];
 
   render() {

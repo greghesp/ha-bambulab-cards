@@ -42,6 +42,16 @@ export class AmsCardEditor extends LitElement {
       : ""),
       ...(style === "vector" ? [
       { name: "show_type", label: "Show Filament Types", selector: { boolean: true } }, 
+      {
+        name: "spool_anim_reflection",
+        label: "Active spool animation: Light Reflection",
+        selector: { boolean: true },
+      },
+      {
+        name: "spool_anim_wiggle",
+        label: "Active spool animation: Wiggle",
+        selector: { boolean: true },
+      },
       ] : ""),
       {
       name: "ams",
