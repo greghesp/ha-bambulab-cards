@@ -46,11 +46,13 @@ export class AmsCardEditor extends LitElement {
         name: "spool_anim_reflection",
         label: "Active spool animation: Light Reflection",
         selector: { boolean: true },
+        default: true,
       },
       {
         name: "spool_anim_wiggle",
         label: "Active spool animation: Wiggle",
         selector: { boolean: true },
+        default: true,
       },
       ] : ""),
       {
