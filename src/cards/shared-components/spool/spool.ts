@@ -11,8 +11,8 @@ export class Spool extends LitElement {
   private hass;
 
   @property({ type: Boolean }) public show_type: boolean = false;
-  @property({ type: Boolean }) public spool_anim_reflection: boolean = false;
-  @property({ type: Boolean }) public spool_anim_wiggle: boolean = false;
+  @property({ type: Boolean }) public spool_anim_reflection: boolean = true;
+  @property({ type: Boolean }) public spool_anim_wiggle: boolean = true;
   @property({ type: String }) public entity_id!: string;
   @property({ type: Number }) private remainHeight = 95;
   @property() private resizeObserver: ResizeObserver | null = null;

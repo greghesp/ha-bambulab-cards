@@ -99,8 +99,8 @@ export class AMS_CARD extends LitElement {
     this._deviceId = config.ams;
     this._style = config.style;
     this._showType = config.show_type ? true : false;
-    this._spoolAnimReflection = config.spool_anim_reflection ? true : false;
-    this._spoolAnimWiggle = config.spool_anim_wiggle ? true : false;
+    this._spoolAnimReflection = config.spool_anim_reflection ? config.spool_anim_reflection : true;
+    this._spoolAnimWiggle = config.spool_anim_wiggle ? config.spool_anim_wiggle : true;
     this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
     this._customTemperature =
       config.custom_temperature === "" ? nothing : config.custom_temperature;

@@ -54,8 +54,8 @@ export class SpoolCard extends LitElement {
     }
     this._spool = config.spool;
     this._showType = config.show_type;
-    this._spoolAnimReflection = config.spool_anim_reflection;
-    this._spoolAnimWiggle = config.spool_anim_wiggle;
+    this._spoolAnimReflection = config.spool_anim_reflection ? config.spool_anim_reflection : true;
+    this._spoolAnimWiggle = config.spool_anim_wiggle ? config.spool_anim_wiggle : true;
   }
 
   set hass(hass) {
