@@ -289,12 +289,22 @@ export class PrintStatusCard extends EntityProvider {
   }
 
   render() {
-    if (this._style == "simple") {
+    if (this._style === "simple") {
       return html`
-        <a1-screen-card
-          .coverImage=${this._coverImageUrl}
-          _device_id=${this._device_id}
-        ></a1-screen-card>
+        <ha-card class="card simple">
+          <a1-screen-card
+            .coverImage=${this._coverImageUrl}
+            _device_id=${this._device_id}
+          ></a1-screen-card>
+          <div class="ssc-control-buttons">
+            <div
+              class="button ${this._deviceEntities.power?.state === 'on' ? 'on' : 'off'}"
+              @click=${() => this._clickEntity("power")}
+            >
+              <ha-icon icon="mdi:power"></ha-icon>
+            </div>
+          </div>
+        </ha-card>
       `;
     } else {
       return html`
@@ -310,6 +320,19 @@ export class PrintStatusCard extends EntityProvider {
         </ha-card>
       `;
     }
+  }
+
+  private _renderPowerButton() {
+    const state = this._deviceEntities.power?.state;
+    const unavailable = helpers.isEntityUnavailable(this._hass, this._deviceEntities.power);
+    if (!this._deviceEntities.power || unavailable) return "";
+    const color = (state === "on") ? "green" : "red";
+    return html`
+      <div id="power" class="entity" style="color:${color}"
+        @click=${() => this._clickEntity("power")}>
+        <ha-icon icon="mdi:power"></ha-icon>
+      </div>
+    `;
   }
 
   private _getPrinterImage() {
