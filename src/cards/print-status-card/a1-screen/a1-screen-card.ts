@@ -551,49 +551,49 @@ export class A1ScreenCard extends LitElement {
       @click=${() => this.#MoveAxisClick(MoveAxis.Y, -10)} />
 
 
-    <foreignObject x="50" y="90" width="20" height="20">
+    <foreignObject x="50" y="90" width="20" height="20" pointer-events="none">
       <div class="label">
         <ha-icon icon="mdi:chevron-left"></ha-icon>
       </div>
     </foreignObject>
 
-    <foreignObject x="15" y="90" width="20" height="20">
+    <foreignObject x="15" y="90" width="20" height="20" pointer-events="none">
       <div class="label">
         <ha-icon icon="mdi:chevron-double-left"></ha-icon>
       </div>
     </foreignObject>
 
-    <foreignObject x="130" y="90" width="20" height="20">
+    <foreignObject x="130" y="90" width="20" height="20" pointer-events="none">
       <div class="label">
         <ha-icon icon="mdi:chevron-right"></ha-icon>
       </div>
     </foreignObject>
 
-    <foreignObject x="165" y="90" width="20" height="20">
+    <foreignObject x="165" y="90" width="20" height="20" pointer-events="none">
       <div class="label">
         <ha-icon icon="mdi:chevron-double-right"></ha-icon>
       </div>
     </foreignObject>
 
-    <foreignObject x="90" y="50" width="20" height="20">
+    <foreignObject x="90" y="50" width="20" height="20" pointer-events="none">
       <div class="label">
         <ha-icon icon="mdi:chevron-up"></ha-icon>
       </div>
     </foreignObject>
 
-    <foreignObject x="90" y="15" width="20" height="20">
+    <foreignObject x="90" y="15" width="20" height="20" pointer-events="none">
       <div class="label">
         <ha-icon icon="mdi:chevron-double-up"></ha-icon>
       </div>
     </foreignObject>
 
-    <foreignObject x="90" y="130" width="20" height="20">
+    <foreignObject x="90" y="130" width="20" height="20" pointer-events="none">
       <div class="label">
         <ha-icon icon="mdi:chevron-down"></ha-icon>
       </div>
     </foreignObject>
 
-    <foreignObject x="90" y="165" width="20" height="20">
+    <foreignObject x="90" y="165" width="20" height="20" pointer-events="none">
       <div class="label">
         <ha-icon icon="mdi:chevron-double-down"></ha-icon>
       </div>
