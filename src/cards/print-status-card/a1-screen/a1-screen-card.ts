@@ -14,6 +14,17 @@ type ConfirmationState = {
   body: string;
 };
 
+enum PositionButton {
+  Left,
+  LeftBig,
+  Right,
+  RightBig,
+  Top,
+  TopBig,
+  Bottom,
+  BottomBig
+}
+
 @customElement("a1-screen-card")
 export class A1ScreenCard extends LitElement {
   @property() public coverImage;
@@ -36,6 +47,8 @@ export class A1ScreenCard extends LitElement {
   };
 
   @state() private showSkipObjects = false;
+
+  @state() private showFirstPage = true;
 
   static styles = styles;
 
@@ -303,95 +316,224 @@ export class A1ScreenCard extends LitElement {
         : nothing}
       <ha-card class="ha-bambulab-ssc">
         <div class="ha-bambulab-ssc-screen-container">
-          <div class="ha-bambulab-ssc-status-and-controls">
-            <div class="ha-bambulab-ssc-status-content">
-              <div class="ha-bambulab-ssc-status-icon">
-                <img src="${this.processedImage || this.coverImage}" alt="Cover Image" />
-              </div>
-              <div class="ha-bambulab-ssc-status-info">
-                <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
-                <div class="ha-bambulab-ssc-progress-container">
-                  <div class="ha-bambulab-ssc-progress-bar">
-                    <div
-                      class="ha-bambulab-ssc-progress"
-                      style="width: ${this.#calculateProgress()}"
-                    ></div>
-                  </div>
-                  <div class="ha-bambulab-ssc-progress-text">${this.#getPrintStatusText()}</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="ha-bambulab-ssc-control-buttons">
-              <button class="ha-bambulab-ssc-control-button ">
-                <ha-icon icon="mdi:dots-horizontal"></ha-icon>
-              </button>
-              <button
-                class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
-                @click="${() =>
-                  helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}"
-              >
-                <ha-icon icon="mdi:lightbulb"></ha-icon>
-              </button>
-              <button
-                class="ha-bambulab-ssc-control-button"
-                ?disabled="${!helpers.isSkipButtonEnabled(this._hass, this._deviceEntities)}"
-                @click="${() => (this.showSkipObjects = true)}"
-              >
-                <ha-icon icon="mdi:debug-step-over"></ha-icon>
-              </button>
-              <button
-                class="ha-bambulab-ssc-control-button"
-                ?disabled="${this.#isPauseResumeDisabled()}"
-                @click="${() =>
-                  this.#showConfirmation(
-                    helpers.isEntityUnavailable(this._hass, this._deviceEntities["pause"])
-                      ? "resume"
-                      : "pause"
-                  )}"
-              >
-                <ha-icon icon="${this.#getPauseResumeIcon()}"></ha-icon>
-              </button>
-              <button
-                class="ha-bambulab-ssc-control-button ${this.#isStopButtonDisabled()
-                  ? ""
-                  : "warning"}"
-                ?disabled="${this.#isStopButtonDisabled()}"
-                @click="${() => this.#showConfirmation("stop")}"
-              >
-                <ha-icon icon="mdi:stop"></ha-icon>
-              </button>
-            </div>
-          </div>
-
-          <div class="ha-bambulab-ssc-sensors">
-            <div class="sensor" @click="${() => this.#clickEntity("target_nozzle_temperature")}">
-              <span class="icon-and-target">
-                <ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon>
-                <span class="sensor-target-value">
-                  ${this.#formattedState("target_nozzle_temp")}</span
-                >
-              </span>
-              <span class="sensor-value"> ${this.#formattedState("nozzle_temp")} </span>
-            </div>
-            <div class="sensor" @click="${() => this.#clickEntity("target_bed_temperature")}">
-              <span class="icon-and-target">
-                <ha-icon icon="mdi:radiator"></ha-icon>
-                <span class="sensor-target-value">${this.#formattedState("target_bed_temp")}</span>
-              </span>
-              <span class="sensor-value">${this.#formattedState("bed_temp")}</span>
-            </div>
-            <div class="sensor" @click="${() => this.#clickEntity("printing_speed")}">
-              <ha-icon icon="mdi:speedometer"></ha-icon>
-              <span class="sensor-value">${this.#attribute("speed_profile", "modifier")}%</span>
-            </div>
-            <div class="sensor" @click="${() => this.#clickEntity("aux_fan")}">
-              <ha-icon icon="mdi:fan"></ha-icon>
-              <span class="sensor-value">${this.#attribute("aux_fan", "percentage")}%</span>
-            </div>
-          </div>
+          ${this.showFirstPage ? this.#renderFrontPage() : this.#renderSecondPage()}
         </div>
       </ha-card>
     `;
   }
+
+  #togglePage() {
+    this.showFirstPage = !this.showFirstPage;
+  }
+
+  #renderFrontPage() {
+    return html`
+      <div class="ha-bambulab-ssc-status-and-controls">
+        <div class="ha-bambulab-ssc-status-content">
+          <div class="ha-bambulab-ssc-status-icon">
+            <img src="${this.processedImage || this.coverImage}" alt="Cover Image" />
+          </div>
+          <div class="ha-bambulab-ssc-status-info">
+            <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
+            <div class="ha-bambulab-ssc-progress-container">
+              <div class="ha-bambulab-ssc-progress-bar">
+                <div
+                  class="ha-bambulab-ssc-progress"
+                  style="width: ${this.#calculateProgress()}"
+                ></div>
+              </div>
+              <div class="ha-bambulab-ssc-progress-text">${this.#getPrintStatusText()}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ha-bambulab-ssc-control-buttons">
+          <button class="ha-bambulab-ssc-control-button"
+            @click="${this.#togglePage}"
+          >
+            <ha-icon icon="mdi:dots-horizontal"></ha-icon>
+          </button>
+          <button
+            class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
+            @click="${() =>
+              helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}"
+          >
+            <ha-icon icon="mdi:lightbulb"></ha-icon>
+          </button>
+          <button
+            class="ha-bambulab-ssc-control-button"
+            ?disabled="${!helpers.isSkipButtonEnabled(this._hass, this._deviceEntities)}"
+            @click="${() => (this.showSkipObjects = true)}"
+          >
+            <ha-icon icon="mdi:debug-step-over"></ha-icon>
+          </button>
+          <button
+            class="ha-bambulab-ssc-control-button"
+            ?disabled="${this.#isPauseResumeDisabled()}"
+            @click="${() =>
+              this.#showConfirmation(
+                helpers.isEntityUnavailable(this._hass, this._deviceEntities["pause"])
+                  ? "resume"
+                  : "pause"
+              )}"
+          >
+            <ha-icon icon="${this.#getPauseResumeIcon()}"></ha-icon>
+          </button>
+          <button
+            class="ha-bambulab-ssc-control-button ${this.#isStopButtonDisabled()
+              ? ""
+              : "warning"}"
+            ?disabled="${this.#isStopButtonDisabled()}"
+            @click="${() => this.#showConfirmation("stop")}"
+          >
+            <ha-icon icon="mdi:stop"></ha-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="ha-bambulab-ssc-sensors">
+        <div class="sensor" @click="${() => this.#clickEntity("target_nozzle_temperature")}">
+          <span class="icon-and-target">
+            <ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon>
+            <span class="sensor-target-value">
+              ${this.#formattedState("target_nozzle_temp")}</span
+            >
+          </span>
+          <span class="sensor-value">${this.#formattedState("nozzle_temp")}</span>
+        </div>
+        <div class="sensor" @click="${() => this.#clickEntity("target_bed_temperature")}">
+          <span class="icon-and-target">
+            <ha-icon icon="mdi:radiator"></ha-icon>
+            <span class="sensor-target-value">${this.#formattedState("target_bed_temp")}</span>
+          </span>
+          <span class="sensor-value">${this.#formattedState("bed_temp")}</span>
+        </div>
+        <div class="sensor" @click="${() => this.#clickEntity("printing_speed")}">
+          <ha-icon icon="mdi:speedometer"></ha-icon>
+          <span class="sensor-value">${this.#attribute("speed_profile", "modifier")}%</span>
+        </div>
+        <div class="sensor" @click="${() => this.#clickEntity("aux_fan")}">
+          <ha-icon icon="mdi:fan"></ha-icon>
+          <span class="sensor-value">${this.#attribute("aux_fan", "percentage")}%</span>
+        </div>
+      </div>
+  `
+  }
+
+  #renderSecondPage() {
+    return html`
+      <div class="ha-bambulab-ssc-status-and-controls">
+        <div class="ha-bambulab-ssc-status-content">
+          <div class="circle-container">
+            ${this.#renderPositionButton()}
+          </div>
+        </div>
+
+        <div class="ha-bambulab-ssc-control-buttons">
+          <button class="ha-bambulab-ssc-control-button"
+            @click="${this.#togglePage}"
+          >
+            <ha-icon icon="mdi:dots-horizontal"></ha-icon>
+          </button>
+          <button
+            class="ha-bambulab-ssc-control-button"
+          >
+            <ha-icon icon="mdi:excavator"></ha-icon>
+          </button>
+        </div>
+      </div>
+  `
+  }
+
+  #positionButtonClick(direction: PositionButton) {
+    console.log("Direction", direction); 
+  }
+
+  #renderPositionButton() {
+    return html`
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="250" height="250">
+        <defs>
+          <style>
+          </style>
+        </defs>
+
+        <g fill="none" stroke="black" stroke-width="1" transform="rotate(45, 100, 100)">
+
+          <!-- Inner Slice Right -->
+          <path class="inner-slice" d="
+            M 100 75
+            L 100 40
+            A60 60 0 0 1 160 100
+            L 125 100
+            A25 25 0 0 0 100 75
+            Z" @click="${() => this.#positionButtonClick(PositionButton.Right)}" />
+
+          <!-- Outer Slice Right -->
+          <path class="outer-slice" d="
+            M 100 40
+            L 100 10
+            A90 90 0 0 1 190 100
+            L 160 100
+            A60 60 0 0 0 100 40
+            Z" @click="${() => this.#positionButtonClick(PositionButton.RightBig)}" />
+
+          <!-- Inner Slice Bottom -->
+          <path class="inner-slice" d="
+            M 125 100
+            L 160 100
+            A60 60 0 0 1 100 160
+            L 100 125
+            A25 25 0 0 0 125 100
+            Z" @click="${() => this.#positionButtonClick(PositionButton.Bottom)}" />
+
+          <!-- Outer Slice Bottom -->
+          <path class="outer-slice" d="
+            M 160 100
+            L 190 100
+            A90 90 0 0 1 100 190
+            L 100 160
+            A60 60 0 0 0 160 100
+            Z" @click="${() => this.#positionButtonClick(PositionButton.BottomBig)}" />
+
+          <!-- Inner Slice Left -->
+          <path class="inner-slice" d="
+            M 100 125
+            L 100 160
+            A60 60 0 0 1 40 100
+            L 75 100
+            A25 25 0 0 0 100 125
+            Z" @click="${() => this.#positionButtonClick(PositionButton.Left)}" />
+
+          <!-- Outer Slice Left -->
+          <path class="outer-slice" d="
+            M 100 160
+            L 100 190
+            A90 90 0 0 1 10 100
+            L 40 100
+            A60 60 0 0 0 100 160
+            Z" @click="${() => this.#positionButtonClick(PositionButton.LeftBig)}" />
+
+          <!-- Inner Slice Top -->
+          <path class="inner-slice" d="
+            M 75 100
+            L 40 100
+            A60 60 0 0 1 100 40
+            L 100 75
+            A25 25 0 0 0 75 100
+            Z" @click="${() => this.#positionButtonClick(PositionButton.Top)}" />
+
+          <!-- Outer Slice Top -->
+          <path class="outer-slice" d="
+            M 40 100
+            L 10 100
+            A90 90 0 0 1 100 10
+            L 100 40
+            A60 60 0 0 0 40 100
+            Z" @click="${() => this.#positionButtonClick(PositionButton.TopBig)}" />
+
+        </g>
+      </svg>
+    `
+  }
+
 }

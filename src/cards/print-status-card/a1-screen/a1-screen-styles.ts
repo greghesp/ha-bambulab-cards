@@ -205,4 +205,38 @@ export default css`
     flex-direction: row;
     gap: 4px;
   }
+
+  .circle-container {
+    display: flex;
+    flex-direction: row;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+  }
+
+  .outer-slice {
+    fill: #7f8c8d; /* Dark grey */
+    transition: fill 0.3s ease;
+  }
+
+  .inner-slice {
+    fill: #bdc3c7; /* Light grey */
+    transition: fill 0.3s ease;
+  }
+
+  .outer-slice:hover {
+    fill: #5a6b76; /* Medium grey */
+  }
+
+  .inner-slice:hover {
+    fill: #95a5a6; /* Darker grey */
+  }
+
+  .outer-slice:active {
+    fill: #34495e; /* Darker grey when clicked */
+  }
+
+  .inner-slice:active {
+    fill: #7f8c8d; /* Darker grey when clicked */
+  }
 `;
