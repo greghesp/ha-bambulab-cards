@@ -208,9 +208,10 @@ export default css`
 
   .circle-container {
     display: flex;
-    flex-direction: row;
-    width: 200px;
-    height: 200px;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
     margin: 0 auto;
   }
 
@@ -242,8 +243,8 @@ export default css`
 
   .move-axis-container {
     position: relative;
-    width: 200px; /* same as your SVG width */
-    height: 200px; /* same as your SVG height */
+    width: 200px;
+    height: 200px;
     margin: 0 auto;
     transform: scale(1.25);
   }

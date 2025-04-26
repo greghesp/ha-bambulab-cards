@@ -464,7 +464,7 @@ export class A1ScreenCard extends LitElement {
     return html`
 
 <div class="move-axis-container">
-  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="250" height="250">
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
     <g fill="none" stroke="black" stroke-width="1">
   
       <!-- Inner Slice Left -->
