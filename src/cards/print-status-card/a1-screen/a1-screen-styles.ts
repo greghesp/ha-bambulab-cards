@@ -239,4 +239,13 @@ export default css`
   .inner-slice:active {
     fill: #7f8c8d; /* Darker grey when clicked */
   }
+
+  .label {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+  }
 `;

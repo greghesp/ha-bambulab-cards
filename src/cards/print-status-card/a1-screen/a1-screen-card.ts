@@ -14,15 +14,9 @@ type ConfirmationState = {
   body: string;
 };
 
-enum PositionButton {
-  Left,
-  LeftBig,
-  Right,
-  RightBig,
-  Top,
-  TopBig,
-  Bottom,
-  BottomBig
+enum MoveAxis {
+  X,
+  Y,
 }
 
 @customElement("a1-screen-card")
@@ -425,7 +419,7 @@ export class A1ScreenCard extends LitElement {
       <div class="ha-bambulab-ssc-status-and-controls">
         <div class="ha-bambulab-ssc-status-content">
           <div class="circle-container">
-            ${this.#renderPositionButton()}
+            ${this.#renderMoveAxis()}
           </div>
         </div>
 
@@ -445,94 +439,169 @@ export class A1ScreenCard extends LitElement {
   `
   }
 
-  #positionButtonClick(direction: PositionButton) {
-    console.log("Direction", direction); 
+  #MoveAxisClick(axis: MoveAxis, distance: Number) {
+    const data = { device_id: [this._device_id], axis: '', distance: distance }
+    if (axis == MoveAxis.X) {
+      data.axis = 'X'
+    } else if (axis == MoveAxis.Y) {
+      data.axis = 'Y'
+    }
+    this._hass
+    .callService("bambu_lab", "move_axis", data)
+    .then(() => {
+      console.log(`Service called successfully`);
+    })
+    .catch((error) => {
+      console.error(`Error calling service:`, error);
+    });
   }
 
-  #renderPositionButton() {
+  #renderMoveAxis() {
     return html`
-      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="250" height="250">
-        <defs>
-          <style>
-          </style>
-        </defs>
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="250" height="250">
+  <g fill="none" stroke="black" stroke-width="1">
 
-        <g fill="none" stroke="black" stroke-width="1" transform="rotate(45, 100, 100)">
+ 
+    <!-- Inner Slice Left -->
+    <path class="inner-slice" d="
+      M 100 125
+      L 100 160
+      A60 60 0 0 1 40 100
+      L 75 100
+      A25 25 0 0 0 100 125
+      Z"
+      transform="rotate(45, 100, 100)" 
+      @click=${() => this.#MoveAxisClick(MoveAxis.X, -1)} />
 
-          <!-- Inner Slice Right -->
-          <path class="inner-slice" d="
-            M 100 75
-            L 100 40
-            A60 60 0 0 1 160 100
-            L 125 100
-            A25 25 0 0 0 100 75
-            Z" @click="${() => this.#positionButtonClick(PositionButton.Right)}" />
+    <!-- Outer Slice Left -->
+    <path class="outer-slice" d="
+      M 100 160
+      L 100 190
+      A90 90 0 0 1 10 100
+      L 40 100
+      A60 60 0 0 0 100 160
+      Z"
+      transform="rotate(45, 100, 100)" 
+      @click=${() => this.#MoveAxisClick(MoveAxis.X, -10)} />
 
-          <!-- Outer Slice Right -->
-          <path class="outer-slice" d="
-            M 100 40
-            L 100 10
-            A90 90 0 0 1 190 100
-            L 160 100
-            A60 60 0 0 0 100 40
-            Z" @click="${() => this.#positionButtonClick(PositionButton.RightBig)}" />
+    <!-- Inner Slice Right -->
+    <path class="inner-slice" d="
+      M 100 75
+      L 100 40
+      A60 60 0 0 1 160 100
+      L 125 100
+      A25 25 0 0 0 100 75
+      Z"
+      transform="rotate(45, 100, 100)" 
+      @click=${() => this.#MoveAxisClick(MoveAxis.X, 1)} />
 
-          <!-- Inner Slice Bottom -->
-          <path class="inner-slice" d="
-            M 125 100
-            L 160 100
-            A60 60 0 0 1 100 160
-            L 100 125
-            A25 25 0 0 0 125 100
-            Z" @click="${() => this.#positionButtonClick(PositionButton.Bottom)}" />
+    <!-- Outer Slice Right -->
+    <path class="outer-slice" d="
+      M 100 40
+      L 100 10
+      A90 90 0 0 1 190 100
+      L 160 100
+      A60 60 0 0 0 100 40
+      Z"
+      transform="rotate(45, 100, 100)" 
+      @click=${() => this.#MoveAxisClick(MoveAxis.X, 10)} />
 
-          <!-- Outer Slice Bottom -->
-          <path class="outer-slice" d="
-            M 160 100
-            L 190 100
-            A90 90 0 0 1 100 190
-            L 100 160
-            A60 60 0 0 0 160 100
-            Z" @click="${() => this.#positionButtonClick(PositionButton.BottomBig)}" />
+    <!-- Inner Slice Top -->
+    <path class="inner-slice" d="
+      M 75 100
+      L 40 100
+      A60 60 0 0 1 100 40
+      L 100 75
+      A25 25 0 0 0 75 100
+      Z"
+      transform="rotate(45, 100, 100)" 
+      @click=${() => this.#MoveAxisClick(MoveAxis.Y, 1)} />
 
-          <!-- Inner Slice Left -->
-          <path class="inner-slice" d="
-            M 100 125
-            L 100 160
-            A60 60 0 0 1 40 100
-            L 75 100
-            A25 25 0 0 0 100 125
-            Z" @click="${() => this.#positionButtonClick(PositionButton.Left)}" />
+    <!-- Outer Slice Top -->
+    <path class="outer-slice" d="
+      M 40 100
+      L 10 100
+      A90 90 0 0 1 100 10
+      L 100 40
+      A60 60 0 0 0 40 100
+      Z"
+      transform="rotate(45, 100, 100)" 
+      @click=${() => this.#MoveAxisClick(MoveAxis.Y, 10)} />
+      
+    <!-- Inner Slice Bottom -->
+    <path class="inner-slice" d="
+      M 125 100
+      L 160 100
+      A60 60 0 0 1 100 160
+      L 100 125
+      A25 25 0 0 0 125 100
+      Z"
+      transform="rotate(45, 100, 100)" 
+      @click=${() => this.#MoveAxisClick(MoveAxis.Y, -1)} />
 
-          <!-- Outer Slice Left -->
-          <path class="outer-slice" d="
-            M 100 160
-            L 100 190
-            A90 90 0 0 1 10 100
-            L 40 100
-            A60 60 0 0 0 100 160
-            Z" @click="${() => this.#positionButtonClick(PositionButton.LeftBig)}" />
+    <!-- Outer Slice Bottom -->
+    <path class="outer-slice" d="
+      M 160 100
+      L 190 100
+      A90 90 0 0 1 100 190
+      L 100 160
+      A60 60 0 0 0 160 100
+      Z"
+      transform="rotate(45, 100, 100)" 
+      @click=${() => this.#MoveAxisClick(MoveAxis.Y, -10)} />
 
-          <!-- Inner Slice Top -->
-          <path class="inner-slice" d="
-            M 75 100
-            L 40 100
-            A60 60 0 0 1 100 40
-            L 100 75
-            A25 25 0 0 0 75 100
-            Z" @click="${() => this.#positionButtonClick(PositionButton.Top)}" />
 
-          <!-- Outer Slice Top -->
-          <path class="outer-slice" d="
-            M 40 100
-            L 10 100
-            A90 90 0 0 1 100 10
-            L 100 40
-            A60 60 0 0 0 40 100
-            Z" @click="${() => this.#positionButtonClick(PositionButton.TopBig)}" />
+    <foreignObject x="50" y="90" width="20" height="20">
+      <div class="label">
+        <ha-icon icon="mdi:chevron-left"></ha-icon>
+      </div>
+    </foreignObject>
 
-        </g>
-      </svg>
+    <foreignObject x="15" y="90" width="20" height="20">
+      <div class="label">
+        <ha-icon icon="mdi:chevron-double-left"></ha-icon>
+      </div>
+    </foreignObject>
+
+    <foreignObject x="130" y="90" width="20" height="20">
+      <div class="label">
+        <ha-icon icon="mdi:chevron-right"></ha-icon>
+      </div>
+    </foreignObject>
+
+    <foreignObject x="165" y="90" width="20" height="20">
+      <div class="label">
+        <ha-icon icon="mdi:chevron-double-right"></ha-icon>
+      </div>
+    </foreignObject>
+
+    <foreignObject x="90" y="50" width="20" height="20">
+      <div class="label">
+        <ha-icon icon="mdi:chevron-up"></ha-icon>
+      </div>
+    </foreignObject>
+
+    <foreignObject x="90" y="15" width="20" height="20">
+      <div class="label">
+        <ha-icon icon="mdi:chevron-double-up"></ha-icon>
+      </div>
+    </foreignObject>
+
+    <foreignObject x="90" y="130" width="20" height="20">
+      <div class="label">
+        <ha-icon icon="mdi:chevron-down"></ha-icon>
+      </div>
+    </foreignObject>
+
+    <foreignObject x="90" y="165" width="20" height="20">
+      <div class="label">
+        <ha-icon icon="mdi:chevron-double-down"></ha-icon>
+      </div>
+    </foreignObject>
+
+  </g>
+</svg>
+
     `
   }
 
