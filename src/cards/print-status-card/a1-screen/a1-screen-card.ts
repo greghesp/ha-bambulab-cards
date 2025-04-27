@@ -372,6 +372,12 @@ export class A1ScreenCard extends LitElement {
         </div>
       </div>
 
+      ${this.#renderSensorColumn()}
+  `
+  }
+
+  #renderSensorColumn() {
+    return html`
       <div class="ha-bambulab-ssc-sensors">
         <div class="sensor" @click="${() => this.#clickEntity("target_nozzle_temperature")}">
           <span class="icon-and-target">
@@ -398,7 +404,7 @@ export class A1ScreenCard extends LitElement {
           <span class="sensor-value">${this.#attribute("aux_fan", "percentage")}%</span>
         </div>
       </div>
-  `
+    `
   }
 
   #renderSecondPage() {
@@ -414,7 +420,9 @@ export class A1ScreenCard extends LitElement {
           ${this.#renderMoveAxis()}
         </div>
       </div>
-  `
+
+      ${this.#renderSensorColumn()}
+    `
   }
 
   #MoveAxisClick(axis: MoveAxis, distance: Number) {
