@@ -225,6 +225,11 @@ export default css`
     transition: fill 0.3s ease;
   }
 
+  .middle {
+    fill: #bdc3c7; /* Light grey */
+    transition: fill 0.3s ease;
+  }
+
   .outer-slice:hover {
     fill: #5a6b76; /* Medium grey */
   }
@@ -233,11 +238,19 @@ export default css`
     fill: #95a5a6; /* Darker grey */
   }
 
+  .middle:hover {
+    fill: #95a5a6; /* Darker grey */
+  }
+
   .outer-slice:active {
     fill: #34495e; /* Darker grey when clicked */
   }
 
   .inner-slice:active {
+    fill: #7f8c8d; /* Darker grey when clicked */
+  }
+
+  .middle:active {
     fill: #7f8c8d; /* Darker grey when clicked */
   }
 
@@ -269,8 +282,8 @@ export default css`
   }
 
   .label ha-icon {
-    width: 20px;
-    height: 20px;
+    width: 25px;
+    height: 25px;
     pointer-events: none;
     color: black;
   }

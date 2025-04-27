@@ -9,7 +9,7 @@ import "~/cards/shared-components/skip-objects";
 
 type ConfirmationState = {
   show: boolean;
-  action: "stop" | "pause" | "resume" | null;
+  action: "stop" | "pause" | "resume" | "home" | null;
   title: string;
   body: string;
 };
@@ -17,6 +17,7 @@ type ConfirmationState = {
 enum MoveAxis {
   X,
   Y,
+  HOME
 }
 
 @customElement("a1-screen-card")
@@ -236,6 +237,10 @@ export class A1ScreenCard extends LitElement {
         title: "Resume Print",
         body: "Are you sure you want to resume printing?",
       },
+      home: {
+        title: "Home Printer",
+        body: "This will bring the heat bed to the nozzle. If there is a model on the heat bed it will collide possibly resulting in damage to the model or the printer.",
+      }
     };
 
     this.confirmation = {
@@ -255,6 +260,9 @@ export class A1ScreenCard extends LitElement {
         break;
       case "resume":
         this.#clickButton("resume");
+        break;
+      case "home":
+        this.#moveAxis(MoveAxis.HOME, 0);
         break;
     }
     this.#handleDismiss();
@@ -425,12 +433,14 @@ export class A1ScreenCard extends LitElement {
     `
   }
 
-  #MoveAxisClick(axis: MoveAxis, distance: Number) {
+  #moveAxis(axis: MoveAxis, distance: Number) {
     const data = { device_id: [this._device_id], axis: '', distance: distance }
     if (axis == MoveAxis.X) {
       data.axis = 'X'
     } else if (axis == MoveAxis.Y) {
       data.axis = 'Y'
+    } else if (axis == MoveAxis.HOME) {
+      data.axis = 'HOME'
     }
     this._hass
     .callService("bambu_lab", "move_axis", data)
@@ -457,7 +467,7 @@ export class A1ScreenCard extends LitElement {
         A25 25 0 0 0 100 125
         Z"
         transform="rotate(45, 100, 100)" 
-        @click=${() => this.#MoveAxisClick(MoveAxis.X, -1)} />
+        @click=${() => this.#moveAxis(MoveAxis.X, -1)} />
 
       <!-- Outer Slice Left -->
       <path class="outer-slice" d="
@@ -468,7 +478,7 @@ export class A1ScreenCard extends LitElement {
         A60 60 0 0 0 100 160
         Z"
         transform="rotate(45, 100, 100)" 
-        @click=${() => this.#MoveAxisClick(MoveAxis.X, -10)} />
+        @click=${() => this.#moveAxis(MoveAxis.X, -10)} />
 
       <!-- Inner Slice Right -->
       <path class="inner-slice" d="
@@ -479,7 +489,7 @@ export class A1ScreenCard extends LitElement {
         A25 25 0 0 0 100 75
         Z"
         transform="rotate(45, 100, 100)" 
-        @click=${() => this.#MoveAxisClick(MoveAxis.X, 1)} />
+        @click=${() => this.#moveAxis(MoveAxis.X, 1)} />
 
       <!-- Outer Slice Right -->
       <path class="outer-slice" d="
@@ -490,7 +500,7 @@ export class A1ScreenCard extends LitElement {
         A60 60 0 0 0 100 40
         Z"
         transform="rotate(45, 100, 100)" 
-        @click=${() => this.#MoveAxisClick(MoveAxis.X, 10)} />
+        @click=${() => this.#moveAxis(MoveAxis.X, 10)} />
 
       <!-- Inner Slice Top -->
       <path class="inner-slice" d="
@@ -501,7 +511,7 @@ export class A1ScreenCard extends LitElement {
         A25 25 0 0 0 75 100
         Z"
         transform="rotate(45, 100, 100)" 
-        @click=${() => this.#MoveAxisClick(MoveAxis.Y, 1)} />
+        @click=${() => this.#moveAxis(MoveAxis.Y, 1)} />
 
       <!-- Outer Slice Top -->
       <path class="outer-slice" d="
@@ -512,7 +522,7 @@ export class A1ScreenCard extends LitElement {
         A60 60 0 0 0 40 100
         Z"
         transform="rotate(45, 100, 100)" 
-        @click=${() => this.#MoveAxisClick(MoveAxis.Y, 10)} />
+        @click=${() => this.#moveAxis(MoveAxis.Y, 10)} />
         
       <!-- Inner Slice Bottom -->
       <path class="inner-slice" d="
@@ -523,7 +533,7 @@ export class A1ScreenCard extends LitElement {
         A25 25 0 0 0 125 100
         Z"
         transform="rotate(45, 100, 100)" 
-        @click=${() => this.#MoveAxisClick(MoveAxis.Y, -1)} />
+        @click=${() => this.#moveAxis(MoveAxis.Y, -1)} />
 
       <!-- Outer Slice Bottom -->
       <path class="outer-slice" d="
@@ -534,9 +544,17 @@ export class A1ScreenCard extends LitElement {
         A60 60 0 0 0 160 100
         Z"
         transform="rotate(45, 100, 100)" 
-        @click=${() => this.#MoveAxisClick(MoveAxis.Y, -10)} />
-
+        @click=${() => this.#moveAxis(MoveAxis.Y, -10)} />
     </g>
+
+    <!-- Middle circle -->
+    <circle class="middle"
+      cx="100" cy="100" r="25"
+      stroke="black"
+      stroke-width="1"
+      fill="none"
+      @click=${() => this.#showConfirmation("home")}
+    />
   </svg>
 
   <div class="label" style="left: 60px; top: 100px;">
@@ -570,6 +588,11 @@ export class A1ScreenCard extends LitElement {
   <div class="label" style="left: 100px; top: 175px;">
     <ha-icon icon="mdi:chevron-double-down"></ha-icon>
   </div>
+
+  <div class="label" style="left: 100px; top: 100px;">
+    <ha-icon icon="mdi:home"></ha-icon>
+  </div>
+
 </div>
 `
   }
