@@ -226,20 +226,20 @@ export default css`
   }
 
   .middle {
-    fill: #bdc3c7; /* Light grey */
+    fill: #7f8c8d; /* Dark grey */
     transition: fill 0.3s ease;
   }
 
   .outer-slice:hover {
-    fill: #5a6b76; /* Medium grey */
+    fill: #5a6b76; /* Darker grey */
   }
 
   .inner-slice:hover {
-    fill: #95a5a6; /* Darker grey */
+    fill: #95a5a6; /* Medium grey */
   }
 
   .middle:hover {
-    fill: #95a5a6; /* Darker grey */
+    fill: #5a6b76; /* Darker grey */
   }
 
   .outer-slice:active {
@@ -251,7 +251,7 @@ export default css`
   }
 
   .middle:active {
-    fill: #7f8c8d; /* Darker grey when clicked */
+    fill: #34495e; /* Darker grey when clicked */
   }
 
   .move-axis-container {
