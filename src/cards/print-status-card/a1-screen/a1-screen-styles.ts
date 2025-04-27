@@ -274,4 +274,19 @@ export default css`
     pointer-events: none;
     color: black;
   }
+
+  .menu-left {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 1000;
+  }
+
+  .menu-left button {
+    padding: 0px 0px;
+  }
+
+  .menu-left ha-icon {
+    --mdc-icon-size: 36px;
+  }
 `;

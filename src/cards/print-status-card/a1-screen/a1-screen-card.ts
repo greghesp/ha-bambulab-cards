@@ -186,7 +186,7 @@ export class A1ScreenCard extends LitElement {
   #getRemainingTime() {
     if (this._hass.states[this._deviceEntities["stage"].entity_id].state == "printing") {
       const minutes = Number(this.#state("remaining_time"));
-      return `~ ${helpers.formatTimeRemaining(minutes)} remaining`;
+      return `${helpers.formatTimeRemaining(minutes)} remaining`;
     } else {
       return nothing;
     }
@@ -332,7 +332,7 @@ export class A1ScreenCard extends LitElement {
           <button class="ha-bambulab-ssc-control-button"
             @click="${this.#togglePage}"
           >
-            <ha-icon icon="mdi:dots-horizontal"></ha-icon>
+            <ha-icon icon="mdi:camera-control"></ha-icon>
           </button>
           <button
             class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
@@ -403,24 +403,15 @@ export class A1ScreenCard extends LitElement {
 
   #renderSecondPage() {
     return html`
-      <div class="ha-bambulab-ssc-status-and-controls">
-        <div class="ha-bambulab-ssc-status-content">
-          <div class="circle-container">
-            ${this.#renderMoveAxis()}
-          </div>
-        </div>
-
-        <div class="ha-bambulab-ssc-control-buttons">
-          <button class="ha-bambulab-ssc-control-button"
-            @click="${this.#togglePage}"
-          >
-            <ha-icon icon="mdi:dots-horizontal"></ha-icon>
-          </button>
-          <button
-            class="ha-bambulab-ssc-control-button"
-          >
-            <ha-icon icon="mdi:excavator"></ha-icon>
-          </button>
+      <div class="menu-left">
+        <button @click=${this.#togglePage}>
+          <ha-icon icon="mdi:menu-left"></ha-icon>
+        </button>
+      </div>
+      
+      <div class="ha-bambulab-ssc-status-content">
+        <div class="circle-container">
+          ${this.#renderMoveAxis()}
         </div>
       </div>
   `
@@ -445,7 +436,6 @@ export class A1ScreenCard extends LitElement {
 
   #renderMoveAxis() {
     return html`
-
 <div class="move-axis-container">
   <svg viewBox="0 0 200 200" width="200" height="200">
     <g fill="none" stroke="black" stroke-width="1">
@@ -573,7 +563,6 @@ export class A1ScreenCard extends LitElement {
     <ha-icon icon="mdi:chevron-double-down"></ha-icon>
   </div>
 </div>
-
 `
   }
 
