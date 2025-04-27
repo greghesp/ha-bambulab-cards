@@ -16,6 +16,7 @@ export class ConfirmationPrompt extends LitElement {
   @property({ type: String, attribute: true }) secondaryActionText: string = "Cancel";
   @property() primaryAction!: () => void;
   @property() secondaryAction!: () => void;
+  @property() onClose!: () => void;
 
   protected firstUpdated(): void {
     // Apply styles once when first rendered
@@ -30,7 +31,7 @@ export class ConfirmationPrompt extends LitElement {
 
   render() {
     return html`
-      <ha-dialog id="confirmation-popup" open="true" .heading=${this.title}>
+      <ha-dialog id="confirmation-popup" open="true" .heading=${this.title} @closed=${this.onClose}>
         <ha-dialog-header slot="heading">
           <div slot="title">${this.title}</div>
         </ha-dialog-header>

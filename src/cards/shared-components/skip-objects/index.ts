@@ -21,6 +21,7 @@ export class SkipObjects extends LitElement {
   @property({ type: String }) body!: string;
   @property({ type: String }) _device_id!: string;
   @property() secondaryAction!: () => void;
+  @property() onClose!: () => void;
   @state() private printableObjects: Map<number, PrintableObject> = new Map();
   @state() private pickImage: HTMLImageElement | null = null;
   @state() private hoveredObject: number = 0;
@@ -428,6 +429,7 @@ export class SkipObjects extends LitElement {
         secondaryActionText="Cancel"
         .primaryAction=${this.#callSkipObjectsService.bind(this)}
         .secondaryAction=${this.secondaryAction}
+        .onClose=${this.onClose}
         .styles=${styles}
         @content-ready=${this.#handleContentReady}
       ></confirmation-prompt>

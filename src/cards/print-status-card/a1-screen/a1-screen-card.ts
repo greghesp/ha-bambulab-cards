@@ -86,31 +86,14 @@ export class A1ScreenCard extends LitElement {
           }
         }
 
-        // Add a small padding
-        const padding = 10;
-        minX = Math.max(0, minX - padding);
-        minY = Math.max(0, minY - padding);
-        maxX = Math.min(canvas.width, maxX + padding);
-        maxY = Math.min(canvas.height, maxY + padding);
-
-        // Calculate the original aspect ratio
-        const originalAspectRatio = canvas.width / canvas.height;
-
         // Calculate the trimmed content dimensions
         const trimmedWidth = maxX - minX;
         const trimmedHeight = maxY - minY;
 
-        // Create a new canvas that maintains the original aspect ratio
+        // Create new canvas matching the cropped image size.
         const croppedCanvas = document.createElement("canvas");
-        if (originalAspectRatio > 1) {
-          // Original was wider than tall
-          croppedCanvas.width = trimmedWidth;
-          croppedCanvas.height = trimmedWidth / originalAspectRatio;
-        } else {
-          // Original was taller than wide
-          croppedCanvas.width = trimmedHeight * originalAspectRatio;
-          croppedCanvas.height = trimmedHeight;
-        }
+        croppedCanvas.width = trimmedWidth;
+        croppedCanvas.height = trimmedHeight;
 
         // Draw the cropped image centered in the new canvas
         const croppedCtx = croppedCanvas.getContext("2d")!;
@@ -282,9 +265,7 @@ export class A1ScreenCard extends LitElement {
   }
 
   #showSkipObjects() {
-    console.log("#showSkipObjects")
-    // Toggle this because light dimiss breaks the popup by leaving this boolean set to true.
-    this.showSkipObjects = !this.showSkipObjects;
+    this.showSkipObjects = true;
   }
 
   #handleSkipObjectsDismiss() {
@@ -303,12 +284,14 @@ export class A1ScreenCard extends LitElement {
               .dangerous=${this.confirmation.action === "stop"}
               .primaryAction=${this.#handleConfirm.bind(this)}
               .secondaryAction=${this.#handleDismiss.bind(this)}
+              .onClose=${this.#handleDismiss.bind(this)}
             ></confirmation-prompt>
           `
         : nothing}
       ${this.showSkipObjects
         ? html`<skip-objects
             secondaryAction=${this.#handleSkipObjectsDismiss.bind(this)}
+            onClose=${this.#handleSkipObjectsDismiss.bind(this)}
             _device_id=${this._device_id}
           ></skip-objects>`
         : nothing}
