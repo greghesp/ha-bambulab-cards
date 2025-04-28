@@ -212,6 +212,7 @@ export class PrintStatusCard extends EntityProvider {
   }
 
   static getStubConfig() {
+    console.log("getStubConfig");
     return {
       printer: "MOCK",
     };
@@ -230,8 +231,11 @@ export class PrintStatusCard extends EntityProvider {
   }
 
   set hass(hass) {
+    const firstTime = hass && !this._hass;
     super.hass = hass;
-    this._initializeModelAndUX()
+    if (firstTime) {
+      this._initializeModelAndUX()
+    }
   }
 
   setConfig(config) {

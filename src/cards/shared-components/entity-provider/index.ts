@@ -74,9 +74,6 @@ export default class EntityProvider extends LitElement {
     
     this._hass = hass;
 
-    let entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
-    this._deviceEntities = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
-
     if (this._device_id == "MOCK") {
       Object.keys(this._hass.devices).forEach((key) => {
         const device = this._hass.devices[key];
@@ -87,6 +84,9 @@ export default class EntityProvider extends LitElement {
         }
       });
     }
+
+    let entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
+    this._deviceEntities = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
 
     // Override the entity list with the Node-RED entities if configured.
     for (const e in NODEREDENTITIES) {
