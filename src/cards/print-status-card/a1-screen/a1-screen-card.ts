@@ -186,8 +186,7 @@ export class A1ScreenCard extends LitElement {
 
   #getRemainingTime() {
     if (this._hass.states[this._deviceEntities["stage"].entity_id].state == "printing") {
-      const minutes = Number(this.#state("remaining_time"));
-      return `${helpers.formatTimeRemaining(minutes)} remaining`;
+      return `${this.#formattedState('remaining_time')} remaining`;
     } else {
       return nothing;
     }
