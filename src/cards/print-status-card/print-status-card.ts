@@ -212,7 +212,6 @@ export class PrintStatusCard extends EntityProvider {
   }
 
   static getStubConfig() {
-    console.log("getStubConfig");
     return {
       printer: "MOCK",
     };
