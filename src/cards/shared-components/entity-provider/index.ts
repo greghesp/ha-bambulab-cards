@@ -8,8 +8,10 @@ import * as helpers from "~/utils/helpers";
 
 const ENTITIES: string[] = [
   "aux_fan",
+  "aux_fan_speed",
   "bed_temp",
   "chamber_fan",
+  "chamber_fan_speed",
   "chamber_light",
   "chamber_temp",
   "cover_image",
@@ -22,6 +24,7 @@ const ENTITIES: string[] = [
   "pick_image", // Node red does not have
   "power",
   "print_progress",
+  "print_status",
   "printable_objects",
   "printing_speed", // Select - note the unique id is inconsistent as '..._Speed'
   "remaining_time",

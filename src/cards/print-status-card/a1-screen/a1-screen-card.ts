@@ -212,7 +212,7 @@ export class A1ScreenCard extends LitElement {
   }
 
   #getPrintStatusText() {
-    if (this._hass.states[this._deviceEntities["stage"].entity_id].state == "printing") {
+    if (this._hass.states[this._deviceEntities["print_status"].entity_id].state == "running") {
       const current_layer =
         this._hass.states[this._deviceEntities["current_layer"].entity_id].state;
       const total_layers = this._hass.states[this._deviceEntities["total_layers"].entity_id].state;
@@ -408,7 +408,7 @@ export class A1ScreenCard extends LitElement {
         </div>
         <div class="sensor" @click="${() => this.#clickEntity("aux_fan")}">
           <ha-icon icon="mdi:fan"></ha-icon>
-          <span class="sensor-value">${this.#attribute("aux_fan", "percentage")}%</span>
+          <span class="sensor-value">${this.#state("aux_fan_speed")}%</span>
         </div>
       </div>
     `
