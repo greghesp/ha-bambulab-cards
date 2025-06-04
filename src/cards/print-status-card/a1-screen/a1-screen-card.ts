@@ -6,6 +6,7 @@ import { hassContext, entitiesContext } from "../../../utils/context";
 import { consume } from "@lit/context";
 import "~/cards/shared-components/confirmation-prompt/confirmation-prompt";
 import "~/cards/shared-components/skip-objects";
+import "~/cards/ams-card/vector-ams-card/vector-ams-card";
 
 type ConfirmationState = {
   show: boolean;
@@ -18,6 +19,12 @@ enum MoveAxis {
   X,
   Y,
   HOME
+}
+
+enum Page {
+  Main,
+  Controls,
+  Ams,
 }
 
 @customElement("a1-screen-card")
@@ -43,7 +50,9 @@ export class A1ScreenCard extends LitElement {
 
   @state() private showSkipObjects = false;
 
-  @state() private showFirstPage = true;
+  @state() private page = Page.Main;
+
+  @property() public _spoolEntityId;
 
   static styles = styles;
 
@@ -128,6 +137,8 @@ export class A1ScreenCard extends LitElement {
     super.firstUpdated(changedProperties);
     this.observeCardHeight();
     this.processedImage = await this.#processCoverImage();
+
+    this.#getAMSList();
   }
 
   updated(changedProperties) {
@@ -302,16 +313,26 @@ export class A1ScreenCard extends LitElement {
             _device_id=${this._device_id}
           ></skip-objects>`
         : nothing}
-      <ha-card class="ha-bambulab-ssc">
+      <ha-card class="ha-bambulab-ssc"> 
         <div class="ha-bambulab-ssc-screen-container">
-          ${this.showFirstPage ? this.#renderFrontPage() : this.#renderSecondPage()}
+          ${this.page === Page.Main ? this.#renderFrontPage() :
+            this.page === Page.Controls ? this.#renderControlsPage() :
+            this.page === Page.Ams ? this.#renderAmsPage() : ''}
         </div>
       </ha-card>
     `;
   }
 
-  #togglePage() {
-    this.showFirstPage = !this.showFirstPage;
+  #showMainPage() {
+    this.page = Page.Main
+  }
+
+  #showControlsPage() {
+    this.page = Page.Controls
+  }
+
+  #showAmsPage() {
+    this.page = Page.Ams
   }
 
   #renderFrontPage() {
@@ -337,7 +358,7 @@ export class A1ScreenCard extends LitElement {
 
         <div class="ha-bambulab-ssc-control-buttons">
           <button class="ha-bambulab-ssc-control-button"
-            @click="${this.#togglePage}"
+            @click="${this.#showControlsPage}"
           >
             <ha-icon icon="mdi:camera-control"></ha-icon>
           </button>
@@ -410,14 +431,17 @@ export class A1ScreenCard extends LitElement {
           <ha-icon icon="mdi:fan"></ha-icon>
           <span class="sensor-value">${this.#state("aux_fan_speed")}%</span>
         </div>
+        <div class="ams" @click="${this.#showAmsPage}">
+          <ha-icon icon="mdi:view-grid-outline"></ha-icon>
+        </div>
       </div>
     `
   }
 
-  #renderSecondPage() {
+  #renderControlsPage() {
     return html`
       <div class="menu-left">
-        <button @click=${this.#togglePage}>
+        <button @click=${this.#showMainPage}>
           <ha-icon icon="mdi:menu-left"></ha-icon>
         </button>
       </div>
@@ -429,6 +453,24 @@ export class A1ScreenCard extends LitElement {
       </div>
 
       ${this.#renderSensorColumn()}
+    `
+  }
+
+  #renderAmsPage() {
+    return html`
+      <div class="menu-left">
+        <button @click=${this.#showMainPage}>
+          <ha-icon icon="mdi:menu-left"></ha-icon>
+        </button>
+      </div>
+      <ha-bambulab-spool
+        .key="${this._spoolEntityId}"
+        .entity_id="${this._spoolEntityId}"
+        .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
+        .show_type=${false}
+        .spool_anim_reflection=${false}
+        .spool_anim_wiggle=${false}
+      ></ha-bambulab-spool>
     `
   }
 
@@ -596,4 +638,33 @@ export class A1ScreenCard extends LitElement {
 `
   }
 
+  #getAMSList() {
+    const ENTITYLIST: string[] = [
+      "ams_temp",
+      "temp",             // Node-RED only
+      "custom_humidity",
+      "humidity_index",
+      "humidity_level",   // Node-RED only
+      "tray_0",           // Node-RED only
+      "tray_1",
+      "tray_2",
+      "tray_3",
+      "tray_4",
+    ];
+
+    const amsList: string[] = helpers.getAttachedDeviceIds(this._hass, this._device_id);
+    console.log("AMS List:", amsList);
+    amsList.forEach(ams_device_id => {
+      var device = this._hass.devices[ams_device_id];
+      console.log("AMS:", device);
+      if (device.model == "AMS") {
+        var entities = helpers.getBambuDeviceEntities(this._hass, ams_device_id, ENTITYLIST);
+        this._spoolEntityId = entities["tray_1"].entity_id;
+        console.log("AMS Entity ID:", this._spoolEntityId);
+      }
+    });
+    return amsList;
+  }
+
 }
+

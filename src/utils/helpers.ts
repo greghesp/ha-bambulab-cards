@@ -297,3 +297,21 @@ export function getImageUrl(hass, entity: Entity): string {
     return `${hass.states[imageEntityId].attributes.entity_picture}&state=${imageState}`;
   }
 }
+
+export function getAttachedDeviceIds(hass, device_id): string[] {
+  const devices: string[] = [];
+
+  // Find all devices that are connected via this device
+  const connectedDevices = Object.values(hass.devices)
+    .filter((device: any) => device.via_device_id === device_id);
+  
+  console.log("Connected devices:", connectedDevices);
+  
+  // Add each connected device to the list
+  connectedDevices.forEach((device: any) => {
+    devices.push(device.id);
+  });
+
+  
+  return devices;
+}
