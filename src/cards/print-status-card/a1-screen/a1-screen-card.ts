@@ -52,7 +52,7 @@ export class A1ScreenCard extends LitElement {
 
   @state() private page = Page.Main;
 
-  @property() public _spoolEntityId;
+  @state() private _spools: string[] = [];
 
   static styles = styles;
 
@@ -463,14 +463,20 @@ export class A1ScreenCard extends LitElement {
           <ha-icon icon="mdi:menu-left"></ha-icon>
         </button>
       </div>
-      <ha-bambulab-spool
-        .key="${this._spoolEntityId}"
-        .entity_id="${this._spoolEntityId}"
-        .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
-        .show_type=${false}
-        .spool_anim_reflection=${false}
-        .spool_anim_wiggle=${false}
-      ></ha-bambulab-spool>
+      <div class="v-ams-container">
+        ${this._spools.map(
+          spool => html`
+              <ha-bambulab-spool
+                .key="${spool}"
+                .entity_id="${spool}"
+                .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
+                .show_type=${true}
+                .spool_anim_reflection=${false}
+                .spool_anim_wiggle=${false}
+              ></ha-bambulab-spool>
+            `
+        )}
+      </div>
     `
   }
 
@@ -653,14 +659,14 @@ export class A1ScreenCard extends LitElement {
     ];
 
     const amsList: string[] = helpers.getAttachedDeviceIds(this._hass, this._device_id);
-    console.log("AMS List:", amsList);
     amsList.forEach(ams_device_id => {
       var device = this._hass.devices[ams_device_id];
-      console.log("AMS:", device);
-      if (device.model == "AMS") {
+      if (device.model != "External Spool") {
         var entities = helpers.getBambuDeviceEntities(this._hass, ams_device_id, ENTITYLIST);
-        this._spoolEntityId = entities["tray_1"].entity_id;
-        console.log("AMS Entity ID:", this._spoolEntityId);
+        this._spools.push(entities["tray_1"].entity_id);
+        this._spools.push(entities["tray_2"]?.entity_id);
+        this._spools.push(entities["tray_3"]?.entity_id);
+        this._spools.push(entities["tray_4"]?.entity_id);
       }
     });
     return amsList;

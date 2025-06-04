@@ -302,4 +302,11 @@ export default css`
   .menu-left ha-icon {
     --mdc-icon-size: 36px;
   }
+
+  .v-ams-container {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+    flex-grow: 1;
+  }
 `;
