@@ -400,6 +400,7 @@ export class PrintStatusCard extends EntityProvider {
           // Strip the formatted state down to just the number so we can add just the degree symbol to it.
           let temp = this._hass.formatEntityState(this._hass.states[entity.entity_id]);
           temp = temp.match(/[-+]?\d*\.?\d+/)[0];
+          
           return html` <div
             id="${key}"
             class="entity"
