@@ -394,7 +394,7 @@ export class PrintStatusCard extends EntityProvider {
           }
 
           let temp = this._hass.formatEntityState(this._hass.states[entity.entity_id]);
-          if (temp == "unvaiable") {
+          if (temp == "unavailable") {
             return html``;
           }
 
