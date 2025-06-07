@@ -325,6 +325,10 @@ export class PrintStatusCard extends EntityProvider {
       return html``;
     }
 
+    if (helpers.isEntityUnavailable(this._hass, this._deviceEntities[key])) {
+      return html``;
+    }
+
     const imageWidth = background.getBoundingClientRect().width;
     const imageHeight = background.getBoundingClientRect().height;
 
@@ -393,10 +397,10 @@ export class PrintStatusCard extends EntityProvider {
             }
           }
 
-          // Strip the formated state down to just the number so we can add just the degree symbol to it.
+          // Strip the formatted state down to just the number so we can add just the degree symbol to it.
           let temp = this._hass.formatEntityState(this._hass.states[entity.entity_id]);
           temp = temp.match(/[-+]?\d*\.?\d+/)[0];
-
+          
           return html` <div
             id="${key}"
             class="entity"
