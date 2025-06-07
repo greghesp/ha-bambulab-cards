@@ -432,7 +432,7 @@ export class A1ScreenCard extends LitElement {
           <span class="sensor-value">${this.#state("aux_fan_speed")}%</span>
         </div>
         <div class="ams" @click="${this.#showAmsPage}">
-          <ha-icon icon="mdi:view-grid-outline"></ha-icon>
+          ${this.#renderAMSSvg()}
         </div>
       </div>
     `
@@ -642,6 +642,27 @@ export class A1ScreenCard extends LitElement {
 
 </div>
 `
+  }
+
+  #renderAMSSvg() {
+    const colors: string[] = ['#800000', '#008000', '#000080', '#FFFFFF'];
+
+    let index = 0;
+    this._spools.forEach(spool => {
+      const state = this._hass.states[spool];
+      colors[index] = state.attributes.color;
+      console.log("Color:", index, colors[index]);
+      index++;
+    });
+
+    return html`
+      <svg viewBox="0 0 54 24" width="54" height="24">
+        <rect x="1"  y="10" width="10" height="10" fill="${colors[0]}" stroke="#808080" stroke-width="1"/>
+        <rect x="15" y="10" width="10" height="10" fill="${colors[1]}" stroke="#808080" stroke-width="1"/>
+        <rect x="29" y="10" width="10" height="10" fill="${colors[2]}" stroke="#808080" stroke-width="1"/>
+        <rect x="43" y="10" width="10" height="10" fill="${colors[3]}" stroke="#808080" stroke-width="1"/>
+      </svg>
+    `
   }
 
   #getAMSList() {
