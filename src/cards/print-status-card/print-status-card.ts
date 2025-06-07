@@ -393,23 +393,21 @@ export class PrintStatusCard extends EntityProvider {
             }
           }
 
-          // Strip the formated state down to just the number so we can add just the degree symbol to it.
           let temp = this._hass.formatEntityState(this._hass.states[entity.entity_id]);
-          if (temp.includes("°")) {
-            temp = temp.match(/[-+]?\d*\.?\d+/)[0];
-
-            return html` <div
-              id="${key}"
-              class="entity"
-              style="${style}"
-              @click="${() => this._clickEntity(clickTarget)}"
-            >
-              ${temp}&deg;
-            </div>`;
-          }
-          else{
+          if (temp == "unvaiable") {
             return html``;
           }
+
+          // Strip the formatted state down to just the number so we can add just the degree symbol to it.
+          temp = temp.match(/[-+]?\d*\.?\d+/)[0];
+          return html` <div
+            id="${key}"
+            class="entity"
+            style="${style}"
+            @click="${() => this._clickEntity(clickTarget)}"
+          >
+            ${temp}&deg;
+          </div>`;
 
         case "chamber_light":
           if (text == "on") {
