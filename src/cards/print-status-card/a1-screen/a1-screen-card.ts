@@ -27,6 +27,11 @@ enum Page {
   Ams,
 }
 
+interface AMS {
+  device_id: string;
+  spools: string[];
+}
+
 @customElement("a1-screen-card")
 export class A1ScreenCard extends LitElement {
   @property() public coverImage;
@@ -52,7 +57,8 @@ export class A1ScreenCard extends LitElement {
 
   @state() private page = Page.Main;
 
-  @state() private _spools: string[] = [];
+  @state() private _amsList: AMS[] = [];
+  @state() private _selectedAmsIndex: number = 0;
 
   static styles = styles;
 
@@ -432,7 +438,7 @@ export class A1ScreenCard extends LitElement {
           <span class="sensor-value">${this.#state("aux_fan_speed")}%</span>
         </div>
         <div class="ams" @click="${this.#showAmsPage}">
-          ${this.#renderAMSSvg()}
+          ${this.#renderAMSSvg(this._amsList[0]?.spools)}
         </div>
       </div>
     `
@@ -463,21 +469,91 @@ export class A1ScreenCard extends LitElement {
           <ha-icon icon="mdi:menu-left"></ha-icon>
         </button>
       </div>
+
+      <div class="ams-selector">
+        ${this._amsList.map((ams, index) => html`
+          <div class="ams-selector-item ${index === this._selectedAmsIndex ? 'selected' : ''}"
+               @click=${() => this._selectedAmsIndex = index}>
+            ${this.#renderAMSSvg(ams.spools)}
+          </div>
+        `)}
+      </div>
+
       <div class="v-ams-container">
-        ${this._spools.map(
+        ${this._amsList[this._selectedAmsIndex]?.spools.map(
           spool => html`
-              <ha-bambulab-spool
-                .key="${spool}"
-                .entity_id="${spool}"
-                .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
-                .show_type=${true}
-                .spool_anim_reflection=${false}
-                .spool_anim_wiggle=${false}
-              ></ha-bambulab-spool>
-            `
+            <ha-bambulab-spool
+              .key="${spool}"
+              .entity_id="${spool}"
+              .tag_uid=${0}
+              .show_type=${true}
+              .spool_anim_reflection=${false}
+              .spool_anim_wiggle=${false}
+            ></ha-bambulab-spool>
+          `
         )}
       </div>
     `
+  }
+
+  #renderAMSSvg(spools: string[]) {
+    if (!spools) {
+      return html``;
+    }
+
+    const colors: string[] = ['#800000', '#008000', '#000080', '#FFFFFF'];
+    let index = 0;
+    spools.forEach(spool => {
+      if (spool) {
+        const state = this._hass.states[spool];
+        colors[index] = state.attributes.color;
+      }
+      index++;
+    });
+
+    return html`
+      <svg viewBox="0 0 54 24" width="54" height="24">
+        <rect x="1"  y="10" width="10" height="10" fill="${colors[0]}" stroke="#808080" stroke-width="1"/>
+        <rect x="15" y="10" width="10" height="10" fill="${colors[1]}" stroke="#808080" stroke-width="1"/>
+        <rect x="29" y="10" width="10" height="10" fill="${colors[2]}" stroke="#808080" stroke-width="1"/>
+        <rect x="43" y="10" width="10" height="10" fill="${colors[3]}" stroke="#808080" stroke-width="1"/>
+      </svg>
+    `
+  }
+
+  #getAMSList() {
+    const ENTITYLIST: string[] = [
+      "ams_temp",
+      "temp",             // Node-RED only
+      "custom_humidity",
+      "humidity_index",
+      "humidity_level",   // Node-RED only
+      "tray_0",           // Node-RED only
+      "tray_1",
+      "tray_2",
+      "tray_3",
+      "tray_4",
+    ];
+
+    const amsList: string[] = helpers.getAttachedDeviceIds(this._hass, this._device_id);
+    amsList.forEach(ams_device_id => {
+      var device = this._hass.devices[ams_device_id];
+      if (device.model != "External Spool") {
+        var entities = helpers.getBambuDeviceEntities(this._hass, ams_device_id, ENTITYLIST);
+        var spools: string[]= [];
+        spools.push(entities["tray_1"].entity_id);
+        spools.push(entities["tray_2"]?.entity_id);
+        spools.push(entities["tray_3"]?.entity_id);
+        spools.push(entities["tray_4"]?.entity_id);
+
+        var ams: AMS = {
+          device_id: ams_device_id,
+          spools: spools,
+        };
+        this._amsList.push(ams);
+      }
+    });
+    return amsList;
   }
 
   #moveAxis(axis: MoveAxis, distance: Number) {
@@ -642,55 +718,6 @@ export class A1ScreenCard extends LitElement {
 
 </div>
 `
-  }
-
-  #renderAMSSvg() {
-    const colors: string[] = ['#800000', '#008000', '#000080', '#FFFFFF'];
-
-    let index = 0;
-    this._spools.forEach(spool => {
-      const state = this._hass.states[spool];
-      colors[index] = state.attributes.color;
-      console.log("Color:", index, colors[index]);
-      index++;
-    });
-
-    return html`
-      <svg viewBox="0 0 54 24" width="54" height="24">
-        <rect x="1"  y="10" width="10" height="10" fill="${colors[0]}" stroke="#808080" stroke-width="1"/>
-        <rect x="15" y="10" width="10" height="10" fill="${colors[1]}" stroke="#808080" stroke-width="1"/>
-        <rect x="29" y="10" width="10" height="10" fill="${colors[2]}" stroke="#808080" stroke-width="1"/>
-        <rect x="43" y="10" width="10" height="10" fill="${colors[3]}" stroke="#808080" stroke-width="1"/>
-      </svg>
-    `
-  }
-
-  #getAMSList() {
-    const ENTITYLIST: string[] = [
-      "ams_temp",
-      "temp",             // Node-RED only
-      "custom_humidity",
-      "humidity_index",
-      "humidity_level",   // Node-RED only
-      "tray_0",           // Node-RED only
-      "tray_1",
-      "tray_2",
-      "tray_3",
-      "tray_4",
-    ];
-
-    const amsList: string[] = helpers.getAttachedDeviceIds(this._hass, this._device_id);
-    amsList.forEach(ams_device_id => {
-      var device = this._hass.devices[ams_device_id];
-      if (device.model != "External Spool") {
-        var entities = helpers.getBambuDeviceEntities(this._hass, ams_device_id, ENTITYLIST);
-        this._spools.push(entities["tray_1"].entity_id);
-        this._spools.push(entities["tray_2"]?.entity_id);
-        this._spools.push(entities["tray_3"]?.entity_id);
-        this._spools.push(entities["tray_4"]?.entity_id);
-      }
-    });
-    return amsList;
   }
 
 }
