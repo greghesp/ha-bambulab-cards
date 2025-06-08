@@ -473,13 +473,15 @@ export class A1ScreenCard extends LitElement {
         <ha-icon icon="mdi:close"></ha-icon>
       </button>
 
-      <div class="ams-selector">
-        ${this._amsList.map((ams, index) => html`
-          <div class="ams-selector-item ${index === this._selectedAmsIndex ? 'selected' : ''}"
-               @click=${() => this._selectedAmsIndex = index}>
-            ${this.#renderAMSSvg(ams.spools)}
-          </div>
-        `)}
+      <div class="ams-selector-wrapper">
+        <div class="ams-selector">
+          ${this._amsList.map((ams, index) => html`
+            <div class="ams-selector-item ${index === this._selectedAmsIndex ? 'selected' : ''}"
+                 @click=${() => this._selectedAmsIndex = index}>
+              ${this.#renderAMSSvg(ams.spools)}
+            </div>
+          `)}
+        </div>
       </div>
 
       <div class="spool-container">

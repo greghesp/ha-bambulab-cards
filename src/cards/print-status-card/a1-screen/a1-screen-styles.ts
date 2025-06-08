@@ -305,7 +305,7 @@ export default css`
 
   .ams {
     cursor: pointer;
-    padding-top: 4px;
+    padding-top: 9px;
   }
 
   .ams-page-container {
@@ -337,12 +337,23 @@ export default css`
     color: var(--primary-text-color);
   }
 
+  .ams-selector-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+  }
+
   .ams-selector {
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 8px;
     padding: 0px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
     width: 100%;
   }
 
@@ -354,6 +365,11 @@ export default css`
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ams-selector-item svg {
+    display: block;
   }
 
   .ams-selector-item:hover {
