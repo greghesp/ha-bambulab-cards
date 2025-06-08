@@ -434,10 +434,12 @@ export class A1ScreenCard extends LitElement {
           <ha-icon icon="mdi:speedometer"></ha-icon>
           <span class="sensor-value">${this.#attribute("speed_profile", "modifier")}%</span>
         </div>
-        <div class="sensor" @click="${() => this.#clickEntity("aux_fan")}">
-          <ha-icon icon="mdi:fan"></ha-icon>
-          <span class="sensor-value">${this.#state("aux_fan_speed")}%</span>
-        </div>
+        ${this._deviceEntities["aux_fan_speed"] ? html`
+          <div class="sensor" @click="${() => this.#clickEntity("aux_fan")}">
+            <ha-icon icon="mdi:fan"></ha-icon>
+            <span class="sensor-value">${this.#state("aux_fan_speed")}%</span>
+          </div>
+        ` : nothing}
         <div class="ams" @click="${this.#showAmsPage}">
           ${this.#renderAMSSvg(this._amsList[0]?.spools)}
         </div>
