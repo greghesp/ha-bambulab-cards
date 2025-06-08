@@ -456,8 +456,6 @@ export class A1ScreenCard extends LitElement {
           ${this.#renderMoveAxis()}
         </div>
       </div>
-
-      ${this.#renderSensorColumn()}
     `
   }
 
@@ -508,14 +506,28 @@ export class A1ScreenCard extends LitElement {
     const svgString = `
       <svg viewBox="0 0 ${totalWidth} 18" width="${totalWidth}" height="18">
         ${spools.map((spool, i) => {
-          const color = spool ? this._hass.states[spool]?.attributes.color : '#FFFFFF';
+          const color = this._hass.states[spool].attributes.color;
+          const isEmpty = this._hass.states[spool].attributes.empty;
+          const x = 1 + (i * (spoolWidth + gap));
           return `
             <rect
-              x="${1 + (i * (spoolWidth + gap))}" y="1"
+              x="${x}" y="1"
               width="${spoolWidth}" height="16"
               fill="${color}"
               stroke="#808080"
-              stroke-width="1"/>`;
+              stroke-width="1"/>
+            ${isEmpty ? `
+              <line
+                x1="${x + 1}" y1="2"
+                x2="${x + spoolWidth - 1}" y2="17"
+                stroke="#808080"
+                stroke-width="1"/>
+              <line
+                x1="${x + 1}" y1="17"
+                x2="${x + spoolWidth - 1}" y2="2"
+                stroke="#808080"
+                stroke-width="1"/>
+            ` : ''}`;
         }).join('')}
       </svg>
     `;
