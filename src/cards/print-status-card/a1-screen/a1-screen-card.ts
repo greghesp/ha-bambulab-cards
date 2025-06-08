@@ -535,26 +535,40 @@ export class A1ScreenCard extends LitElement {
       "tray_2",
       "tray_3",
       "tray_4",
+      "external_spool",
     ];
 
     const amsList: string[] = helpers.getAttachedDeviceIds(this._hass, this._device_id);
+    const externalSpools: AMS[] = [];
+
     amsList.forEach(ams_device_id => {
       var device = this._hass.devices[ams_device_id];
-      if (device.model != "External Spool") {
-        var entities = helpers.getBambuDeviceEntities(this._hass, ams_device_id, ENTITYLIST);
-        var spools: string[] = [];
+      var entities = helpers.getBambuDeviceEntities(this._hass, ams_device_id, ENTITYLIST);
+      var spools: string[] = [];
+
+      if (device.model === "External Spool") {
+        if (entities["external_spool"]?.entity_id) {
+          spools.push(entities["external_spool"].entity_id);
+          externalSpools.push({
+            device_id: ams_device_id,
+            spools: spools,
+          });
+        }
+      } else {
         if (entities["tray_1"]?.entity_id) spools.push(entities["tray_1"].entity_id);
         if (entities["tray_2"]?.entity_id) spools.push(entities["tray_2"].entity_id);
         if (entities["tray_3"]?.entity_id) spools.push(entities["tray_3"].entity_id);
         if (entities["tray_4"]?.entity_id) spools.push(entities["tray_4"].entity_id);
 
-        var ams: AMS = {
+        this._amsList.push({
           device_id: ams_device_id,
           spools: spools,
-        };
-        this._amsList.push(ams);
+        });
       }
     });
+
+    // Add external spools at the end
+    this._amsList.push(...externalSpools);
     return amsList;
   }
 
