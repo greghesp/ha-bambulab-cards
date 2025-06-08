@@ -505,14 +505,18 @@ export class A1ScreenCard extends LitElement {
       return html``;
     }
 
+    const spoolWidth = 10;
+    const gap = 4;
+    const totalWidth = (spoolWidth * spools.length) + (gap * (spools.length - 1)) + 2; // +2 for the 1px padding on each side
+
     const svgString = `
-      <svg viewBox="0 0 54 20" width="54" height="20">
+      <svg viewBox="0 0 ${totalWidth} 20" width="${totalWidth}" height="20">
         ${spools.map((spool, i) => {
           const color = spool ? this._hass.states[spool]?.attributes.color : '#FFFFFF';
           return `
             <rect
-              x="${1 + (i * 14)}" y="2"
-              width="10" height="16"
+              x="${1 + (i * (spoolWidth + gap))}" y="2"
+              width="${spoolWidth}" height="16"
               fill="${color}"
               stroke="#808080"
               stroke-width="1"/>`;
