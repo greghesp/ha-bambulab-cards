@@ -450,10 +450,17 @@ export class A1ScreenCard extends LitElement {
       <button class="close-button" @click=${this.#showMainPage}>
         <ha-icon icon="mdi:close"></ha-icon>
       </button>
+      <div class="controls-page-container">
+        ${this._deviceEntities["power"]?.entity_id ? html`
+          <button class="power-button ${this.#state("power") === "on" ? "on" : "off"}" @click=${() => this.#clickEntity("power")}>
+            <ha-icon icon="mdi:power"></ha-icon>
+          </button>
+        ` : nothing}
 
-      <div class="ha-bambulab-ssc-status-content">
-        <div class="circle-container">
-          ${this.#renderMoveAxis()}
+        <div class="ha-bambulab-ssc-status-content">
+          <div class="circle-container">
+            ${this.#renderMoveAxis()}
+          </div>
         </div>
       </div>
     `

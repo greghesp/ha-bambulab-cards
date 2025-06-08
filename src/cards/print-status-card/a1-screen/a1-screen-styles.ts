@@ -386,4 +386,47 @@ export default css`
     padding-right: 0;
   }
 
+  .controls-page-container {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .power-button {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: var(--control-background);
+    border: none;
+    border-radius: 4px;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    padding: 8px;
+    z-index: 1;
+  }
+
+  .power-button.on {
+    color: var(--accent-color);
+  }
+
+  .power-button.off {
+    color: var(--warning-color);
+  }
+
+  .power-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .power-button ha-icon {
+    --mdc-icon-size: 24px;
+  }
+
 `;
