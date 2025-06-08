@@ -1,6 +1,7 @@
 import * as helpers from "../../../utils/helpers";
 import { customElement, property, state } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
+import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import styles from "./a1-screen-styles";
 import { hassContext, entitiesContext } from "../../../utils/context";
 import { consume } from "@lit/context";
@@ -464,6 +465,7 @@ export class A1ScreenCard extends LitElement {
 
   #renderAmsPage() {
     return html`
+    <div class="ams-page-container">
       <div class="menu-left">
         <button @click=${this.#showMainPage}>
           <ha-icon icon="mdi:menu-left"></ha-icon>
@@ -479,7 +481,7 @@ export class A1ScreenCard extends LitElement {
         `)}
       </div>
 
-      <div class="v-ams-container">
+      <div class="spool-container">
         ${this._amsList[this._selectedAmsIndex]?.spools.map(
           spool => html`
             <ha-bambulab-spool
@@ -493,32 +495,32 @@ export class A1ScreenCard extends LitElement {
           `
         )}
       </div>
+    </div>
     `
   }
 
   #renderAMSSvg(spools: string[]) {
     if (!spools) {
+      console.log('No spools provided');
       return html``;
     }
 
-    const colors: string[] = ['#800000', '#008000', '#000080', '#FFFFFF'];
-    let index = 0;
-    spools.forEach(spool => {
-      if (spool) {
-        const state = this._hass.states[spool];
-        colors[index] = state.attributes.color;
-      }
-      index++;
-    });
-
-    return html`
-      <svg viewBox="0 0 54 24" width="54" height="24">
-        <rect x="1"  y="10" width="10" height="10" fill="${colors[0]}" stroke="#808080" stroke-width="1"/>
-        <rect x="15" y="10" width="10" height="10" fill="${colors[1]}" stroke="#808080" stroke-width="1"/>
-        <rect x="29" y="10" width="10" height="10" fill="${colors[2]}" stroke="#808080" stroke-width="1"/>
-        <rect x="43" y="10" width="10" height="10" fill="${colors[3]}" stroke="#808080" stroke-width="1"/>
+    const svgString = `
+      <svg viewBox="0 0 54 20" width="54" height="20">
+        ${spools.map((spool, i) => {
+          const color = spool ? this._hass.states[spool]?.attributes.color : '#FFFFFF';
+          return `
+            <rect
+              x="${1 + (i * 14)}" y="2"
+              width="10" height="16"
+              fill="${color}"
+              stroke="#808080"
+              stroke-width="1"/>`;
+        }).join('')}
       </svg>
-    `
+    `;
+
+    return html`${unsafeHTML(svgString)}`;
   }
 
   #getAMSList() {
@@ -540,11 +542,11 @@ export class A1ScreenCard extends LitElement {
       var device = this._hass.devices[ams_device_id];
       if (device.model != "External Spool") {
         var entities = helpers.getBambuDeviceEntities(this._hass, ams_device_id, ENTITYLIST);
-        var spools: string[]= [];
-        spools.push(entities["tray_1"].entity_id);
-        spools.push(entities["tray_2"]?.entity_id);
-        spools.push(entities["tray_3"]?.entity_id);
-        spools.push(entities["tray_4"]?.entity_id);
+        var spools: string[] = [];
+        if (entities["tray_1"]?.entity_id) spools.push(entities["tray_1"].entity_id);
+        if (entities["tray_2"]?.entity_id) spools.push(entities["tray_2"].entity_id);
+        if (entities["tray_3"]?.entity_id) spools.push(entities["tray_3"].entity_id);
+        if (entities["tray_4"]?.entity_id) spools.push(entities["tray_4"].entity_id);
 
         var ams: AMS = {
           device_id: ams_device_id,
