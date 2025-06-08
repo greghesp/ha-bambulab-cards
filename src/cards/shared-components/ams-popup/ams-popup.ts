@@ -277,11 +277,11 @@ export class AMSPopup extends LitElement {
       return html`
         <div class="filament-title section-title">Filament Information</div>
         <div class="filament-type item-title">Filament Type</div>
-        <select class="filament-type item-value" @change="${this.#onFilamentTypeChange}">
+        <select class="filament-type item-value truncate-select" @change="${this.#onFilamentTypeChange}">
           ${this.#generateFilamentTypeOptions()}
         </select>
         <div class="filament-name item-title">Filament</div>
-        <select class="filament-name item-value" @change="${this.#onFilamentNameChange}">
+        <select class="filament-name item-value truncate-select" @change="${this.#onFilamentNameChange}">
           ${this.#generateFilamentNameOptions()}
         </select>
         <div class="div4 item-title">Color</div>

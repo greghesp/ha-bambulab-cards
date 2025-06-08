@@ -9,9 +9,11 @@ export default css`
 
   .ha-bambulab-spool-modal-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: repeat(6, 1fr);
     gap: 8px;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .filament-title {
@@ -47,6 +49,22 @@ export default css`
     align-items: center;
     justify-content: flex-end;
     color: var(--mdc-dialog-content-ink-color, #000000);
+    min-width: 0;
+  }
+
+  .truncate-select {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 20px;
+  }
+
+  .truncate-select option {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .filament-type {
@@ -102,6 +120,6 @@ export default css`
   }
 
   #load ha-icon {
-  margin-right: 8px;
-}
+    margin-right: 8px;
+  }
 `;
