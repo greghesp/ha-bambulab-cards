@@ -43,15 +43,29 @@ export default css`
   .v-ams-container {
     display: flex;
     flex-wrap: nowrap;
-    justify-content: space-evenly;
+    justify-content: center;
     flex-grow: 1;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0px;
+  }
+
+  .v-spools-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+    gap: 5px;
+    box-sizing: border-box;
   }
 
   .v-spool-holder {
     border: 7px solid #808080;
     background: linear-gradient(#959595, #626262, #959595);
     border-radius: 0.6em;
-    width: 20%;
+    width: 25%;
+    min-width: 25%;
+    max-width: 25%;
     display: flex;
     position: relative;
     min-height: calc(

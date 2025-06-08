@@ -80,7 +80,11 @@ export class SpoolCard extends LitElement {
   }
 
   private getSpool() {
-    const entities = helpers.getBambuDeviceEntities(this._hass, this._spool, ['external_spool']);
-    this._spoolEntityId = entities['external_spool'].entity_id;
+    const entities = helpers.getBambuDeviceEntities(this._hass, this._spool, ['external_spool', 'tray_1']);
+    if (entities['external_spool']?.entity_id) {
+      this._spoolEntityId = entities['external_spool'].entity_id;
+    } else if (entities['tray_1']?.entity_id) {
+      this._spoolEntityId = entities['tray_1'].entity_id;
+    }
   }
 }

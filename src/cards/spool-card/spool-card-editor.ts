@@ -1,7 +1,14 @@
 import { SPOOL_CARD_EDITOR_NAME } from "./const";
+import { MANUFACTURER, AMS_MODELS_WITH_EXTERNAL_SPOOL } from "../../const";
 import { customElement, state } from "lit/decorators.js";
 import { LitElement, html } from "lit";
 import memoizeOne from "memoize-one";
+
+// https://www.home-assistant.io/docs/blueprint/selectors/#select-selector
+const filterCombinations = AMS_MODELS_WITH_EXTERNAL_SPOOL.map((model) => ({
+  manufacturer: MANUFACTURER,
+  model: model,
+}));
 
 @customElement(SPOOL_CARD_EDITOR_NAME)
 export class SpoolCardEditor extends LitElement {
@@ -16,7 +23,7 @@ export class SpoolCardEditor extends LitElement {
     {
       name: "spool",
       label: "Spool",
-      selector: { device: {} },
+      selector: { device: { filter: filterCombinations } },
     },
     { name: "show_type", label: "Show Filament Types", selector: { boolean: true } },
     {

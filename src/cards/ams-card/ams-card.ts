@@ -157,12 +157,14 @@ export class AMS_CARD extends LitElement {
         humidity: this._entityList["humidity_index"],
         temperature: this._entityList["ams_temp"],
         spools: (() => {
-          return [
+          const spools = [
             this._entityList["tray_1"],
             this._entityList["tray_2"],
             this._entityList["tray_3"],
             this._entityList["tray_4"],
           ];
+          // Filter out undefined entries
+          return spools.filter(spool => spool?.entity_id);
         })(),
         type: this._hass.devices[this._deviceId].model.toUpperCase(),
       };
