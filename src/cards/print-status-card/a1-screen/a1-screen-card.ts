@@ -447,12 +447,10 @@ export class A1ScreenCard extends LitElement {
 
   #renderControlsPage() {
     return html`
-      <div class="menu-left">
-        <button @click=${this.#showMainPage}>
-          <ha-icon icon="mdi:menu-left"></ha-icon>
-        </button>
-      </div>
-      
+      <button class="close-button" @click=${this.#showMainPage}>
+        <ha-icon icon="mdi:close"></ha-icon>
+      </button>
+
       <div class="ha-bambulab-ssc-status-content">
         <div class="circle-container">
           ${this.#renderMoveAxis()}
@@ -466,11 +464,9 @@ export class A1ScreenCard extends LitElement {
   #renderAmsPage() {
     return html`
     <div class="ams-page-container">
-      <div class="menu-left">
-        <button @click=${this.#showMainPage}>
-          <ha-icon icon="mdi:menu-left"></ha-icon>
-        </button>
-      </div>
+      <button class="close-button" @click=${this.#showMainPage}>
+        <ha-icon icon="mdi:close"></ha-icon>
+      </button>
 
       <div class="ams-selector">
         ${this._amsList.map((ams, index) => html`
@@ -510,12 +506,12 @@ export class A1ScreenCard extends LitElement {
     const totalWidth = (spoolWidth * spools.length) + (gap * (spools.length - 1)) + 2; // +2 for the 1px padding on each side
 
     const svgString = `
-      <svg viewBox="0 0 ${totalWidth} 20" width="${totalWidth}" height="20">
+      <svg viewBox="0 0 ${totalWidth} 18" width="${totalWidth}" height="18">
         ${spools.map((spool, i) => {
           const color = spool ? this._hass.states[spool]?.attributes.color : '#FFFFFF';
           return `
             <rect
-              x="${1 + (i * (spoolWidth + gap))}" y="2"
+              x="${1 + (i * (spoolWidth + gap))}" y="1"
               width="${spoolWidth}" height="16"
               fill="${color}"
               stroke="#808080"

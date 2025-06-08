@@ -305,7 +305,7 @@ export default css`
 
   .ams {
     cursor: pointer;
-    padding: 2x;
+    padding-top: 4px;
   }
 
   .ams-page-container {
@@ -316,6 +316,25 @@ export default css`
     height: 100%;
     width: 100%;
     padding-top: 0px;
+  }
+
+  .close-button {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    background: none;
+    border: none;
+    color: var(--secondary-text-color);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+
+  .close-button:hover {
+    color: var(--primary-text-color);
   }
 
   .ams-selector {
