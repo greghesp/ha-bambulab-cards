@@ -13,8 +13,9 @@ export class Spool extends LitElement {
   @property({ type: Boolean }) public show_type: boolean = false;
   @property({ type: Boolean }) public spool_anim_reflection: boolean = true;
   @property({ type: Boolean }) public spool_anim_wiggle: boolean = true;
-  @property({ type: String }) public entity_id!: string;
-  @property({ type: Number }) private remainHeight = 95;
+  @property({ type: String })  public entity_id!: string;
+  @property({ type: Number })  private remainHeight = 95;
+  @property({ type: Boolean }) public developer_lan_mode: boolean = true;
   @property() private resizeObserver: ResizeObserver | null = null;
 
   static styles = styles;
@@ -51,7 +52,7 @@ export class Spool extends LitElement {
 
   render() {
     return html`
-      <ams-popup .entity_id=${this.entity_id}>
+      <ams-popup .entity_id=${this.entity_id} .developer_lan_mode=${this.developer_lan_mode}>
         <div class="ha-bambulab-spool-card-container">
           <div
             class="ha-bambulab-spool-card-holder"

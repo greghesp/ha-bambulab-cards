@@ -173,6 +173,7 @@ export class A1ScreenCard extends LitElement {
   }
 
   #clickEntity(key: string) {
+    if (this.#isBambuBlockingWrites()) return;
     helpers.showEntityMoreInfo(this, this._deviceEntities[key]);
   }
 
@@ -213,7 +214,7 @@ export class A1ScreenCard extends LitElement {
   #isPauseResumeDisabled(): boolean {
     const pauseDisabled = helpers.isEntityUnavailable(this._hass, this._deviceEntities["pause"]);
     const resumeDisabled = helpers.isEntityUnavailable(this._hass, this._deviceEntities["resume"]);
-    return pauseDisabled && resumeDisabled;
+    return this.#isBambuBlockingWrites() || (pauseDisabled && resumeDisabled);
   }
 
   #getPauseResumeIcon(): string {
@@ -226,7 +227,20 @@ export class A1ScreenCard extends LitElement {
   }
 
   #isStopButtonDisabled() {
-    return helpers.isEntityUnavailable(this._hass, this._deviceEntities["stop"]);
+    return this.#isBambuBlockingWrites() || helpers.isEntityUnavailable(this._hass, this._deviceEntities["stop"]);
+  }
+
+  #isSkipObjectsButtonDisabled() {
+    return this.#isBambuBlockingWrites() || helpers.isEntityUnavailable(this._hass, this._deviceEntities["skipped_objects"]);
+  }
+
+  #isControlsPageDisabled() {
+    return this.#isBambuBlockingWrites();
+  }
+  
+  #isBambuBlockingWrites() {
+    return this._hass.states[this._deviceEntities.mqtt_encryption.entity_id].state == "on" &&
+           this._hass.states[this._deviceEntities.developer_lan_mode.entity_id].state == "off";
   }
 
   #getPrintStatusText() {
@@ -365,6 +379,7 @@ export class A1ScreenCard extends LitElement {
 
         <div class="ha-bambulab-ssc-control-buttons">
           <button class="ha-bambulab-ssc-control-button"
+            ?disabled="${this.#isControlsPageDisabled()}"
             @click="${this.#showControlsPage}"
           >
             <ha-icon icon="mdi:camera-control"></ha-icon>
@@ -378,7 +393,7 @@ export class A1ScreenCard extends LitElement {
           </button>
           <button
             class="ha-bambulab-ssc-control-button"
-            ?disabled="${!helpers.isSkipButtonEnabled(this._hass, this._deviceEntities)}"
+            ?disabled="${this.#isSkipObjectsButtonDisabled()}"
             @click="${() => this.#showSkipObjects()}"
           >
             <ha-icon icon="mdi:debug-step-over"></ha-icon>
@@ -496,6 +511,7 @@ export class A1ScreenCard extends LitElement {
               .show_type=${true}
               .spool_anim_reflection=${false}
               .spool_anim_wiggle=${false}
+              .developer_lan_mode=${!this.#isBambuBlockingWrites()}
             ></ha-bambulab-spool>
           `
         )}

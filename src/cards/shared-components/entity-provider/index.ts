@@ -16,9 +16,11 @@ const ENTITIES: string[] = [
   "chamber_temp",
   "cover_image",
   "current_layer",
+  "developer_lan_mode",
   "door_open",
   "ftp", // Node red does not have
   "humidity",
+  "mqtt_encryption",
   "nozzle_temp",
   "pause",
   "pick_image", // Node red does not have

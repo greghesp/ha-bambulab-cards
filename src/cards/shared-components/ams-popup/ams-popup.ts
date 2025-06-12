@@ -29,6 +29,7 @@ interface FilamentData {
 @customElement("ams-popup")
 export class AMSPopup extends LitElement {
   @property({ type: String }) entity_id;
+  @property({ type: Boolean }) developer_lan_mode;
 
   @consume({ context: hassContext, subscribe: true })
   private hass;
@@ -165,6 +166,7 @@ export class AMSPopup extends LitElement {
       this.selectedFilament.nozzle_temperature_range_low,
       this.selectedFilament.nozzle_temperature_range_high
     );
+    this.#closeDialog();
   }
 
   async #handleReset() {
@@ -273,7 +275,7 @@ export class AMSPopup extends LitElement {
   }
 
   #populateFilamentInfo() {
-    if (this.is_bambu_lab) {
+    if (this.is_bambu_lab && this.developer_lan_mode) {
       return html`
         <div class="filament-title section-title">Filament Information</div>
         <div class="filament-type item-title">Filament Type</div>
@@ -321,7 +323,7 @@ export class AMSPopup extends LitElement {
 
   #populateActionButtons() {
     // This is the node red integration so we need to show the close button
-    if (!this.is_bambu_lab) {
+    if (!this.is_bambu_lab || !this.developer_lan_mode) {
       return html`
         <div class="action-buttons">
           <mwc-button id="close" class="action-button" @click=${this.#closePopup}>
