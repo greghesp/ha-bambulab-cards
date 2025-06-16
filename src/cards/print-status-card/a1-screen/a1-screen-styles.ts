@@ -50,6 +50,8 @@ export default css`
     flex: 1;
     flex-direction: row;
     gap: 12px;
+    align-items: center;
+    justify-content: center;
   }
 
   .ha-bambulab-ssc-status-icon {
