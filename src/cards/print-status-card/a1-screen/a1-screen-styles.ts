@@ -45,6 +45,13 @@ export default css`
     min-height: 24px;
   }
 
+  .ha-bambulab-controls-content {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    gap: 12px;
+  }
+
   .ha-bambulab-ssc-status-icon {
     flex: 1;
     display: flex;
@@ -210,7 +217,7 @@ export default css`
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
+    width: 75%;
     height: 100%;
     margin: 0 auto;
   }
@@ -443,6 +450,50 @@ export default css`
 
   .power-button ha-icon {
     --mdc-icon-size: 24px;
+  }
+
+  .bed-move-controls-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    background: var(--control-background);
+    border-radius: 4px;
+    width: 56px;
+    height: fit-content;
+    align-items: center;
+  }
+
+  .bed-move-controls-container ha-icon {
+    --mdc-icon-size: 24px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .bed-move-control-button {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: var(--control-background);
+    border: none;
+    border-radius: 4px;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+  }
+
+  .bed-move-control-button ha-icon {
+    color: var(--text-primary);
+  }
+
+  .bed-move-control-button:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
   }
 
 `;

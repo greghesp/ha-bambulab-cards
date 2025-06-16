@@ -19,6 +19,7 @@ type ConfirmationState = {
 enum MoveAxis {
   X,
   Y,
+  Z,
   HOME
 }
 
@@ -474,12 +475,11 @@ export class A1ScreenCard extends LitElement {
           </button>
         ` : nothing}
 
-        <div class="ha-bambulab-ssc-status-content">
-          <div class="circle-container">
-            ${this.#renderMoveAxis()}
-          </div>
+        <div class="ha-bambulab-controls-content">
+          ${this.#renderMoveAxis()}
+          ${this.#renderBedMoveControls()}
         </div>
-      </div>
+        </div>
     `
   }
 
@@ -617,6 +617,8 @@ export class A1ScreenCard extends LitElement {
       data.axis = 'X'
     } else if (axis == MoveAxis.Y) {
       data.axis = 'Y'
+    } else if (axis == MoveAxis.Z) {
+      data.axis = 'Z'
     } else if (axis == MoveAxis.HOME) {
       data.axis = 'HOME'
     }
@@ -632,148 +634,168 @@ export class A1ScreenCard extends LitElement {
 
   #renderMoveAxis() {
     return html`
-<div class="move-axis-container">
-  <svg viewBox="0 0 200 200" width="200" height="200">
-    <g fill="none" stroke="black" stroke-width="1">
-  
-      <!-- Inner Slice Left -->
-      <path class="inner-slice" d="
-        M 100 125
-        L 100 160
-        A60 60 0 0 1 40 100
-        L 75 100
-        A25 25 0 0 0 100 125
-        Z"
-        transform="rotate(45, 100, 100)" 
-        @click=${() => this.#moveAxis(MoveAxis.X, -1)} />
+<div class="circle-container">
+  <div class="move-axis-container">
+    <svg viewBox="0 0 200 200" width="200" height="200">
+      <g fill="none" stroke="black" stroke-width="1">
 
-      <!-- Outer Slice Left -->
-      <path class="outer-slice" d="
-        M 100 160
-        L 100 190
-        A90 90 0 0 1 10 100
-        L 40 100
-        A60 60 0 0 0 100 160
-        Z"
-        transform="rotate(45, 100, 100)" 
-        @click=${() => this.#moveAxis(MoveAxis.X, -10)} />
+        <!-- Inner Slice Left -->
+        <path class="inner-slice" d="
+          M 100 125
+          L 100 160
+          A60 60 0 0 1 40 100
+          L 75 100
+          A25 25 0 0 0 100 125
+          Z"
+          transform="rotate(45, 100, 100)" 
+          @click=${() => this.#moveAxis(MoveAxis.X, -1)} />
 
-      <!-- Inner Slice Right -->
-      <path class="inner-slice" d="
-        M 100 75
-        L 100 40
-        A60 60 0 0 1 160 100
-        L 125 100
-        A25 25 0 0 0 100 75
-        Z"
-        transform="rotate(45, 100, 100)" 
-        @click=${() => this.#moveAxis(MoveAxis.X, 1)} />
+        <!-- Outer Slice Left -->
+        <path class="outer-slice" d="
+          M 100 160
+          L 100 190
+          A90 90 0 0 1 10 100
+          L 40 100
+          A60 60 0 0 0 100 160
+          Z"
+          transform="rotate(45, 100, 100)" 
+          @click=${() => this.#moveAxis(MoveAxis.X, -10)} />
 
-      <!-- Outer Slice Right -->
-      <path class="outer-slice" d="
-        M 100 40
-        L 100 10
-        A90 90 0 0 1 190 100
-        L 160 100
-        A60 60 0 0 0 100 40
-        Z"
-        transform="rotate(45, 100, 100)" 
-        @click=${() => this.#moveAxis(MoveAxis.X, 10)} />
+        <!-- Inner Slice Right -->
+        <path class="inner-slice" d="
+          M 100 75
+          L 100 40
+          A60 60 0 0 1 160 100
+          L 125 100
+          A25 25 0 0 0 100 75
+          Z"
+          transform="rotate(45, 100, 100)" 
+          @click=${() => this.#moveAxis(MoveAxis.X, 1)} />
 
-      <!-- Inner Slice Top -->
-      <path class="inner-slice" d="
-        M 75 100
-        L 40 100
-        A60 60 0 0 1 100 40
-        L 100 75
-        A25 25 0 0 0 75 100
-        Z"
-        transform="rotate(45, 100, 100)" 
-        @click=${() => this.#moveAxis(MoveAxis.Y, 1)} />
+        <!-- Outer Slice Right -->
+        <path class="outer-slice" d="
+          M 100 40
+          L 100 10
+          A90 90 0 0 1 190 100
+          L 160 100
+          A60 60 0 0 0 100 40
+          Z"
+          transform="rotate(45, 100, 100)" 
+          @click=${() => this.#moveAxis(MoveAxis.X, 10)} />
 
-      <!-- Outer Slice Top -->
-      <path class="outer-slice" d="
-        M 40 100
-        L 10 100
-        A90 90 0 0 1 100 10
-        L 100 40
-        A60 60 0 0 0 40 100
-        Z"
-        transform="rotate(45, 100, 100)" 
-        @click=${() => this.#moveAxis(MoveAxis.Y, 10)} />
-        
-      <!-- Inner Slice Bottom -->
-      <path class="inner-slice" d="
-        M 125 100
-        L 160 100
-        A60 60 0 0 1 100 160
-        L 100 125
-        A25 25 0 0 0 125 100
-        Z"
-        transform="rotate(45, 100, 100)" 
-        @click=${() => this.#moveAxis(MoveAxis.Y, -1)} />
+        <!-- Inner Slice Top -->
+        <path class="inner-slice" d="
+          M 75 100
+          L 40 100
+          A60 60 0 0 1 100 40
+          L 100 75
+          A25 25 0 0 0 75 100
+          Z"
+          transform="rotate(45, 100, 100)" 
+          @click=${() => this.#moveAxis(MoveAxis.Y, 1)} />
 
-      <!-- Outer Slice Bottom -->
-      <path class="outer-slice" d="
-        M 160 100
-        L 190 100
-        A90 90 0 0 1 100 190
-        L 100 160
-        A60 60 0 0 0 160 100
-        Z"
-        transform="rotate(45, 100, 100)" 
-        @click=${() => this.#moveAxis(MoveAxis.Y, -10)} />
-    </g>
+        <!-- Outer Slice Top -->
+        <path class="outer-slice" d="
+          M 40 100
+          L 10 100
+          A90 90 0 0 1 100 10
+          L 100 40
+          A60 60 0 0 0 40 100
+          Z"
+          transform="rotate(45, 100, 100)" 
+          @click=${() => this.#moveAxis(MoveAxis.Y, 10)} />
+          
+        <!-- Inner Slice Bottom -->
+        <path class="inner-slice" d="
+          M 125 100
+          L 160 100
+          A60 60 0 0 1 100 160
+          L 100 125
+          A25 25 0 0 0 125 100
+          Z"
+          transform="rotate(45, 100, 100)" 
+          @click=${() => this.#moveAxis(MoveAxis.Y, -1)} />
 
-    <!-- Middle circle -->
-    <circle class="middle"
-      cx="100" cy="100" r="25"
-      stroke="black"
-      stroke-width="1"
-      fill="none"
-      @click=${() => this.#showConfirmation("home")}
-    />
-  </svg>
+        <!-- Outer Slice Bottom -->
+        <path class="outer-slice" d="
+          M 160 100
+          L 190 100
+          A90 90 0 0 1 100 190
+          L 100 160
+          A60 60 0 0 0 160 100
+          Z"
+          transform="rotate(45, 100, 100)" 
+          @click=${() => this.#moveAxis(MoveAxis.Y, -10)} />
+      </g>
 
-  <div class="label" style="left: 60px; top: 100px;">
-    <ha-icon icon="mdi:chevron-left"></ha-icon>
+      <!-- Middle circle -->
+      <circle class="middle"
+        cx="100" cy="100" r="25"
+        stroke="black"
+        stroke-width="1"
+        fill="none"
+        @click=${() => this.#showConfirmation("home")}
+      />
+    </svg>
+
+    <div class="label" style="left: 60px; top: 100px;">
+      <ha-icon icon="mdi:chevron-left"></ha-icon>
+    </div>
+
+    <div class="label" style="left: 25px; top: 100px;">
+      <ha-icon icon="mdi:chevron-double-left"></ha-icon>
+    </div>
+
+    <div class="label" style="left: 140px; top: 100px;">
+      <ha-icon icon="mdi:chevron-right"></ha-icon>
+    </div>
+
+    <div class="label" style="left: 175px; top: 100px;">
+      <ha-icon icon="mdi:chevron-double-right"></ha-icon>
+    </div>
+
+    <div class="label" style="left: 100px; top: 60px;">
+      <ha-icon icon="mdi:chevron-up"></ha-icon>
+    </div>
+
+    <div class="label" style="left: 100px; top: 25px;">
+      <ha-icon icon="mdi:chevron-double-up"></ha-icon>
+    </div>
+
+    <div class="label" style="left: 100px; top: 140px;">
+      <ha-icon icon="mdi:chevron-down"></ha-icon>
+    </div>
+
+    <div class="label" style="left: 100px; top: 175px;">
+      <ha-icon icon="mdi:chevron-double-down"></ha-icon>
+    </div>
+
+    <div class="label" style="left: 100px; top: 100px;">
+      <ha-icon icon="mdi:home"></ha-icon>
+    </div>
+
   </div>
-
-  <div class="label" style="left: 25px; top: 100px;">
-    <ha-icon icon="mdi:chevron-double-left"></ha-icon>
-  </div>
-
-  <div class="label" style="left: 140px; top: 100px;">
-    <ha-icon icon="mdi:chevron-right"></ha-icon>
-  </div>
-
-  <div class="label" style="left: 175px; top: 100px;">
-    <ha-icon icon="mdi:chevron-double-right"></ha-icon>
-  </div>
-
-  <div class="label" style="left: 100px; top: 60px;">
-    <ha-icon icon="mdi:chevron-up"></ha-icon>
-  </div>
-
-  <div class="label" style="left: 100px; top: 25px;">
-    <ha-icon icon="mdi:chevron-double-up"></ha-icon>
-  </div>
-
-  <div class="label" style="left: 100px; top: 140px;">
-    <ha-icon icon="mdi:chevron-down"></ha-icon>
-  </div>
-
-  <div class="label" style="left: 100px; top: 175px;">
-    <ha-icon icon="mdi:chevron-double-down"></ha-icon>
-  </div>
-
-  <div class="label" style="left: 100px; top: 100px;">
-    <ha-icon icon="mdi:home"></ha-icon>
-  </div>
-
 </div>
 `
   }
 
+  #renderBedMoveControls() {
+    return html`
+      <div class="bed-move-controls-container">
+        <ha-icon icon="mdi:train-car-flatbed"></ha-icon>
+        <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, -10)}>
+          <ha-icon icon="mdi:chevron-double-up"></ha-icon>
+        </button>
+        <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, -1)}>
+          <ha-icon icon="mdi:chevron-up"></ha-icon>
+        </button>
+        <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, 1)}>
+          <ha-icon icon="mdi:chevron-down"></ha-icon>
+        </button>
+        <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, 10)}>
+          <ha-icon icon="mdi:chevron-double-down"></ha-icon>
+        </button>
+      </div>
+    `
+  }
 }
-
