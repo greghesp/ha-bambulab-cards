@@ -473,9 +473,6 @@ export default css`
   }
 
   .bed-move-control-button {
-    width: 40px;
-    height: 40px;
-    padding: 0;
     background: var(--control-background);
     border: none;
     border-radius: 4px;
@@ -485,6 +482,16 @@ export default css`
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s ease;
+    padding: 8px;
+  }
+
+  .bed-move-control-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .bed-move-control-button:active {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0.95);
   }
 
   .bed-move-control-button ha-icon {

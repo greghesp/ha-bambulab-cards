@@ -23,6 +23,11 @@ enum MoveAxis {
   HOME
 }
 
+enum Extruder {
+  Retract,
+  Extrude
+}
+
 enum Page {
   Main,
   Controls,
@@ -478,8 +483,9 @@ export class A1ScreenCard extends LitElement {
         <div class="ha-bambulab-controls-content">
           ${this.#renderMoveAxis()}
           ${this.#renderBedMoveControls()}
+          ${this.#renderExtruderControls()}
         </div>
-        </div>
+      </div>
     `
   }
 
@@ -782,18 +788,54 @@ export class A1ScreenCard extends LitElement {
   #renderBedMoveControls() {
     return html`
       <div class="bed-move-controls-container">
-        <ha-icon icon="mdi:train-car-flatbed"></ha-icon>
         <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, -10)}>
           <ha-icon icon="mdi:chevron-double-up"></ha-icon>
         </button>
         <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, -1)}>
           <ha-icon icon="mdi:chevron-up"></ha-icon>
         </button>
+        <ha-icon icon="mdi:train-car-flatbed"></ha-icon>
         <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, 1)}>
           <ha-icon icon="mdi:chevron-down"></ha-icon>
         </button>
         <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, 10)}>
           <ha-icon icon="mdi:chevron-double-down"></ha-icon>
+        </button>
+      </div>
+    `
+  }
+
+  async #moveExtruder(direction: Extruder) {
+    const action = direction == Extruder.Retract ? "retract" : "extrude";
+    const callResult = await this._hass.callService(
+      "bambu_lab",
+      "extrude_retract",
+      { device_id: [this._device_id], type: action },
+      undefined,
+      true,
+      true);
+
+    console.log("CallResult:", callResult)
+    
+    if (callResult.response.Error) {
+      this.confirmation = {
+        show: true,
+        action: null,
+        title: "Error",
+        body: callResult.response.Error
+      };
+    }
+  }
+
+  #renderExtruderControls() {
+    return html`
+      <div class="bed-move-controls-container">
+        <button class="bed-move-control-button" @click=${() => this.#moveExtruder(Extruder.Retract)}>
+          <ha-icon icon="mdi:chevron-up"></ha-icon>
+        </button>
+        <ha-icon icon="mdi:printer-3d-nozzle-outline"></ha-icon>
+        <button class="bed-move-control-button" @click=${() => this.#moveExtruder(Extruder.Extrude)}>
+          <ha-icon icon="mdi:chevron-down"></ha-icon>
         </button>
       </div>
     `
