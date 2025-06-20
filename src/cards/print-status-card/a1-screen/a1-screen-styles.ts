@@ -28,8 +28,9 @@ export default css`
 
   .ha-bambulab-ssc-status-and-controls {
     display: flex;
-    flex: 1;
     flex-direction: row;
+    height: 100%;
+    width: 100%;
     gap: 12px;
   }
 
@@ -40,9 +41,11 @@ export default css`
 
   .ha-bambulab-ssc-status-content {
     display: flex;
-    flex: 1;
     flex-direction: column;
-    min-height: 24px;
+    flex: 1 1 0%;
+    min-width: 0;
+    min-height: 0;
+    gap: 0;
   }
 
   .ha-bambulab-controls-content {
@@ -187,14 +190,14 @@ export default css`
     justify-content: flex-start;
     align-items: stretch;
     max-width: 70px;
-    width: 100%;
+    width: 70px;
     background: var(--control-background);
     border-radius: 4px;
     color: var(--text-primary);
     padding: 8px;
     box-sizing: border-box;
     cursor: pointer;
-    flex: 1 1 0%;
+    flex: none;
     height: 100%;
   }
 
@@ -475,12 +478,21 @@ export default css`
     z-index: 1;
   }
 
+  .ha-bambulab-ssc-control-button.power-button.on,
   .power-button.on {
-    color: var(--accent-color);
+    background: #2ecc40 !important;
   }
 
   .power-button.off {
-    color: var(--warning-color);
+    background: var(--control-background) !important;
+  }
+
+  .power-button.off .power-icon {
+    color: #f44336 !important;
+  }
+
+  .power-button.on .power-icon {
+    color: var(--text-primary) !important;
   }
 
   .power-button:hover {

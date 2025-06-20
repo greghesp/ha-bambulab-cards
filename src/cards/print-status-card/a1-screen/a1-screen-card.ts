@@ -448,22 +448,20 @@ export class A1ScreenCard extends LitElement {
   }
 
   #renderExtraControlsColumn() {
-    // Count visible buttons
+    // Count visible buttons (excluding power, which is always last if present)
     let count = 1; // swap button always present
-    if (this._deviceEntities["power"]?.entity_id) count++;
     count++; // skip objects button always present
-    count++; // video toggle button always present
-    const placeholders = Array.from({ length: 5 - count });
+    // Only show video toggle if not X1C or H2D
+    const device = this._hass.devices?.[this._device_id];
+    const hideVideoToggle = device && (device.model === 'X1C' || device.model === 'H2D');
+    if (!hideVideoToggle) count++; // video toggle button present if not hidden
+    const hasPower = !!this._deviceEntities["power"]?.entity_id;
+    const placeholders = Array.from({ length: 5 - (count + (hasPower ? 1 : 0)) });
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
         <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleExtraControls}">
           <ha-icon icon="mdi:swap-horizontal"></ha-icon>
         </button>
-        ${this._deviceEntities["power"]?.entity_id ? html`
-          <button class="ha-bambulab-ssc-control-button ${this.#state("power") === "on" ? "on" : "off"}" @click=${() => this.#clickEntity("power")}>
-            <ha-icon icon="mdi:power"></ha-icon>
-          </button>
-        ` : nothing}
         <button
           class="ha-bambulab-ssc-control-button"
           ?disabled="${this.#isSkipObjectsButtonDisabled()}"
@@ -471,12 +469,20 @@ export class A1ScreenCard extends LitElement {
         >
           <ha-icon icon="mdi:debug-step-over"></ha-icon>
         </button>
-        <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleVideoFeed}" title="Toggle video feed">
-          <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
-        </button>
+        ${!hideVideoToggle ? html`
+          <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleVideoFeed}" title="Toggle video feed">
+            <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
+          </button>
+        ` : nothing}
         ${placeholders.map(() => html`
           <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
         `)}
+        ${hasPower ? html`
+          <button class="ha-bambulab-ssc-control-button power-button ${this.#state('power') === 'on' ? 'on' : 'off'}" @click=${() => this.#clickEntity("power")}
+            title="Power">
+            <ha-icon icon="mdi:power" class="power-icon"></ha-icon>
+          </button>
+        ` : nothing}
       </div>
     `;
   }
@@ -524,44 +530,50 @@ export class A1ScreenCard extends LitElement {
   #renderAlternateSensorColumn() {
     // Count visible sensors (excluding AMS)
     let count = 0;
-    if (this._deviceEntities["chamber_temperature"]) count++;
-    if (this._deviceEntities["chamber_humidity"]) count++;
-    count++; // cooling fan always present
+    if (this._deviceEntities["chamber_temp"]) count++;
+    if (this._deviceEntities["humidity"]) count++;
     if (this._deviceEntities["chamber_fan"]) count++;
+    count++; // cooling fan always present
     // Main sensor column: nozzle, bed, speed, aux fan (optional)
     let mainCount = 3; // nozzle, bed, speed always present
     if (this._deviceEntities["aux_fan_speed"]) mainCount++;
     const placeholders = Array.from({ length: mainCount - count });
     return html`
       <div class="ha-bambulab-ssc-sensors">
-        ${this._deviceEntities["chamber_temperature"] ? html`
-          <div class="sensor" @click="${() => this.#clickEntity("chamber_temperature")}">
-            <ha-icon icon="mdi:thermometer"></ha-icon>
-            <span class="sensor-value">${this.#formattedState("chamber_temperature")}</span>
+        ${this._deviceEntities["chamber_temp"] ? html`
+          <div class="sensor">
+            <div class="twoicons">
+              <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
+              <ha-icon icon="mdi:thermometer"></ha-icon>
+            </div>
+            <span class="sensor-value">${this.#formattedState("chamber_temp")}</span>
           </div>
         ` : nothing}
-        ${this._deviceEntities["chamber_humidity"] ? html`
-          <div class="sensor" @click="${() => this.#clickEntity("chamber_humidity")}">
-            <ha-icon icon="mdi:water-percent"></ha-icon>
-            <span class="sensor-value">${this.#formattedState("chamber_humidity")}</span>
+        ${this._deviceEntities["humidity"] ? html`
+          <div class="sensor">
+            <div class="twoicons">
+              <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
+              <ha-icon icon="mdi:water-percent"></ha-icon>
+            </div>
+            <span class="sensor-value">${this.#formattedState("humidity")}</span>
+          </div>
+        ` : nothing}
+        ${this._deviceEntities["chamber_fan"] ? html`
+          <div class="sensor" @click="${() => this.#clickEntity("chamber_fan")}">
+            <div class="twoicons">
+              <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
+              <ha-icon icon="mdi:fan"></ha-icon>
+            </div>
+            <span class="sensor-value">${this.#state("chamber_fan_speed") ?? '--'}%</span>
           </div>
         ` : nothing}
         <div class="sensor" @click="${() => this.#clickEntity("cooling_fan")}">
           <div class="twoicons">
-            <ha-icon icon="mdi:fan"></ha-icon>
             <ha-icon icon="mdi:printer-3d"></ha-icon>
+            <ha-icon icon="mdi:fan"></ha-icon>
           </div>
           <span class="sensor-value">${this.#state("cooling_fan_speed") ?? '--'}%</span>
         </div>
-        ${this._deviceEntities["chamber_fan"] ? html`
-          <div class="sensor" @click="${() => this.#clickEntity("chamber_fan")}">
-            <div class="twoicons">
-              <ha-icon icon="mdi:fan"></ha-icon>
-              <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
-            </div>
-            <span class="sensor-value">${this.#state("chamber_fan") ?? '--'}%</span>
-          </div>
-        ` : nothing}
         ${placeholders.map(() => html`
           <div class="sensor invisible-placeholder" aria-hidden="true"></div>
         `)}
