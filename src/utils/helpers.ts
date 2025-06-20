@@ -75,8 +75,17 @@ export function getBambuDeviceEntities(
     if (value.device_id === device_id) {
       for (const key of entities) {
         if (value.platform == "bambu_lab") {
-          if (key == value.translation_key) {
-            result[key] = value;
+          const divider = key.indexOf('|')
+          if (divider != -1) {
+            const type = key.slice(0, divider)
+            const name = key.slice(divider + 1)
+            if (value.entity_id.startsWith(type) && name == value.translation_key) {
+              result[name] = value;
+            }
+          } else {
+            if (key == value.translation_key) {
+              result[key] = value;
+            }
           }
         } else if (value.platform == "mqtt") {
           let regex;
@@ -295,6 +304,18 @@ export function getImageUrl(hass, entity: Entity): string {
     const imageEntityId = entity.entity_id;
     const imageState = hass.states[imageEntityId].state;
     return `${hass.states[imageEntityId].attributes.entity_picture}&state=${imageState}`;
+  }
+}
+
+// Helper to get the stream URL for the camera entity
+export function getCameraStreamUrl(hass, entity: Entity): string {
+  if (isEntityUnavailable(hass, entity)) {
+    console.log("Camera unavailable");
+    return "";
+  } else {
+    const entityId = entity.entity_id;
+    const token = hass.states[entityId].attributes.access_token;
+    return `/api/camera_proxy_stream/${entityId}?token=${token}`;
   }
 }
 

@@ -116,6 +116,14 @@ export default css`
     width: 100%;
   }
 
+  .ha-bambulab-ssc-extra-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 70px;
+    width: 100%;
+  }
+
   .condensed-mode .ha-bambulab-ssc-control-buttons {
     flex-direction: row;
     max-width: none;
@@ -137,6 +145,7 @@ export default css`
     justify-content: center;
     transition: background-color 0.2s ease;
     flex-grow: 1;
+    min-height: 40px;
   }
 
   .ha-bambulab-ssc-control-button.on {
@@ -164,6 +173,10 @@ export default css`
 
   .ha-bambulab-ssc-control-button.warning {
     background: var(--warning-color);
+  }
+
+  .ha-bambulab-ssc-control-button ha-icon {
+    --mdc-icon-size: 24px;
   }
 
   .ha-bambulab-ssc-sensors {
@@ -421,8 +434,22 @@ export default css`
     justify-content: center;
   }
 
+  .extra-controls-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    color: var(--text-primary);
+  }
+
+  .extra-controls-content h2 {
+    margin: 0;
+    font-size: 1.2em;
+    color: var(--text-primary);
+  }
+
   .power-button {
-    position: absolute;
     top: 4px;
     left: 4px;
     background: var(--control-background);
@@ -503,6 +530,31 @@ export default css`
     cursor: not-allowed;
     opacity: 0.5;
     pointer-events: none;
+  }
+
+  .video-toggle-button {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--control-background);
+    border: none;
+    border-radius: 50%;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 6px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .video-toggle-button:hover {
+    background: rgba(255,255,255,0.2);
+  }
+
+  .video-toggle-button ha-icon {
+    --mdc-icon-size: 22px;
   }
 
 `;
