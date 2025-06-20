@@ -247,6 +247,10 @@ export default css`
     color: var(--text-primary);
   }
 
+  .sensor-value ha-icon[icon="mdi:alert-outline"] {
+    color: #ffeb3b;
+  }
+
   .sensor ha-icon {
     --mdc-icon-size: 1.2em;
     color: var(--text-secondary);
