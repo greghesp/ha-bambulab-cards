@@ -48,6 +48,17 @@ export default css`
     gap: 0;
   }
 
+  .condensed-mode .ha-bambulab-ssc-status-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    width: auto;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0%;
+  }
+
   .ha-bambulab-controls-content {
     display: flex;
     flex: 1;
@@ -131,10 +142,19 @@ export default css`
 
   .condensed-mode .ha-bambulab-ssc-control-buttons {
     flex-direction: row;
+    width: 100%;
     max-width: none;
     height: auto;
-    align-self: flex-end;
-    justify-content: flex-end;
+    min-height: 0;
+    flex: none;
+    margin-top: 8px;
+    gap: 8px;
+  }
+
+  .condensed-mode .ha-bambulab-ssc-control-buttons .ha-bambulab-ssc-control-button {
+    min-height: 48px;
+    height: 48px;
+    flex: 1 1 0;
   }
 
   .ha-bambulab-ssc-control-button {
@@ -589,6 +609,15 @@ export default css`
     width: 100%;
     margin: 0 0 0 0;
     height: 0;
+  }
+
+  .condensed-mode .ha-bambulab-ssc-sensors {
+    width: 70px;
+    max-width: 70px;
+    min-width: 0;
+    height: 100%;
+    flex: none;
+    margin-top: 0;
   }
 
 `;
