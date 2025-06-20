@@ -377,9 +377,6 @@ export class A1ScreenCard extends LitElement {
       <div class="ha-bambulab-ssc-status-and-controls">
         <div class="ha-bambulab-ssc-status-content">
           <div class="ha-bambulab-ssc-status-icon" style="position: relative;">
-            <button class="video-toggle-button" @click=${this.#toggleVideoFeed} title="Toggle video feed">
-              <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
-            </button>
             ${this.showVideoFeed
               ? html`<img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" />`
               : html`<img src="${this.processedImage || this.coverImage}" alt="Cover Image" />`}
@@ -451,13 +448,19 @@ export class A1ScreenCard extends LitElement {
   }
 
   #renderExtraControlsColumn() {
+    // Count visible buttons
+    let count = 1; // swap button always present
+    if (this._deviceEntities["power"]?.entity_id) count++;
+    count++; // skip objects button always present
+    count++; // video toggle button always present
+    const placeholders = Array.from({ length: 5 - count });
     return html`
-      <div class="ha-bambulab-ssc-sensors">
-        <button class="ha-bambulab-ssc-control-button" style="margin-bottom: 8px;" @click="${this.#toggleExtraControls}">
+      <div class="ha-bambulab-ssc-control-buttons">
+        <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleExtraControls}">
           <ha-icon icon="mdi:swap-horizontal"></ha-icon>
         </button>
         ${this._deviceEntities["power"]?.entity_id ? html`
-          <button class="power-button ${this.#state("power") === "on" ? "on" : "off"}" @click=${() => this.#clickEntity("power")}>
+          <button class="ha-bambulab-ssc-control-button ${this.#state("power") === "on" ? "on" : "off"}" @click=${() => this.#clickEntity("power")}>
             <ha-icon icon="mdi:power"></ha-icon>
           </button>
         ` : nothing}
@@ -468,6 +471,12 @@ export class A1ScreenCard extends LitElement {
         >
           <ha-icon icon="mdi:debug-step-over"></ha-icon>
         </button>
+        <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleVideoFeed}" title="Toggle video feed">
+          <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
+        </button>
+        ${placeholders.map(() => html`
+          <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
+        `)}
       </div>
     `;
   }
@@ -504,6 +513,7 @@ export class A1ScreenCard extends LitElement {
             <span class="sensor-value">${this.#state("aux_fan_speed")}%</span>
           </div>
         ` : nothing}
+        <div class="ams-divider"></div>
         <div class="ams" @click="${this.#showAmsPage}">
           ${this.#renderAMSSvg(this._amsList[0]?.spools)}
         </div>
@@ -512,6 +522,16 @@ export class A1ScreenCard extends LitElement {
   }
 
   #renderAlternateSensorColumn() {
+    // Count visible sensors (excluding AMS)
+    let count = 0;
+    if (this._deviceEntities["chamber_temperature"]) count++;
+    if (this._deviceEntities["chamber_humidity"]) count++;
+    count++; // cooling fan always present
+    if (this._deviceEntities["chamber_fan"]) count++;
+    // Main sensor column: nozzle, bed, speed, aux fan (optional)
+    let mainCount = 3; // nozzle, bed, speed always present
+    if (this._deviceEntities["aux_fan_speed"]) mainCount++;
+    const placeholders = Array.from({ length: mainCount - count });
     return html`
       <div class="ha-bambulab-ssc-sensors">
         ${this._deviceEntities["chamber_temperature"] ? html`
@@ -526,7 +546,7 @@ export class A1ScreenCard extends LitElement {
             <span class="sensor-value">${this.#formattedState("chamber_humidity")}</span>
           </div>
         ` : nothing}
-        <div class="sensor" @click="${() => this.#clickEntity("cooling_fan_speed")}">
+        <div class="sensor" @click="${() => this.#clickEntity("cooling_fan")}">
           <div class="twoicons">
             <ha-icon icon="mdi:fan"></ha-icon>
             <ha-icon icon="mdi:printer-3d"></ha-icon>
@@ -542,6 +562,10 @@ export class A1ScreenCard extends LitElement {
             <span class="sensor-value">${this.#state("chamber_fan") ?? '--'}%</span>
           </div>
         ` : nothing}
+        ${placeholders.map(() => html`
+          <div class="sensor invisible-placeholder" aria-hidden="true"></div>
+        `)}
+        <div class="ams-divider"></div>
         <div class="ams" @click="${this.#showAmsPage}">
           ${this.#renderAMSSvg(this._amsList[0]?.spools)}
         </div>

@@ -567,4 +567,16 @@ export default css`
     --mdc-icon-size: 22px;
   }
 
+  .invisible-placeholder {
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .ams-divider {
+    border-top: 1px solid var(--divider-color);
+    width: 100%;
+    margin: 0 0 0 0;
+    height: 0;
+  }
+
 `;
