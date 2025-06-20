@@ -46,6 +46,7 @@ export class A1ScreenCard extends LitElement {
   @state() private processedImage: string | null = null;
   @state() private showExtraControls = false;
   @state() private showVideoFeed = false;
+  @state() private videoMaximized = false;
   
   @consume({ context: hassContext, subscribe: true })
   @state()
@@ -327,6 +328,10 @@ export class A1ScreenCard extends LitElement {
     this.showVideoFeed = !this.showVideoFeed;
   }
 
+  #toggleVideoMaximized() {
+    this.videoMaximized = !this.videoMaximized;
+  }
+
   render() {
     return html`
       ${this.confirmation.show
@@ -374,29 +379,45 @@ export class A1ScreenCard extends LitElement {
 
   #renderFrontPage() {
     return html`
-      <div class="ha-bambulab-ssc-status-and-controls">
-        <div class="ha-bambulab-ssc-status-content">
-          <div class="ha-bambulab-ssc-status-icon" style="position: relative;">
-            ${this.showVideoFeed
-              ? html`<img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" />`
-              : html`<img src="${this.processedImage || this.coverImage}" alt="Cover Image" />`}
-          </div>
-          <div class="ha-bambulab-ssc-status-info">
-            <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
-            <div class="ha-bambulab-ssc-progress-container">
-              <div class="ha-bambulab-ssc-progress-bar">
-                <div
-                  class="ha-bambulab-ssc-progress"
-                  style="width: ${this.#calculateProgress()}"
-                ></div>
+      <div class="ha-bambulab-ssc-status-and-controls${this.videoMaximized ? ' video-maximized' : ''}">
+        ${this.videoMaximized
+          ? html`
+              <div class="video-maximized-container">
+                <img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" class="video-maximized-img" />
+                <button class="video-maximize-btn" @click="${this.#toggleVideoMaximized}" title="Restore video">
+                  <ha-icon icon="mdi:arrow-collapse" class="mirrored"></ha-icon>
+                </button>
               </div>
-              <div class="ha-bambulab-ssc-progress-text">${this.#getPrintStatusText()}</div>
-            </div>
-          </div>
-        </div>
-        ${this.showExtraControls ? this.#renderExtraControlsColumn() : this.#renderControlsColumn()}
+            `
+          : html`
+              <div class="ha-bambulab-ssc-status-content">
+                <div class="ha-bambulab-ssc-status-icon" style="position: relative;">
+                  ${this.showVideoFeed
+                    ? html`
+                        <img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" />
+                        <button class="video-maximize-btn" @click="${this.#toggleVideoMaximized}" title="Maximize video">
+                          <ha-icon icon="mdi:arrow-expand" class="mirrored"></ha-icon>
+                        </button>
+                      `
+                    : html`<img src="${this.processedImage || this.coverImage}" alt="Cover Image" />`}
+                </div>
+                <div class="ha-bambulab-ssc-status-info">
+                  <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
+                  <div class="ha-bambulab-ssc-progress-container">
+                    <div class="ha-bambulab-ssc-progress-bar">
+                      <div
+                        class="ha-bambulab-ssc-progress"
+                        style="width: ${this.#calculateProgress()}"
+                      ></div>
+                    </div>
+                    <div class="ha-bambulab-ssc-progress-text">${this.#getPrintStatusText()}</div>
+                  </div>
+                </div>
+              </div>
+              ${this.showExtraControls ? this.#renderExtraControlsColumn() : this.#renderControlsColumn()}
+              ${this.showExtraControls ? this.#renderAlternateSensorColumn() : this.#renderMainSensorColumn()}
+            `}
       </div>
-      ${this.showExtraControls ? this.#renderAlternateSensorColumn() : this.#renderMainSensorColumn()}
     `;
   }
 

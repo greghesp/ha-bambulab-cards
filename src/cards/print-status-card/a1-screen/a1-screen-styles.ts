@@ -75,6 +75,7 @@ export default css`
     justify-content: center;
     min-height: 0;
     overflow: hidden;
+    position: relative;
   }
 
   .condensed-mode .ha-bambulab-ssc-status-icon {
@@ -618,6 +619,65 @@ export default css`
     height: 100%;
     flex: none;
     margin-top: 0;
+  }
+
+  .video-maximize-btn {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    z-index: 10;
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .video-maximize-btn ha-icon {
+    --mdc-icon-size: 28px;
+    color: var(--text-primary);
+    background: none;
+    filter:
+      drop-shadow(0 0 0.5px #000)
+      drop-shadow(0 0 0.5px #000)
+      drop-shadow(0 0 0.5px #000)
+      drop-shadow(0 0 0.5px #000);
+  }
+
+  .video-maximized .video-maximized-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    background: black;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .video-maximized-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: black;
+    margin: 0;
+    padding: 0;
+    display: block;
+  }
+  .video-maximized .ha-bambulab-ssc-status-content,
+  .video-maximized .ha-bambulab-ssc-control-buttons,
+  .video-maximized .ha-bambulab-ssc-sensors {
+    display: none !important;
+  }
+
+  .mirrored {
+    transform: scaleX(-1);
   }
 
 `;
