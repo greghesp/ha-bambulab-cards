@@ -332,6 +332,12 @@ export class A1ScreenCard extends LitElement {
     this.videoMaximized = !this.videoMaximized;
   }
 
+  #openDevicePage() {
+    if (!this._device_id) return;
+    const url = `/config/devices/device/${this._device_id}`;
+    window.location.href = url;
+  }
+
   render() {
     return html`
       ${this.confirmation.show
@@ -476,6 +482,7 @@ export class A1ScreenCard extends LitElement {
     const device = this._hass.devices?.[this._device_id];
     const hideVideoToggle = device && (device.model === 'X1C' || device.model === 'H2D');
     if (!hideVideoToggle) count++; // video toggle button present if not hidden
+    count++; // device page button always present
     const hasPower = !!this._deviceEntities["power"]?.entity_id;
     const placeholders = Array.from({ length: 5 - (count + (hasPower ? 1 : 0)) });
     return html`
@@ -495,6 +502,9 @@ export class A1ScreenCard extends LitElement {
             <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
           </button>
         ` : nothing}
+        <button class="ha-bambulab-ssc-control-button" @click="${this.#openDevicePage}" title="Open device page">
+          <ha-icon icon="mdi:dots-horizontal"></ha-icon>
+        </button>
         ${placeholders.map(() => html`
           <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
         `)}

@@ -625,7 +625,7 @@ export default css`
     position: absolute;
     bottom: 0px;
     right: 0px;
-    z-index: 10;
+    z-index: 1;
     background: none;
     border: none;
     box-shadow: none;
