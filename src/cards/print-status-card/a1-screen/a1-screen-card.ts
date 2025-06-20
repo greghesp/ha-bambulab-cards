@@ -395,8 +395,8 @@ export class A1ScreenCard extends LitElement {
           </div>
         </div>
         ${this.showExtraControls ? this.#renderExtraControlsColumn() : this.#renderControlsColumn()}
-        ${this.showExtraControls ? this.#renderAlternateSensorColumn() : this.#renderMainSensorColumn()}
       </div>
+      ${this.showExtraControls ? this.#renderAlternateSensorColumn() : this.#renderMainSensorColumn()}
     `;
   }
 
