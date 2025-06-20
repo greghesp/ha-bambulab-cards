@@ -428,27 +428,26 @@ export class A1ScreenCard extends LitElement {
   }
 
   #renderControlsColumn() {
+
+    const device = this._hass.devices?.[this._device_id];
+    const hideVideoToggle = device && (device.model === 'X1C' || device.model === 'H2D');
+
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
-        ${!this.showExtraControls ? html`
-          <button class="ha-bambulab-ssc-control-button"
-            @click="${this.#toggleExtraControls}"
-          >
-            <ha-icon icon="mdi:swap-horizontal"></ha-icon>
-          </button>
-        ` : nothing}
-        <button class="ha-bambulab-ssc-control-button"
-          ?disabled="${this.#isControlsPageDisabled()}"
-          @click="${this.#showControlsPage}"
-        >
-          <ha-icon icon="mdi:camera-control"></ha-icon>
+        <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleExtraControls}">
+          <ha-icon icon="mdi:swap-horizontal"></ha-icon>
         </button>
-        <button
-          class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}" 
-          @click="${() => helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}"
-        >
+        <button class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}" 
+          @click="${() => helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}">
           <ha-icon icon="mdi:lightbulb"></ha-icon>
         </button>
+        ${!hideVideoToggle ? html`
+          <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleVideoFeed}" title="Toggle video feed">
+            <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
+          </button>
+        ` : html`
+          <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
+        `}
         <button
           class="ha-bambulab-ssc-control-button"
           ?disabled="${this.#isPauseResumeDisabled()}"
@@ -457,8 +456,7 @@ export class A1ScreenCard extends LitElement {
               helpers.isEntityUnavailable(this._hass, this._deviceEntities["pause"])
                 ? "resume"
                 : "pause"
-            )}"
-        >
+            )}">
           <ha-icon icon="${this.#getPauseResumeIcon()}"></ha-icon>
         </button>
         <button
@@ -466,8 +464,7 @@ export class A1ScreenCard extends LitElement {
             ? ""
             : "warning"}"
           ?disabled="${this.#isStopButtonDisabled()}"
-          @click="${() => this.#showConfirmation("stop")}"
-        >
+          @click="${() => this.#showConfirmation("stop")}">
           <ha-icon icon="mdi:stop"></ha-icon>
         </button>
       </div>
@@ -477,11 +474,8 @@ export class A1ScreenCard extends LitElement {
   #renderExtraControlsColumn() {
     // Count visible buttons (excluding power, which is always last if present)
     let count = 1; // swap button always present
+    count++; // controls page button always present
     count++; // skip objects button always present
-    // Only show video toggle if not X1C or H2D
-    const device = this._hass.devices?.[this._device_id];
-    const hideVideoToggle = device && (device.model === 'X1C' || device.model === 'H2D');
-    if (!hideVideoToggle) count++; // video toggle button present if not hidden
     count++; // device page button always present
     const hasPower = !!this._deviceEntities["power"]?.entity_id;
     const placeholders = Array.from({ length: 5 - (count + (hasPower ? 1 : 0)) });
@@ -490,6 +484,9 @@ export class A1ScreenCard extends LitElement {
         <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleExtraControls}">
           <ha-icon icon="mdi:swap-horizontal"></ha-icon>
         </button>
+        <button class="ha-bambulab-ssc-control-button" ?disabled="${this.#isControlsPageDisabled()}" @click="${this.#showControlsPage}" title="Show control page">
+          <ha-icon icon="mdi:camera-control"></ha-icon>
+        </button>
         <button
           class="ha-bambulab-ssc-control-button"
           ?disabled="${this.#isSkipObjectsButtonDisabled()}"
@@ -497,11 +494,6 @@ export class A1ScreenCard extends LitElement {
         >
           <ha-icon icon="mdi:debug-step-over"></ha-icon>
         </button>
-        ${!hideVideoToggle ? html`
-          <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleVideoFeed}" title="Toggle video feed">
-            <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
-          </button>
-        ` : nothing}
         <button class="ha-bambulab-ssc-control-button" @click="${this.#openDevicePage}" title="Open device page">
           <ha-icon icon="mdi:dots-horizontal"></ha-icon>
         </button>
