@@ -315,6 +315,7 @@ export function getCameraStreamUrl(hass, entity: Entity): string {
   } else {
     const entityId = entity.entity_id;
     const token = hass.states[entityId].attributes.access_token;
+    //console.log("URL", `/api/camera_proxy_stream/${entityId}?token=${token}`);
     return `/api/camera_proxy_stream/${entityId}?token=${token}`;
   }
 }

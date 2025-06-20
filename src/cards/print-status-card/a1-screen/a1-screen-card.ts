@@ -384,12 +384,25 @@ export class A1ScreenCard extends LitElement {
   }
 
   #renderFrontPage() {
+
+    const device = this._hass.devices[this._device_id];
+    const useVideoTag = (device.model === 'X1C' || device.model === 'H2D');
+    
     return html`
       <div class="ha-bambulab-ssc-status-and-controls${this.videoMaximized ? ' video-maximized' : ''}">
         ${this.videoMaximized
           ? html`
               <div class="video-maximized-container">
-                <img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" class="video-maximized-img" />
+                ${useVideoTag
+                  ? html`
+                      <ha-camera-stream
+                        .hass=${this._hass}
+                        .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}>
+                      </ha-camera-stream>
+                    `
+                  : html`
+                      <img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" class="video-maximized-img" />
+                    `}
                 <button class="video-maximize-btn" @click="${this.#toggleVideoMaximized}" title="Restore video">
                   <ha-icon icon="mdi:arrow-collapse" class="mirrored"></ha-icon>
                 </button>
@@ -400,7 +413,14 @@ export class A1ScreenCard extends LitElement {
                 <div class="ha-bambulab-ssc-status-icon" style="position: relative;">
                   ${this.showVideoFeed
                     ? html`
-                        <img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" />
+                        ${useVideoTag
+                          ? html`
+                              <ha-camera-stream
+                                .hass=${this._hass}
+                                .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}>
+                              </ha-camera-stream>
+                            `
+                          : html`<img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" />`}
                         <button class="video-maximize-btn" @click="${this.#toggleVideoMaximized}" title="Maximize video">
                           <ha-icon icon="mdi:arrow-expand" class="mirrored"></ha-icon>
                         </button>
@@ -429,9 +449,6 @@ export class A1ScreenCard extends LitElement {
 
   #renderControlsColumn() {
 
-    const device = this._hass.devices?.[this._device_id];
-    const hideVideoToggle = device && (device.model === 'X1C' || device.model === 'H2D');
-
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
         <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleExtraControls}">
@@ -441,13 +458,9 @@ export class A1ScreenCard extends LitElement {
           @click="${() => helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}">
           <ha-icon icon="mdi:lightbulb"></ha-icon>
         </button>
-        ${!hideVideoToggle ? html`
-          <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleVideoFeed}" title="Toggle video feed">
-            <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
-          </button>
-        ` : html`
-          <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
-        `}
+        <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleVideoFeed}" title="Toggle video feed">
+          <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
+        </button>
         <button
           class="ha-bambulab-ssc-control-button"
           ?disabled="${this.#isPauseResumeDisabled()}"
@@ -490,8 +503,7 @@ export class A1ScreenCard extends LitElement {
         <button
           class="ha-bambulab-ssc-control-button"
           ?disabled="${this.#isSkipObjectsButtonDisabled()}"
-          @click="${() => this.#showSkipObjects()}"
-        >
+          @click="${() => this.#showSkipObjects()}">
           <ha-icon icon="mdi:debug-step-over"></ha-icon>
         </button>
         <button class="ha-bambulab-ssc-control-button" @click="${this.#openDevicePage}" title="Open device page">
@@ -517,8 +529,8 @@ export class A1ScreenCard extends LitElement {
           <span class="icon-and-target">
             <ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon>
             <span class="sensor-target-value">
-              ${this.#formattedState("target_nozzle_temp")}</span
-            >
+              ${this.#formattedState("target_nozzle_temp")}
+            </span>
           </span>
           <span class="sensor-value">${this.#formattedState("nozzle_temp")}</span>
         </div>
