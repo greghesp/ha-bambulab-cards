@@ -110,10 +110,12 @@ export default css`
   .ha-bambulab-ssc-control-buttons {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 8px;
     max-width: 70px;
     width: 100%;
+    flex: 1 1 0%;
+    height: 100%;
   }
 
   .ha-bambulab-ssc-extra-controls {
@@ -144,8 +146,8 @@ export default css`
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s ease;
-    flex-grow: 1;
-    min-height: 40px;
+    flex: 0 1 19%;
+    max-height: 19%;
   }
 
   .ha-bambulab-ssc-control-button.on {
@@ -182,7 +184,8 @@ export default css`
   .ha-bambulab-ssc-sensors {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    align-items: stretch;
     max-width: 70px;
     width: 100%;
     background: var(--control-background);
@@ -191,11 +194,14 @@ export default css`
     padding: 8px;
     box-sizing: border-box;
     cursor: pointer;
+    flex: 1 1 0%;
+    height: 100%;
   }
 
   .sensor {
     position: relative;
-    flex: 1;
+    flex: 0 1 24%;
+    max-height: 24%;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -326,8 +332,12 @@ export default css`
   }
 
   .ams {
-    cursor: pointer;
-    padding-top: 9px;
+    flex: 0 1 16%;
+    max-height: 16%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
   }
 
   .ams-page-container {

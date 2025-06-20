@@ -46,7 +46,7 @@ export class A1ScreenCard extends LitElement {
   @state() private processedImage: string | null = null;
   @state() private showExtraControls = false;
   @state() private showVideoFeed = false;
-
+  
   @consume({ context: hassContext, subscribe: true })
   @state()
   public _hass;
@@ -398,7 +398,7 @@ export class A1ScreenCard extends LitElement {
           </div>
         </div>
         ${this.showExtraControls ? this.#renderExtraControlsColumn() : this.#renderControlsColumn()}
-        ${this.#renderSensorColumn()}
+        ${this.showExtraControls ? this.#renderAlternateSensorColumn() : this.#renderMainSensorColumn()}
       </div>
     `;
   }
@@ -410,7 +410,7 @@ export class A1ScreenCard extends LitElement {
           <button class="ha-bambulab-ssc-control-button"
             @click="${this.#toggleExtraControls}"
           >
-            <ha-icon icon="mdi:dots-horizontal"></ha-icon>
+            <ha-icon icon="mdi:swap-horizontal"></ha-icon>
           </button>
         ` : nothing}
         <button class="ha-bambulab-ssc-control-button"
@@ -454,41 +454,25 @@ export class A1ScreenCard extends LitElement {
     return html`
       <div class="ha-bambulab-ssc-sensors">
         <button class="ha-bambulab-ssc-control-button" style="margin-bottom: 8px;" @click="${this.#toggleExtraControls}">
-          <ha-icon icon="mdi:dots-horizontal"></ha-icon>
+          <ha-icon icon="mdi:swap-horizontal"></ha-icon>
         </button>
         ${this._deviceEntities["power"]?.entity_id ? html`
           <button class="power-button ${this.#state("power") === "on" ? "on" : "off"}" @click=${() => this.#clickEntity("power")}>
             <ha-icon icon="mdi:power"></ha-icon>
           </button>
         ` : nothing}
-          <button
-            class="ha-bambulab-ssc-control-button"
-            ?disabled="${this.#isSkipObjectsButtonDisabled()}"
-            @click="${() => this.#showSkipObjects()}"
-          >
-            <ha-icon icon="mdi:debug-step-over"></ha-icon>
-          </button>
-        <div class="sensor" @click="${() => this.#clickEntity("cooling_fan_speed")}">
-          <div class="twoicons">
-            <ha-icon icon="mdi:fan"></ha-icon>
-            <ha-icon icon="mdi:printer-3d"></ha-icon>
-          </div>
-          <span class="sensor-value">${this.#state("cooling_fan_speed") ?? '--'}%</span>
-        </div>
-        ${this._deviceEntities["chamber_fan"] ? html`
-          <div class="sensor" @click="${() => this.#clickEntity("chamber_fan")}">
-            <div class="twoicons">
-              <ha-icon icon="mdi:fan"></ha-icon>
-              <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
-            </div>
-            <span class="sensor-value">${this.#state("chamber_fan") ?? '--'}%</span>
-          </div>
-        ` : nothing}
+        <button
+          class="ha-bambulab-ssc-control-button"
+          ?disabled="${this.#isSkipObjectsButtonDisabled()}"
+          @click="${() => this.#showSkipObjects()}"
+        >
+          <ha-icon icon="mdi:debug-step-over"></ha-icon>
+        </button>
       </div>
     `;
   }
 
-  #renderSensorColumn() {
+  #renderMainSensorColumn() {
     return html`
       <div class="ha-bambulab-ssc-sensors">
         <div class="sensor" @click="${() => this.#clickEntity("target_nozzle_temperature")}">
@@ -524,7 +508,45 @@ export class A1ScreenCard extends LitElement {
           ${this.#renderAMSSvg(this._amsList[0]?.spools)}
         </div>
       </div>
-    `
+    `;
+  }
+
+  #renderAlternateSensorColumn() {
+    return html`
+      <div class="ha-bambulab-ssc-sensors">
+        ${this._deviceEntities["chamber_temperature"] ? html`
+          <div class="sensor" @click="${() => this.#clickEntity("chamber_temperature")}">
+            <ha-icon icon="mdi:thermometer"></ha-icon>
+            <span class="sensor-value">${this.#formattedState("chamber_temperature")}</span>
+          </div>
+        ` : nothing}
+        ${this._deviceEntities["chamber_humidity"] ? html`
+          <div class="sensor" @click="${() => this.#clickEntity("chamber_humidity")}">
+            <ha-icon icon="mdi:water-percent"></ha-icon>
+            <span class="sensor-value">${this.#formattedState("chamber_humidity")}</span>
+          </div>
+        ` : nothing}
+        <div class="sensor" @click="${() => this.#clickEntity("cooling_fan_speed")}">
+          <div class="twoicons">
+            <ha-icon icon="mdi:fan"></ha-icon>
+            <ha-icon icon="mdi:printer-3d"></ha-icon>
+          </div>
+          <span class="sensor-value">${this.#state("cooling_fan_speed") ?? '--'}%</span>
+        </div>
+        ${this._deviceEntities["chamber_fan"] ? html`
+          <div class="sensor" @click="${() => this.#clickEntity("chamber_fan")}">
+            <div class="twoicons">
+              <ha-icon icon="mdi:fan"></ha-icon>
+              <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
+            </div>
+            <span class="sensor-value">${this.#state("chamber_fan") ?? '--'}%</span>
+          </div>
+        ` : nothing}
+        <div class="ams" @click="${this.#showAmsPage}">
+          ${this.#renderAMSSvg(this._amsList[0]?.spools)}
+        </div>
+      </div>
+    `;
   }
 
   #renderControlsPage() {
