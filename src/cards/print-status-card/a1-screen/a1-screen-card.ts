@@ -577,7 +577,11 @@ export class A1ScreenCard extends LitElement {
               <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
               <ha-icon icon="mdi:thermometer"></ha-icon>
             </div>
-            <span class="sensor-value">${this.#formattedState("chamber_temp")}</span>
+            <span class="sensor-value">
+              ${this.#state("chamber_temp") === 'unavailable'
+                ? html`<ha-icon icon="mdi:alert-outline"></ha-icon>`
+                : this.#formattedState("chamber_temp")}
+            </span>
           </div>
         ` : nothing}
         ${this._deviceEntities["humidity"] ? html`
@@ -586,7 +590,11 @@ export class A1ScreenCard extends LitElement {
               <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
               <ha-icon icon="mdi:water-percent"></ha-icon>
             </div>
-            <span class="sensor-value">${this.#formattedState("humidity")}</span>
+            <span class="sensor-value">
+              ${this.#state("humidity") === 'unavailable'
+                ? html`<ha-icon icon="mdi:alert-outline"></ha-icon>`
+                : this.#formattedState("humidity")}
+            </span>
           </div>
         ` : nothing}
         ${this._deviceEntities["chamber_fan"] ? html`
