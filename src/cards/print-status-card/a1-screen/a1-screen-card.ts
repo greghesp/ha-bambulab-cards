@@ -440,14 +440,14 @@ export class A1ScreenCard extends LitElement {
                   </div>
                 </div>
               </div>
-              ${this.showExtraControls ? this.#renderExtraControlsColumn() : this.#renderControlsColumn()}
-              ${this.showExtraControls ? this.#renderAlternateSensorColumn() : this.#renderMainSensorColumn()}
+              ${this.showExtraControls ? this.#renderExtraControlsColumn() : this.#renderMainControlsColumn()}
             `}
       </div>
+      ${this.showExtraControls ? this.#renderExtraSensorColumn() : this.#renderMainSensorColumn()}
     `;
   }
 
-  #renderControlsColumn() {
+  #renderMainControlsColumn() {
 
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
@@ -562,7 +562,7 @@ export class A1ScreenCard extends LitElement {
     `;
   }
 
-  #renderAlternateSensorColumn() {
+  #renderExtraSensorColumn() {
     // Count visible sensors (excluding AMS)
     let count = 0;
     if (this._deviceEntities["chamber_temp"]) count++;
