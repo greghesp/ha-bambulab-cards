@@ -198,6 +198,10 @@ export class A1ScreenCard extends LitElement {
     return helpers.getFormattedEntityState(this._hass, this._deviceEntities[key].entity_id);
   }
 
+  #formattedTemperatureState(key: string) {
+    return html`${Math.floor(this.#state(key))}&degC`;
+  }
+
   #attribute(key: string, attribute: string) {
     return helpers.getEntityAttribute(this._hass, this._deviceEntities[key].entity_id, attribute);
   }
@@ -529,17 +533,17 @@ export class A1ScreenCard extends LitElement {
           <span class="icon-and-target">
             <ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon>
             <span class="sensor-target-value">
-              ${this.#formattedState("target_nozzle_temp")}
+              ${this.#formattedTemperatureState("target_nozzle_temp")}
             </span>
           </span>
-          <span class="sensor-value">${this.#formattedState("nozzle_temp")}</span>
+          <span class="sensor-value">${this.#formattedTemperatureState("nozzle_temp")}</span>
         </div>
         <div class="sensor" @click="${() => this.#clickEntity("target_bed_temperature")}">
           <span class="icon-and-target">
             <ha-icon icon="mdi:radiator"></ha-icon>
-            <span class="sensor-target-value">${this.#formattedState("target_bed_temp")}</span>
+            <span class="sensor-target-value">${this.#formattedTemperatureState("target_bed_temp")}</span>
           </span>
-          <span class="sensor-value">${this.#formattedState("bed_temp")}</span>
+          <span class="sensor-value">${this.#formattedTemperatureState("bed_temp")}</span>
         </div>
         <div class="sensor" @click="${() => this.#clickEntity("printing_speed")}">
           <ha-icon icon="mdi:speedometer"></ha-icon>
@@ -553,7 +557,7 @@ export class A1ScreenCard extends LitElement {
             </div>
             <span class="sensor-value">${this.#state("aux_fan_speed")}%</span>
           </div>
-        ` : nothing}
+        ` : html`<div class="sensor invisible-placeholder" aria-hidden="true"></div>`}
         <div class="ams-divider"></div>
         <div class="ams" @click="${this.#showAmsPage}">
           ${this.#renderAMSSvg(this._amsList[0]?.spools)}
@@ -584,7 +588,7 @@ export class A1ScreenCard extends LitElement {
             <span class="sensor-value">
               ${this.#state("chamber_temp") === 'unavailable'
                 ? html`<ha-icon icon="mdi:alert-outline"></ha-icon>`
-                : this.#formattedState("chamber_temp")}
+                : this.#formattedTemperatureState("chamber_temp")}
             </span>
           </div>
         ` : nothing}
@@ -597,7 +601,7 @@ export class A1ScreenCard extends LitElement {
             <span class="sensor-value">
               ${this.#state("humidity") === 'unavailable'
                 ? html`<ha-icon icon="mdi:alert-outline"></ha-icon>`
-                : this.#formattedState("humidity")}
+                : this.#formattedTemperatureState("humidity")}
             </span>
           </div>
         ` : nothing}
