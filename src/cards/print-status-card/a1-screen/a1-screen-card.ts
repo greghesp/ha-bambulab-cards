@@ -181,8 +181,8 @@ export class A1ScreenCard extends LitElement {
     }
   }
 
-  #clickEntity(key: string) {
-    if (this.#isBambuBlockingWrites()) return;
+  #clickEntity(key: string, force: boolean = false) {
+    if (!force && this.#isBambuBlockingWrites()) return;
     helpers.showEntityMoreInfo(this, this._deviceEntities[key]);
   }
 
@@ -517,7 +517,7 @@ export class A1ScreenCard extends LitElement {
           <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
         `)}
         ${hasPower ? html`
-          <button class="ha-bambulab-ssc-control-button power-button ${this.#state('power') === 'on' ? 'on' : 'off'}" @click=${() => this.#clickEntity("power")}
+          <button class="ha-bambulab-ssc-control-button power-button ${this.#state('power') === 'on' ? 'on' : 'off'}" @click=${() => this.#clickEntity("power", true)}
             title="Power">
             <ha-icon icon="mdi:power" class="power-icon"></ha-icon>
           </button>
@@ -549,7 +549,7 @@ export class A1ScreenCard extends LitElement {
           <ha-icon icon="mdi:speedometer"></ha-icon>
           <span class="sensor-value">${this.#attribute("speed_profile", "modifier")}%</span>
         </div>
-        ${this._deviceEntities["aux_fan_speed"] ? html`
+        ${(this._deviceEntities["aux_fan_speed"] && helpers.isEntityUnavailable(this._hass, this._deviceEntities["aux_fan_speed"])) ? html`
           <div class="sensor" @click="${() => this.#clickEntity("aux_fan")}">
             <div class="twoicons">
               <ha-icon icon="mdi:fan"></ha-icon>
