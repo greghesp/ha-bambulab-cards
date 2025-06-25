@@ -665,6 +665,7 @@ export default css`
     align-items: center;
     justify-content: center;
   }
+
   .video-maximize-btn ha-icon {
     --mdc-icon-size: 28px;
     color: var(--text-primary);
@@ -674,6 +675,12 @@ export default css`
       drop-shadow(0 0 0.5px #000)
       drop-shadow(0 0 0.5px #000)
       drop-shadow(0 0 0.5px #000);
+  }
+
+  .video-maximized .ha-bambulab-ssc-status-content,
+  .video-maximized .ha-bambulab-ssc-control-buttons,
+  .video-maximized .ha-bambulab-ssc-sensors {
+    display: none !important;
   }
 
   .video-maximized .video-maximized-container {
@@ -700,38 +707,10 @@ export default css`
     background: black;
   }
 
-  .video-maximized-img {
+  .video-maximized .video-maximized-container img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    background: black;
-    margin: 0;
-    padding: 0;
-    display: block;
-  }
-
-  .video-maximized .ha-bambulab-ssc-status-content,
-  .video-maximized .ha-bambulab-ssc-control-buttons,
-  .video-maximized .ha-bambulab-ssc-sensors {
-    display: none !important;
-  }
-
-  .video-maximized-video {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: black;
-    margin: 0;
-    padding: 0;
-    display: block;
-  }
-
-  .video-maximized-iframe {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    border: none;
     background: black;
     margin: 0;
     padding: 0;

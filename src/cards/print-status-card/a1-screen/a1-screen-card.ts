@@ -440,7 +440,7 @@ export class A1ScreenCard extends LitElement {
                         </ha-camera-stream>
                       `
                     : html`
-                        <img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" class="video-maximized-img" />
+                        <img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" />
                       `}
                 <button class="video-maximize-btn" @click="${this.#toggleVideoMaximized}" title="Restore video">
                   <ha-icon icon="mdi:arrow-collapse" class="mirrored"></ha-icon>
