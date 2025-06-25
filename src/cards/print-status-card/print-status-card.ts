@@ -72,6 +72,7 @@ export class PrintStatusCard extends EntityProvider {
 
   private _entityUX: { [key: string]: EntityUX } | undefined;
   private _model: string;
+  private _customVideoUrl: string | undefined;
 
   private resizeObserver: ResizeObserver;
 
@@ -183,6 +184,7 @@ export class PrintStatusCard extends EntityProvider {
     super();
     this._model = "";
     this._entityUX = undefined; // Initialized once we know what model printer it is.
+    this._customVideoUrl = undefined;
 
     this.resizeObserver = new ResizeObserver(() => {
       const background = this.shadowRoot?.getElementById("control-container") as HTMLElement;
@@ -244,6 +246,7 @@ export class PrintStatusCard extends EntityProvider {
       power: config.custom_power,
       chamber_light: config.custom_light,
     };
+    this._customVideoUrl = config.custom_video_url
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -291,6 +294,7 @@ export class PrintStatusCard extends EntityProvider {
         <a1-screen-card
           .coverImage=${this._coverImageUrl}
           _device_id=${this._device_id}
+          _video_feed=${this._customVideoUrl}
         ></a1-screen-card>
       `;
     } else {

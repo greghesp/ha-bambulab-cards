@@ -43,10 +43,12 @@ interface AMS {
 export class A1ScreenCard extends LitElement {
   @property() public coverImage;
   @property() public _device_id;
+  @property() public _video_feed;
   @state() private processedImage: string | null = null;
   @state() private showExtraControls = false;
   @state() private showVideoFeed = false;
   @state() private videoMaximized = false;
+  @state() private videoLoadFailed = false;
   
   @consume({ context: hassContext, subscribe: true })
   @state()
@@ -71,6 +73,17 @@ export class A1ScreenCard extends LitElement {
   @state() private _selectedAmsIndex: number = 0;
 
   static styles = styles;
+
+  #resolveVideoUrl(url: string): string {
+    // If it's a relative URL starting with :, resolve to current hostname
+    if (url.startsWith(':')) {
+      const currentHost = window.location.hostname;
+      const currentProtocol = window.location.protocol;
+      return `${currentProtocol}//${currentHost}${url}`;
+    }
+    
+    return url;
+  }
 
   async #processCoverImage() {
     if (!this.coverImage) return null;
@@ -162,6 +175,9 @@ export class A1ScreenCard extends LitElement {
       this.#processCoverImage().then((processedImage) => {
         this.processedImage = processedImage;
       });
+    }
+    if (changedProperties.has("_video_feed")) {
+      this.videoLoadFailed = false;
     }
   }
 
@@ -397,16 +413,37 @@ export class A1ScreenCard extends LitElement {
         ${this.videoMaximized
           ? html`
               <div class="video-maximized-container">
-                ${useVideoTag
+                ${this._video_feed
                   ? html`
-                      <ha-camera-stream
-                        .hass=${this._hass}
-                        .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}>
-                      </ha-camera-stream>
+                      ${this.videoLoadFailed
+                        ? html`
+                            <iframe
+                              src="${this.#resolveVideoUrl(this._video_feed)}"
+                              frameborder="0"
+                              allowfullscreen>
+                            </iframe>
+                          `
+                        : html`
+                            <video
+                              src="${this.#resolveVideoUrl(this._video_feed)}"
+                              autoplay
+                              muted
+                              @error="${this.#handleVideoError}"
+                              @loadstart="${this.#handleVideoLoadStart}"
+                              @canplay="${this.#handleVideoCanPlay}">
+                            </video>
+                          `}
                     `
-                  : html`
-                      <img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" class="video-maximized-img" />
-                    `}
+                  : useVideoTag
+                    ? html`
+                        <ha-camera-stream
+                          .hass=${this._hass}
+                          .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}>
+                        </ha-camera-stream>
+                      `
+                    : html`
+                        <img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" class="video-maximized-img" />
+                      `}
                 <button class="video-maximize-btn" @click="${this.#toggleVideoMaximized}" title="Restore video">
                   <ha-icon icon="mdi:arrow-collapse" class="mirrored"></ha-icon>
                 </button>
@@ -417,14 +454,35 @@ export class A1ScreenCard extends LitElement {
                 <div class="ha-bambulab-ssc-status-icon" style="position: relative;">
                   ${this.showVideoFeed
                     ? html`
-                        ${useVideoTag
+                        ${this._video_feed
                           ? html`
-                              <ha-camera-stream
-                                .hass=${this._hass}
-                                .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}>
-                              </ha-camera-stream>
+                              ${this.videoLoadFailed
+                                ? html`
+                                    <iframe
+                                      src="${this.#resolveVideoUrl(this._video_feed)}"
+                                      frameborder="0"
+                                      allowfullscreen>
+                                    </iframe>
+                                  `
+                                : html`
+                                    <video
+                                      src="${this.#resolveVideoUrl(this._video_feed)}"
+                                      autoplay
+                                      muted
+                                      @error="${this.#handleVideoError}"
+                                      @loadstart="${this.#handleVideoLoadStart}"
+                                      @canplay="${this.#handleVideoCanPlay}">
+                                    </video>
+                                  `}
                             `
-                          : html`<img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" />`}
+                          : useVideoTag
+                            ? html`
+                                <ha-camera-stream
+                                  .hass=${this._hass}
+                                  .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}>
+                                </ha-camera-stream>
+                              `
+                            : html`<img src="${helpers.getCameraStreamUrl(this._hass, this._deviceEntities['camera'])}" />`}
                         <button class="video-maximize-btn" @click="${this.#toggleVideoMaximized}" title="Maximize video">
                           <ha-icon icon="mdi:arrow-expand" class="mirrored"></ha-icon>
                         </button>
@@ -990,5 +1048,38 @@ export class A1ScreenCard extends LitElement {
         </button>
       </div>
     `
+  }
+
+  #handleVideoError(event) {
+    console.error("Video error:", event);
+    const video = event.target;
+    console.error("Video error details:", {
+      error: video.error,
+      networkState: video.networkState,
+      readyState: video.readyState,
+      src: video.src
+    });
+    this.videoLoadFailed = true;
+  }
+
+  #handleVideoLoadStart(event) {
+    console.log("Video load start:", event);
+    const video = event.target;
+    console.log("Video load details:", {
+      networkState: video.networkState,
+      readyState: video.readyState,
+      src: video.src
+    });
+  }
+
+  #handleVideoCanPlay(event) {
+    console.log("Video can play:", event);
+    const video = event.target;
+    console.log("Video ready details:", {
+      networkState: video.networkState,
+      readyState: video.readyState,
+      videoWidth: video.videoWidth,
+      videoHeight: video.videoHeight
+    });
   }
 }
