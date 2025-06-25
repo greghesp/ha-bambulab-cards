@@ -489,13 +489,7 @@ export class A1ScreenCard extends LitElement {
   }
 
   #renderExtraControlsColumn() {
-    // Count visible buttons (excluding power, which is always last if present)
-    let count = 1; // swap button always present
-    count++; // controls page button always present
-    count++; // skip objects button always present
-    count++; // device page button always present
     const hasPower = !!this._deviceEntities["power"]?.entity_id;
-    const placeholders = Array.from({ length: 5 - (count + (hasPower ? 1 : 0)) });
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
         <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleExtraControls}">
@@ -513,15 +507,14 @@ export class A1ScreenCard extends LitElement {
         <button class="ha-bambulab-ssc-control-button" @click="${this.#openDevicePage}" title="Open device page">
           <ha-icon icon="mdi:dots-horizontal"></ha-icon>
         </button>
-        ${placeholders.map(() => html`
-          <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
-        `)}
         ${hasPower ? html`
           <button class="ha-bambulab-ssc-control-button power-button ${this.#state('power') === 'on' ? 'on' : 'off'}" @click=${() => this.#clickEntity("power", true)}
             title="Power">
             <ha-icon icon="mdi:power" class="power-icon"></ha-icon>
           </button>
-        ` : nothing}
+        ` : html`
+          <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
+        `}
       </div>
     `;
   }
