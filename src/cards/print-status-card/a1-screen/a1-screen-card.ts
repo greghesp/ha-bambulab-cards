@@ -429,8 +429,6 @@ export class A1ScreenCard extends LitElement {
                               autoplay
                               muted
                               @error="${this.#handleVideoError}"
-                              @loadstart="${this.#handleVideoLoadStart}"
-                              @canplay="${this.#handleVideoCanPlay}">
                             </video>
                           `}
                     `
@@ -470,8 +468,6 @@ export class A1ScreenCard extends LitElement {
                                       autoplay
                                       muted
                                       @error="${this.#handleVideoError}"
-                                      @loadstart="${this.#handleVideoLoadStart}"
-                                      @canplay="${this.#handleVideoCanPlay}">
                                     </video>
                                   `}
                             `
@@ -1051,35 +1047,13 @@ export class A1ScreenCard extends LitElement {
   }
 
   #handleVideoError(event) {
-    console.error("Video error:", event);
     const video = event.target;
-    console.error("Video error details:", {
+    console.error("Video error event details:", {
       error: video.error,
       networkState: video.networkState,
       readyState: video.readyState,
       src: video.src
     });
     this.videoLoadFailed = true;
-  }
-
-  #handleVideoLoadStart(event) {
-    console.log("Video load start:", event);
-    const video = event.target;
-    console.log("Video load details:", {
-      networkState: video.networkState,
-      readyState: video.readyState,
-      src: video.src
-    });
-  }
-
-  #handleVideoCanPlay(event) {
-    console.log("Video can play:", event);
-    const video = event.target;
-    console.log("Video ready details:", {
-      networkState: video.networkState,
-      readyState: video.readyState,
-      videoWidth: video.videoWidth,
-      videoHeight: video.videoHeight
-    });
   }
 }
