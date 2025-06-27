@@ -140,7 +140,7 @@ export class Spool extends LitElement {
 
   calculateHeights() {
     const maxHeightPercentage = 95;
-    const minHeightPercentage = 12;
+    const minHeightPercentage = 20;
 
     // If not a Bambu Spool or remaining is less than 0
     if (

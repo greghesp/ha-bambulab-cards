@@ -731,4 +731,17 @@ export default css`
     transform: scaleX(-1);
   }
 
+  .aspect-ratio-iframe {
+    position: relative;
+    width: 100%;
+    padding-top: 61.64%; /* This sets the height based on the width */
+    overflow: hidden;
+  }
+
+  .aspect-ratio-iframe iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+  }
 `;

@@ -35,9 +35,9 @@ const NEW_SCHEMA = [
     selector: { entity: { domain: "light" } },
   },
   {
-    name: "custom_video_url",
-    label: "Custom video feed URL",
-    selector: { text: {} },
+    name: "custom_camera",
+    label: "Custom camera",
+    selector: { entity: { domain: "camera" } },
   },
   {
     name: "style",
