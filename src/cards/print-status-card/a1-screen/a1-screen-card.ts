@@ -36,6 +36,7 @@ enum Page {
 
 interface AMS {
   device_id: string;
+  active: boolean;
   spools: string[];
 }
 
@@ -71,17 +72,6 @@ export class A1ScreenCard extends LitElement {
   @state() private _selectedAmsIndex: number = 0;
 
   static styles = styles;
-
-  #resolveVideoUrl(url: string): string {
-    // If it's a relative URL starting with :, resolve to current hostname
-    if (url.startsWith(':')) {
-      const currentHost = window.location.hostname;
-      const currentProtocol = window.location.protocol;
-      return `${currentProtocol}//${currentHost}${url}`;
-    }
-    
-    return url;
-  }
 
   async #processCoverImage() {
     if (!this.coverImage) return null;
@@ -387,7 +377,11 @@ export class A1ScreenCard extends LitElement {
   }
 
   #showMainPage() {
-    this.page = Page.Main
+    this.page = Page.Main;
+    
+    // Reset selected AMS to the active one, or default to first if none are active
+    const activeIndex = this._amsList.findIndex(ams => ams.active);
+    this._selectedAmsIndex = activeIndex >= 0 ? activeIndex : 0;
   }
 
   #showControlsPage() {
@@ -553,7 +547,7 @@ export class A1ScreenCard extends LitElement {
         ` : html`<div class="sensor invisible-placeholder" aria-hidden="true"></div>`}
         <div class="ams-divider"></div>
         <div class="ams" @click="${this.#showAmsPage}">
-          ${this.#renderAMSSvg(this._amsList[0]?.spools)}
+          ${this.#renderAMSSvg(this._selectedAmsIndex, false)}
         </div>
       </div>
     `;
@@ -619,7 +613,7 @@ export class A1ScreenCard extends LitElement {
         `)}
         <div class="ams-divider"></div>
         <div class="ams" @click="${this.#showAmsPage}">
-          ${this.#renderAMSSvg(this._amsList[0]?.spools)}
+          ${this.#renderAMSSvg(this._selectedAmsIndex, false)}
         </div>
       </div>
     `;
@@ -649,10 +643,10 @@ export class A1ScreenCard extends LitElement {
 
       <div class="ams-selector-wrapper">
         <div class="ams-selector">
-          ${this._amsList.map((ams, index) => html`
+          ${this._amsList.map((_, index) => html`
             <div class="ams-selector-item ${index === this._selectedAmsIndex ? 'selected' : ''}"
                  @click=${() => this._selectedAmsIndex = index}>
-              ${this.#renderAMSSvg(ams.spools)}
+              ${this.#renderAMSSvg(index)}
             </div>
           `)}
         </div>
@@ -677,38 +671,50 @@ export class A1ScreenCard extends LitElement {
     `
   }
 
-  #renderAMSSvg(spools: string[]) {
-    if (!spools) {
-      console.log('No spools provided');
+  #renderAMSSvg(amsIndex: number, show_active: boolean = true) {
+    const ams = this._amsList[amsIndex];
+    if (!ams || !ams.spools) {
+      console.log('No AMS or spools provided');
       return html``;
     }
 
+    const spools = ams.spools;
+    const active = show_active && ams.active;
     const spoolWidth = 10;
     const gap = 4;
-    const totalWidth = (spoolWidth * spools.length) + (gap * (spools.length - 1)) + 2; // +2 for the 1px padding on each side
+    const totalWidth = (spoolWidth * spools.length) + (gap * (spools.length - 1)) + 4;
 
     const svgString = `
-      <svg viewBox="0 0 ${totalWidth} 18" width="${totalWidth}" height="18">
+      <svg viewBox="0 0 ${totalWidth} 20" width="${totalWidth}" height="20">
+        ${active ? `
+          <rect 
+            x="0" y="0" 
+            width="${totalWidth}" height="20"
+            fill="none"
+            stroke="green"
+            stroke-width="2"
+            rx="1" ry="1"/>
+        ` : ''}
         ${spools.map((spool, i) => {
           const color = this._hass.states[spool].attributes.color;
           const isEmpty = this._hass.states[spool].attributes.empty;
-          const x = 1 + (i * (spoolWidth + gap));
+          const x = 2 + (i * (spoolWidth + gap));
           return `
             <rect
-              x="${x}" y="1"
+              x="${x}" y="2"
               width="${spoolWidth}" height="16"
               fill="${color}"
               stroke="#808080"
               stroke-width="1"/>
             ${isEmpty ? `
               <line
-                x1="${x + 1}" y1="2"
-                x2="${x + spoolWidth - 1}" y2="17"
+                x1="${x + 1}" y1="3"
+                x2="${x + spoolWidth - 1}" y2="18"
                 stroke="#808080"
                 stroke-width="1"/>
               <line
-                x1="${x + 1}" y1="17"
-                x2="${x + spoolWidth - 1}" y2="2"
+                x1="${x + 1}" y1="18"
+                x2="${x + spoolWidth - 1}" y2="3"
                 stroke="#808080"
                 stroke-width="1"/>
             ` : ''}`;
@@ -721,6 +727,7 @@ export class A1ScreenCard extends LitElement {
 
   #getAMSList() {
     const ENTITYLIST: string[] = [
+      "active_ams",
       "ams_temp",
       "temp",             // Node-RED only
       "custom_humidity",
@@ -747,10 +754,12 @@ export class A1ScreenCard extends LitElement {
           spools.push(entities["external_spool"].entity_id);
           externalSpools.push({
             device_id: ams_device_id,
+            active: false,
             spools: spools,
           });
         }
       } else {
+        const active = this._hass.states[entities["active_ams"].entity_id].state == "on";
         if (entities["tray_1"]?.entity_id) spools.push(entities["tray_1"].entity_id);
         if (entities["tray_2"]?.entity_id) spools.push(entities["tray_2"].entity_id);
         if (entities["tray_3"]?.entity_id) spools.push(entities["tray_3"].entity_id);
@@ -758,6 +767,7 @@ export class A1ScreenCard extends LitElement {
 
         this._amsList.push({
           device_id: ams_device_id,
+          active,
           spools: spools,
         });
       }
@@ -765,6 +775,11 @@ export class A1ScreenCard extends LitElement {
 
     // Add external spools at the end
     this._amsList.push(...externalSpools);
+    
+    // Set selected AMS to the active one, or default to first if none are active
+    const activeIndex = this._amsList.findIndex(ams => ams.active);
+    this._selectedAmsIndex = activeIndex >= 0 ? activeIndex : 0;
+    
     return amsList;
   }
 
