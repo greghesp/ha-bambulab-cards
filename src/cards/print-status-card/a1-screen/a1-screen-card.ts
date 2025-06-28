@@ -749,17 +749,18 @@ export class A1ScreenCard extends LitElement {
       var entities = helpers.getBambuDeviceEntities(this._hass, ams_device_id, ENTITYLIST);
       var spools: string[] = [];
 
+      const active = this._hass.states[entities["active_ams"].entity_id].state == "on";
+
       if (device.model === "External Spool") {
         if (entities["external_spool"]?.entity_id) {
           spools.push(entities["external_spool"].entity_id);
           externalSpools.push({
             device_id: ams_device_id,
-            active: false,
+            active: active,
             spools: spools,
           });
         }
       } else {
-        const active = this._hass.states[entities["active_ams"].entity_id].state == "on";
         if (entities["tray_1"]?.entity_id) spools.push(entities["tray_1"].entity_id);
         if (entities["tray_2"]?.entity_id) spools.push(entities["tray_2"].entity_id);
         if (entities["tray_3"]?.entity_id) spools.push(entities["tray_3"].entity_id);
@@ -767,7 +768,7 @@ export class A1ScreenCard extends LitElement {
 
         this._amsList.push({
           device_id: ams_device_id,
-          active,
+          active: active,
           spools: spools,
         });
       }
