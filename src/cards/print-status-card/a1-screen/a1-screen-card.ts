@@ -245,7 +245,9 @@ export class A1ScreenCard extends LitElement {
   }
 
   #isSkipObjectsButtonDisabled() {
-    return this.#isBambuBlockingWrites() || helpers.isEntityUnavailable(this._hass, this._deviceEntities["skipped_objects"]);
+    return this.#isBambuBlockingWrites() ||
+           helpers.isEntityUnavailable(this._hass, this._deviceEntities["printable_objects"]) ||
+           this._hass.states[this._deviceEntities.printable_objects.entity_id].state <= 1;
   }
 
   #isControlsPageDisabled() {
