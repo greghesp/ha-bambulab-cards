@@ -246,6 +246,7 @@ export class A1ScreenCard extends LitElement {
 
   #isSkipObjectsButtonDisabled() {
     return this.#isBambuBlockingWrites() ||
+           this.#isStopButtonDisabled() ||
            helpers.isEntityUnavailable(this._hass, this._deviceEntities["printable_objects"]) ||
            this._hass.states[this._deviceEntities.printable_objects.entity_id].state <= 1;
   }
