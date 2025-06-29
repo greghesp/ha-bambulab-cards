@@ -25,7 +25,16 @@ export class SpoolCardEditor extends LitElement {
       label: "Spool",
       selector: { device: { filter: filterCombinations } },
     },
-    { name: "show_type", label: "Show Filament Types", selector: { boolean: true } },
+    {
+      name: "tray",
+      label: "Tray",
+      selector: { number: { min: 1, max: 4, step: 1 } },
+      default: 1,
+    },
+    {
+      name: "show_type",
+      label: "Show Filament Types",
+      selector: { boolean: true } },
     {
       name: "spool_anim_reflection",
       label: "Active spool animation: Light Reflection",

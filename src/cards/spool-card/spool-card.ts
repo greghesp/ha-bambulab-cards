@@ -27,6 +27,7 @@ export class SpoolCard extends LitElement {
   @provide({ context: hassContext })
   @state()
   private _hass?;
+  private _tray: Number = 1;
 
   public getLayoutOptions() {
     return {
@@ -53,6 +54,7 @@ export class SpoolCard extends LitElement {
       this.hass = this._hass;
     }
     this._spool = config.spool;
+    this._tray = config.tray ?? 1;
     this._showType = config.show_type;
     this._spoolAnimReflection = (config.spool_anim_reflection == undefined) ? true : config.spool_anim_reflection;
     this._spoolAnimWiggle = (config.spool_anim_wiggle == undefined) ? true : config.spool_anim_wiggle;
@@ -80,11 +82,25 @@ export class SpoolCard extends LitElement {
   }
 
   private getSpool() {
-    const entities = helpers.getBambuDeviceEntities(this._hass, this._spool, ['external_spool', 'tray_1']);
+    const entities = helpers.getBambuDeviceEntities(
+      this._hass,
+      this._spool,
+      [
+        'external_spool',
+        'tray_1',
+        'tray_2',
+        'tray_3',
+        'tray_4'
+      ]);
     if (entities['external_spool']?.entity_id) {
       this._spoolEntityId = entities['external_spool'].entity_id;
-    } else if (entities['tray_1']?.entity_id) {
-      this._spoolEntityId = entities['tray_1'].entity_id;
+    } else {
+      const tray_id = `tray_${this._tray}`;
+      if (entities[tray_id]?.entity_id) {
+        this._spoolEntityId = entities[tray_id].entity_id;
+      } else if (entities['tray_1']?.entity_id) {
+        this._spoolEntityId = entities['tray_1'].entity_id;
+      }
     }
   }
 }
