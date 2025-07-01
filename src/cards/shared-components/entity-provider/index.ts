@@ -23,6 +23,7 @@ const ENTITIES: string[] = [
   "door_open",
   "ftp", // Node red does not have
   "humidity",
+  "image|p1p_camera",
   "mqtt_encryption",
   "nozzle_temp",
   "pause",

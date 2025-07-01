@@ -396,16 +396,27 @@ export class A1ScreenCard extends LitElement {
   }
 
   #renderFrontPage() {
+
+    let videoHtml: any = nothing
+    if (this._deviceEntities['camera']) {
+      videoHtml = html`
+        <ha-camera-stream
+                    .hass=${this._hass}
+                    .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}>
+        </ha-camera-stream>
+      `
+    } else {
+      videoHtml = html`
+        <img src="${helpers.getImageUrl(this._hass, this._deviceEntities['p1p_camera'])}"/>
+      `
+    }
     
     return html`
       <div class="ha-bambulab-ssc-status-and-controls${this.videoMaximized ? ' video-maximized' : ''}">
         ${this.videoMaximized
           ? html`
               <div class="video-maximized-container">
-                <ha-camera-stream
-                  .hass=${this._hass}
-                  .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}>
-                </ha-camera-stream>
+                ${videoHtml}
                 <button class="video-maximize-btn" @click="${this.#toggleVideoMaximized}" title="Restore video">
                   <ha-icon icon="mdi:arrow-collapse" class="mirrored"></ha-icon>
                 </button>
@@ -416,10 +427,7 @@ export class A1ScreenCard extends LitElement {
                 <div class="ha-bambulab-ssc-status-icon" style="position: relative;">
                   ${this.showVideoFeed
                     ? html `
-                        <ha-camera-stream
-                          .hass=${this._hass}
-                          .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}>
-                        </ha-camera-stream>
+                        ${videoHtml}
                         <button class="video-maximize-btn" @click="${this.#toggleVideoMaximized}" title="Maximize video">
                           <ha-icon icon="mdi:arrow-expand" class="mirrored"></ha-icon>
                         </button>
