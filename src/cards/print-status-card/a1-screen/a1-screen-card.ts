@@ -405,7 +405,7 @@ export class A1ScreenCard extends LitElement {
           .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}>
         </ha-camera-stream>
       `
-    } else {
+    } else if (this._deviceEntities['p1p_camera'] && !helpers.isEntityUnavailable(this._hass, this._deviceEntities['p1p_camera'])) {
       videoHtml = html`
         <img src="${helpers.getImageUrl(this._hass, this._deviceEntities['p1p_camera'])}"/>
       `
