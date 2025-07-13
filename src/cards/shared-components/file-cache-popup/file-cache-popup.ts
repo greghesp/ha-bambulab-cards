@@ -34,33 +34,27 @@ export class FileCachePopup extends LitElement {
   static styles = styles;
 
   connectedCallback() {
-    console.log('[FileCachePopup] connectedCallback() called');
     super.connectedCallback();
     this._updateContent();
   }
 
   updated(changedProperties) {
     if (changedProperties.has("device_serial")) {
-      console.log('[FileCachePopup] device_serial changed, calling _updateContent()');
       this._updateContent();
     }
   }
 
   show() {
-    console.log('[FileCachePopup] show() called');
     this._show = true;
     this._refreshFiles();
   }
 
   hide() {
-    console.log('[FileCachePopup] hide() called');
     this._show = false;
   }
 
   async _updateContent() {
-    console.log('[FileCachePopup] _updateContent() called');
     if (!this.device_serial) {
-      console.log('[FileCachePopup] _updateContent() - no device_serial, returning');
       return;
     }
 
@@ -68,8 +62,6 @@ export class FileCachePopup extends LitElement {
   }
 
   async _refreshFiles() {
-    console.log('[FileCachePopup] _refreshFiles() called');
-    
     this._loading = true;
     this._error = null;
     this._thumbnailCache.clear(); // Clear thumbnail cache
@@ -78,7 +70,6 @@ export class FileCachePopup extends LitElement {
     try {
       // Use the API endpoint to get file cache data
       const url = `/api/bambu_lab/file_cache/${this.device_serial}?file_type=${this.file_type}`;
-      console.log('[FileCachePopup] _refreshFiles() - fetching from URL:', url);
       
       const response = await fetch(url, {
         headers: {
@@ -86,8 +77,6 @@ export class FileCachePopup extends LitElement {
           'Content-Type': 'application/json',
         }
       });
-
-      console.log('[FileCachePopup] _refreshFiles() - response status:', response.status);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -104,17 +93,13 @@ export class FileCachePopup extends LitElement {
       this._error = error instanceof Error ? error.message : String(error);
       this.requestUpdate();
     } finally {
-      console.log('[FileCachePopup] _refreshFiles() - finished, setting loading to false');
       this._loading = false;
       this.requestUpdate();
     }
   }
 
   async _clearCache() {
-    console.log('[FileCachePopup] _clearCache() called');
-
     if (!confirm('Are you sure you want to clear the file cache?')) {
-      console.log('[FileCachePopup] _clearCache() - user cancelled');
       return;
     }
 

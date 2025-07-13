@@ -162,7 +162,7 @@ export default css`
 
   .file-cache-thumbnail {
     width: 100%;
-    height: 120px;
+    height: 210px;
     background: var(--divider-color, #e0e0e0);
     display: flex;
     align-items: center;
