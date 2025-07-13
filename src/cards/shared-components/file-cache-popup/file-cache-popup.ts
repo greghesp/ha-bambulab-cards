@@ -15,7 +15,7 @@ interface FileCacheFile {
 @customElement("file-cache-popup")
 export class FileCachePopup extends LitElement {
   @property() public device_serial: string = "";
-  @property() public file_type: string = "all";
+  @property() public file_type: string = "";
   @property() public show_thumbnails: boolean = true;
   @property() public max_files: number = 20;
   @property() public show_controls: boolean = true;
@@ -69,8 +69,6 @@ export class FileCachePopup extends LitElement {
 
   async _refreshFiles() {
     console.log('[FileCachePopup] _refreshFiles() called');
-    console.log('HA Auth token:', this._hass.auth.data.access_token);
-    console.log('HA Auth token length:', this._hass.auth.data.access_token?.length);
     
     this._loading = true;
     this._error = null;
@@ -99,11 +97,7 @@ export class FileCachePopup extends LitElement {
       console.log('[FileCachePopup] _refreshFiles() - API result:', result);
       
       if (result && result.files) {
-        console.log('[FileCachePopup] _refreshFiles() - found files:', result.files.length);
-        console.log('[FileCachePopup] _refreshFiles() - sample file data:', result.files[0]);
         this._files = result.files.slice(0, this.max_files);
-      } else {
-        console.log('[FileCachePopup] _refreshFiles() - no files in result');
       }
     } catch (error) {
       console.error('[FileCachePopup] _refreshFiles() - error:', error);
@@ -128,7 +122,7 @@ export class FileCachePopup extends LitElement {
       console.log('[FileCachePopup] _clearCache() - calling service');
       //await this._hass.callService('bambu_lab', 'clear_file_cache', {
       //  entity_id: this.entity_id,
-      //  file_type: 'all'
+      //  file_type: ''
       //});
       
       console.log('[FileCachePopup] _clearCache() - service call successful, refreshing files');
@@ -160,7 +154,7 @@ export class FileCachePopup extends LitElement {
 
   async _loadThumbnail(file: FileCacheFile, cacheKey: string) {
     try {
-      const url = `/api/bambu_lab/file_cache/${this.device_serial}/media/${file.thumbnail_path}`;
+      const url = `/api/bambu_lab/file_cache/${this.device_serial}/media/${this.file_type}/${file.thumbnail_path}`;
       console.log("Fetching thumbnail:", url);
       
       const response = await fetch(url, {
@@ -193,7 +187,6 @@ export class FileCachePopup extends LitElement {
       '3mf': '📦',
       'gcode': '⚙️',
       'timelapse': '🎬',
-      'thumbnail': '🖼️',
       'unknown': '📄'
     };
     const icon = icons[type] || icons.unknown;

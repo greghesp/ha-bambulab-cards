@@ -393,7 +393,7 @@ export class A1ScreenCard extends LitElement {
       <file-cache-popup
         .device_id=${this._device_id}
         .device_serial=${this.#getDeviceSerial()}
-        .file_type=${"3mf"}
+        .file_type=${"timelapse"}
         .show_thumbnails=${true}
         .max_files=${20}
         .show_controls=${true}
