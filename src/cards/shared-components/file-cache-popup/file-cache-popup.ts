@@ -211,7 +211,7 @@ export class FileCachePopup extends LitElement {
       <div class="file-cache-overlay" @click=${this.hide}>
         <div class="file-cache-popup" @click=${(e) => e.stopPropagation()}>
           <div class="file-cache-header">
-            <div class="file-cache-title">Bambu Lab File Cache</div>
+            <div class="file-cache-title">Print History</div>
             <button class="file-cache-close" @click=${this.hide}>
               <ha-icon icon="mdi:close"></ha-icon>
             </button>
@@ -219,9 +219,6 @@ export class FileCachePopup extends LitElement {
 
           ${this.show_controls ? html`
             <div class="file-cache-controls">
-              <button class="file-cache-btn secondary" @click=${this._refreshFiles} ?disabled=${this._loading}>
-                ${this._loading ? 'Loading...' : 'Refresh'}
-              </button>
               <button class="file-cache-btn secondary" @click=${this._clearCache}>
                 Clear Cache
               </button>
@@ -230,13 +227,6 @@ export class FileCachePopup extends LitElement {
 
           ${this._error ? html`
             <div class="file-cache-error">${this._error}</div>
-          ` : nothing}
-
-          ${this._files.length > 0 ? html`
-            <div class="file-cache-stats">
-              <span class="file-cache-count">${this._files.length} files</span>
-              <span>Filter: ${this.file_type}</span>
-            </div>
           ` : nothing}
 
           ${this._loading ? html`
@@ -272,7 +262,6 @@ export class FileCachePopup extends LitElement {
                     </div>
                   ` : nothing}
                   <div class="file-cache-info">
-                    <div class="file-cache-type ${file.type}">${file.type}</div>
                     <div class="file-cache-name">${file.filename}</div>
                     <div class="file-cache-meta">
                       ${file.size_human} • ${this._formatDate(file.modified)}
