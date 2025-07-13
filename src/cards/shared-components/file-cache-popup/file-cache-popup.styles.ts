@@ -12,6 +12,7 @@ export default css`
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    overflow: hidden;
   }
 
   .file-cache-popup {
@@ -217,6 +218,32 @@ export default css`
     line-height: 1.4;
   }
 
+  .file-cache-print-btn {
+    margin-top: 8px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background: var(--primary-color, #03a9f4);
+    color: var(--primary-text-color, white);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background-color 0.2s;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .file-cache-print-btn:hover {
+    background: var(--primary-color-dark, #0288d1);
+  }
+
+  .file-cache-print-btn ha-icon {
+    --mdc-icon-size: 16px;
+  }
+
   .file-cache-type {
     display: inline-block;
     padding: 2px 6px;
@@ -252,6 +279,163 @@ export default css`
     color: var(--secondary-text-color, #666); 
   }
 
+  /* Print Settings Popup Styles */
+  .print-settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+  }
+
+  .print-settings-popup {
+    background: var(--ha-card-background, var(--card-background-color, white));
+    border-radius: var(--ha-card-border-radius, 8px);
+    box-shadow: var(--ha-card-box-shadow, 0 4px 8px rgba(0, 0, 0, 0.2));
+    max-width: 90vw;
+    width: 400px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--divider-color, #e0e0e0);
+  }
+
+  .print-settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--divider-color, #e0e0e0);
+    background: var(--ha-card-background, var(--card-background-color, white));
+  }
+
+  .print-settings-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--primary-text-color, #212121);
+  }
+
+  .print-settings-close {
+    background: none;
+    border: none;
+    color: var(--secondary-text-color, #757575);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+  }
+
+  .print-settings-close:hover {
+    background: var(--divider-color, #e0e0e0);
+  }
+
+  .print-settings-close ha-icon {
+    --mdc-icon-size: 24px;
+  }
+
+  .print-settings-content {
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 60vh;
+    background: var(--ha-card-background, var(--card-background-color, white));
+  }
+
+  .print-settings-file {
+    margin-bottom: 16px;
+    padding: 8px;
+    background: var(--divider-color, #f5f5f5);
+    border-radius: 4px;
+    font-size: 14px;
+    color: var(--primary-text-color, #212121);
+  }
+
+  .print-settings-group {
+    margin-bottom: 12px;
+  }
+
+  .print-settings-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--primary-text-color, #212121);
+    font-size: 14px;
+  }
+
+  .print-settings-label input {
+    width: 80px;
+    padding: 4px 8px;
+    border: 1px solid var(--divider-color, #e0e0e0);
+    border-radius: 4px;
+    background: var(--ha-card-background, var(--card-background-color, white));
+    color: var(--primary-text-color, #212121);
+  }
+
+  .print-settings-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary-text-color, #212121);
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .print-settings-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color, #03a9f4);
+  }
+
+  .print-settings-actions {
+    display: flex;
+    gap: 8px;
+    padding: 16px;
+    border-top: 1px solid var(--divider-color, #e0e0e0);
+    background: var(--ha-card-background, var(--card-background-color, white));
+  }
+
+  .print-settings-btn {
+    flex: 1;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+
+  .print-settings-btn.primary {
+    background: var(--primary-color, #03a9f4);
+    color: var(--primary-text-color, white);
+  }
+
+  .print-settings-btn.primary:hover {
+    background: var(--primary-color-dark, #0288d1);
+  }
+
+  .print-settings-btn.secondary {
+    background: var(--secondary-text-color, #757575);
+    color: var(--primary-text-color, white);
+  }
+
+  .print-settings-btn.secondary:hover {
+    background: var(--disabled-text-color, #9e9e9e);
+  }
+
+  .print-settings-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   /* Dark mode adjustments */
   @media (prefers-color-scheme: dark) {
     .file-cache-overlay {
@@ -260,6 +444,10 @@ export default css`
     
     .file-cache-card:hover {
       border-color: var(--primary-color, #29b6f6);
+    }
+
+    .print-settings-overlay {
+      background: rgba(0, 0, 0, 0.8);
     }
   }
 `; 

@@ -394,9 +394,7 @@ export class A1ScreenCard extends LitElement {
         .device_id=${this._device_id}
         .device_serial=${this.#getDeviceSerial()}
         .file_type=${"3mf"}
-        .show_thumbnails=${true}
         .max_files=${20}
-        .show_controls=${true}
       ></file-cache-popup>
     `;
   }

@@ -12,13 +12,23 @@ interface FileCacheFile {
   thumbnail_path?: string;
 }
 
+interface PrintSettings {
+  plate: number;
+  timelapse: boolean;
+  bed_leveling: boolean;
+  flow_cali: boolean;
+  vibration_cali: boolean;
+  layer_inspect: boolean;
+  use_ams: boolean;
+  ams_mapping: string;
+}
+
 @customElement("file-cache-popup")
 export class FileCachePopup extends LitElement {
   @property() public device_serial: string = "";
+  @property() public device_id: string = "";
   @property() public file_type: string = "";
-  @property() public show_thumbnails: boolean = true;
   @property() public max_files: number = 20;
-  @property() public show_controls: boolean = true;
 
   @consume({ context: hassContext, subscribe: true })
   @state()
@@ -29,7 +39,21 @@ export class FileCachePopup extends LitElement {
   @state() private _error: string | null = null;
   @state() private _show: boolean = false;
   @state() private _thumbnailUrls = new Map<string, string | null>();
+  @state() private _showPrintSettings: boolean = false;
+  @state() private _selectedFile: FileCacheFile | null = null;
+  @state() private _printSettings: PrintSettings = {
+    plate: 1,
+    timelapse: false,
+    bed_leveling: true,
+    flow_cali: true,
+    vibration_cali: true,
+    layer_inspect: true,
+    use_ams: true,
+    ams_mapping: "0"
+  };
+  @state() private _printLoading: boolean = false;
   private _thumbnailCache = new Map<string, string | null>();
+  private _scrollHandler: ((e: Event) => void) | null = null;
 
   static styles = styles;
 
@@ -47,10 +71,19 @@ export class FileCachePopup extends LitElement {
   show() {
     this._show = true;
     this._refreshFiles();
+    this._preventBackgroundScroll();
   }
 
   hide() {
     this._show = false;
+    this._showPrintSettings = false;
+    this._selectedFile = null;
+    this._restoreBackgroundScroll();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._restoreBackgroundScroll();
   }
 
   async _updateContent() {
@@ -116,6 +149,49 @@ export class FileCachePopup extends LitElement {
     } catch (error) {
       console.error('[FileCachePopup] _clearCache() - error:', error);
       this._error = error instanceof Error ? error.message : String(error);
+      this.requestUpdate();
+    }
+  }
+
+  _showPrintDialog(file: FileCacheFile) {
+    this._selectedFile = file;
+    this._showPrintSettings = true;
+  }
+
+  _hidePrintDialog() {
+    this._showPrintSettings = false;
+    this._selectedFile = null;
+  }
+
+  _updatePrintSetting(key: keyof PrintSettings, value: any) {
+    this._printSettings = { ...this._printSettings, [key]: value };
+  }
+
+  async _startPrint() {
+    if (!this._selectedFile) return;
+
+    this._printLoading = true;
+    this.requestUpdate();
+
+    try {
+      await this._hass.callService(
+            'bambu_lab',
+            'print_project_file', 
+            {
+                device_id: [ this.device_id ],
+                filepath: this._selectedFile.filename,
+                ...this._printSettings
+            }
+        );
+
+      this._hidePrintDialog();
+      // Show success message or notification
+    } catch (error) {
+      console.error('[FileCachePopup] _startPrint() - error:', error);
+      this._error = error instanceof Error ? error.message : String(error);
+      this.requestUpdate();
+    } finally {
+      this._printLoading = false;
       this.requestUpdate();
     }
   }
@@ -187,6 +263,34 @@ export class FileCachePopup extends LitElement {
     return formatted;
   }
 
+  _preventBackgroundScroll() {
+    // Prevent scroll events from reaching the background
+    const preventScroll = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    // Store the handler so we can remove it later
+    this._scrollHandler = preventScroll;
+
+    // Add event listeners to prevent scrolling
+    document.addEventListener('wheel', preventScroll, { passive: false });
+    document.addEventListener('touchmove', preventScroll, { passive: false });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'PageUp' || e.key === 'PageDown' || e.key === 'Home' || e.key === 'End') {
+        e.preventDefault();
+      }
+    });
+  }
+
+  _restoreBackgroundScroll() {
+    if (this._scrollHandler) {
+      document.removeEventListener('wheel', this._scrollHandler);
+      document.removeEventListener('touchmove', this._scrollHandler);
+      this._scrollHandler = null;
+    }
+  }
+
   render() {
     if (!this._show) {
       return nothing;
@@ -202,13 +306,11 @@ export class FileCachePopup extends LitElement {
             </button>
           </div>
 
-          ${this.show_controls ? html`
-            <div class="file-cache-controls">
-              <button class="file-cache-btn secondary" @click=${this._clearCache}>
-                Clear Cache
-              </button>
-            </div>
-          ` : nothing}
+          <div class="file-cache-controls">
+            <button class="file-cache-btn secondary" @click=${this._clearCache}>
+              Clear Cache
+            </button>
+          </div>
 
           ${this._error ? html`
             <div class="file-cache-error">${this._error}</div>
@@ -228,34 +330,131 @@ export class FileCachePopup extends LitElement {
             <div class="file-cache-grid">
               ${this._files.map(file => html`
                 <div class="file-cache-card">
-                  ${this.show_thumbnails ? html`
                     <div class="file-cache-thumbnail">
                       ${(() => {
                         const cacheKey = `${file.filename}-${file.thumbnail_path}`;
                         const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
                         if (thumbnailUrl) {
-                          return html`<img src="${thumbnailUrl}" 
-                                           alt="${file.filename}" 
-                                           @error=${(e) => e.target.style.display = 'none'}>`;
+                            return html`<img src="${thumbnailUrl}" 
+                                            alt="${file.filename}" 
+                                            @error=${(e) => e.target.style.display = 'none'}>`;
                         } else {
-                          this._getThumbnailUrl(file); // Start loading
-                          return html`<div class="file-cache-placeholder">
+                            this._getThumbnailUrl(file); // Start loading
+                            return html`<div class="file-cache-placeholder">
                             ${this._getFileIcon(file.type)}
-                          </div>`;
+                            </div>`;
                         }
                       })()}
-                    </div>
-                  ` : nothing}
+                  </div>
                   <div class="file-cache-info">
                     <div class="file-cache-name">${file.filename}</div>
                     <div class="file-cache-meta">
                       ${file.size_human} • ${this._formatDate(file.modified)}
                     </div>
+                    <button class="file-cache-print-btn" @click=${() => this._showPrintDialog(file)}>
+                      <ha-icon icon="mdi:printer-3d"></ha-icon>
+                      Print Again
+                    </button>
                   </div>
                 </div>
               `)}
             </div>
           `}
+
+          ${this._showPrintSettings ? html`
+            <div class="print-settings-overlay" @click=${this._hidePrintDialog}>
+              <div class="print-settings-popup" @click=${(e) => e.stopPropagation()}>
+                <div class="print-settings-header">
+                  <div class="print-settings-title">Print Settings</div>
+                  <button class="print-settings-close" @click=${this._hidePrintDialog}>
+                    <ha-icon icon="mdi:close"></ha-icon>
+                  </button>
+                </div>
+                
+                <div class="print-settings-content">
+                  <div class="print-settings-file">
+                    <strong>File:</strong> ${this._selectedFile?.filename}
+                  </div>
+                  
+                  <div class="print-settings-group">
+                    <label class="print-settings-label">
+                      <span>Plate Number:</span>
+                      <input type="number" 
+                             min="1" 
+                             max="4" 
+                             value=${this._printSettings.plate}
+                             @change=${(e) => this._updatePrintSetting('plate', parseInt(e.target.value))}>
+                    </label>
+                  </div>
+
+                  <div class="print-settings-group">
+                    <label class="print-settings-checkbox">
+                      <input type="checkbox" 
+                             ?checked=${this._printSettings.timelapse}
+                             @change=${(e) => this._updatePrintSetting('timelapse', e.target.checked)}>
+                      <span>Timelapse</span>
+                    </label>
+                  </div>
+
+                  <div class="print-settings-group">
+                    <label class="print-settings-checkbox">
+                      <input type="checkbox" 
+                             ?checked=${this._printSettings.bed_leveling}
+                             @change=${(e) => this._updatePrintSetting('bed_leveling', e.target.checked)}>
+                      <span>Bed Leveling</span>
+                    </label>
+                  </div>
+
+                  <div class="print-settings-group">
+                    <label class="print-settings-checkbox">
+                      <input type="checkbox" 
+                             ?checked=${this._printSettings.flow_cali}
+                             @change=${(e) => this._updatePrintSetting('flow_cali', e.target.checked)}>
+                      <span>Flow Calibration</span>
+                    </label>
+                  </div>
+
+                  <div class="print-settings-group">
+                    <label class="print-settings-checkbox">
+                      <input type="checkbox" 
+                             ?checked=${this._printSettings.vibration_cali}
+                             @change=${(e) => this._updatePrintSetting('vibration_cali', e.target.checked)}>
+                      <span>Vibration Calibration</span>
+                    </label>
+                  </div>
+
+                  <div class="print-settings-group">
+                    <label class="print-settings-checkbox">
+                      <input type="checkbox" 
+                             ?checked=${this._printSettings.layer_inspect}
+                             @change=${(e) => this._updatePrintSetting('layer_inspect', e.target.checked)}>
+                      <span>Layer Inspection</span>
+                    </label>
+                  </div>
+
+                  <div class="print-settings-group">
+                    <label class="print-settings-checkbox">
+                      <input type="checkbox" 
+                             ?checked=${this._printSettings.use_ams}
+                             @change=${(e) => this._updatePrintSetting('use_ams', e.target.checked)}>
+                      <span>Use AMS</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="print-settings-actions">
+                  <button class="print-settings-btn secondary" @click=${this._hidePrintDialog}>
+                    Cancel
+                  </button>
+                  <button class="print-settings-btn primary" 
+                          @click=${this._startPrint}
+                          ?disabled=${this._printLoading}>
+                    ${this._printLoading ? 'Starting Print...' : 'Start Print'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ` : nothing}
         </div>
       </div>
     `;
