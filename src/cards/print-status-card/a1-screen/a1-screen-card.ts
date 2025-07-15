@@ -8,7 +8,7 @@ import { consume } from "@lit/context";
 import "~/cards/shared-components/confirmation-prompt/confirmation-prompt";
 import "~/cards/shared-components/skip-objects";
 import "~/cards/ams-card/vector-ams-card/vector-ams-card";
-import "~/cards/shared-components/file-cache-popup";
+import "~/cards/shared-components/print-history-popup";
 
 type ConfirmationState = {
   show: boolean;
@@ -58,7 +58,7 @@ export class A1ScreenCard extends LitElement {
   @state()
   public _deviceEntities;
 
-  @query('file-cache-popup')
+  @query('print-history-popup')
   private fileCachePopup!: HTMLElement;
 
   @state() private confirmation: ConfirmationState = {
@@ -390,12 +390,12 @@ export class A1ScreenCard extends LitElement {
             this.page === Page.Ams ? this.#renderAmsPage() : ''}
         </div>
       </ha-card>
-      <file-cache-popup
+      <print-history-popup
         .device_id=${this._device_id}
         .device_serial=${this.#getDeviceSerial()}
         .file_type=${"3mf"}
         .max_files=${20}
-      ></file-cache-popup>
+      ></print-history-popup>
     `;
   }
 

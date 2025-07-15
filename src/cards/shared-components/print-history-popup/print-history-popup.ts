@@ -2,7 +2,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import { hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
-import styles from "./file-cache-popup.styles.js";
+import styles from "./print-history-popup.styles.js";
 
 interface FileCacheFile {
   filename: string;
@@ -23,8 +23,8 @@ interface PrintSettings {
   ams_mapping: string;
 }
 
-@customElement("file-cache-popup")
-export class FileCachePopup extends LitElement {
+@customElement("print-history-popup")
+export class PrintHistoryPopup extends LitElement {
   @property() public device_serial: string = "";
   @property() public device_id: string = "";
   @property() public file_type: string = "";
@@ -297,40 +297,40 @@ export class FileCachePopup extends LitElement {
     }
 
     return html`
-      <div class="file-cache-overlay" @click=${this.hide}>
-        <div class="file-cache-popup" @click=${(e) => e.stopPropagation()}>
-          <div class="file-cache-header">
-            <div class="file-cache-title">Print History</div>
-            <button class="file-cache-close" @click=${this.hide}>
+      <div class="print-history-overlay" @click=${this.hide}>
+        <div class="print-history-popup" @click=${(e) => e.stopPropagation()}>
+          <div class="print-history-header">
+            <div class="print-history-title">Print History</div>
+            <button class="print-history-close" @click=${this.hide}>
               <ha-icon icon="mdi:close"></ha-icon>
             </button>
           </div>
 
-          <div class="file-cache-controls">
-            <button class="file-cache-btn secondary" @click=${this._clearCache}>
+          <div class="print-history-controls">
+            <button class="print-history-btn secondary" @click=${this._clearCache}>
               Clear Cache
             </button>
           </div>
 
           ${this._error ? html`
-            <div class="file-cache-error">${this._error}</div>
+            <div class="print-history-error">${this._error}</div>
           ` : nothing}
 
           ${this._loading ? html`
-            <div class="file-cache-loading">Loading files...</div>
+            <div class="print-history-loading">Loading files...</div>
           ` : this._files.length === 0 ? html`
-            <div class="file-cache-empty">
-              <div class="file-cache-empty-icon">📁</div>
+            <div class="print-history-empty">
+              <div class="print-history-empty-icon">📁</div>
               <div>No cached files found</div>
-              <div class="file-cache-empty-subtitle">
+              <div class="print-history-empty-subtitle">
                 Enable file cache in your Bambu Lab integration settings
               </div>
             </div>
           ` : html`
-            <div class="file-cache-grid">
+            <div class="print-history-grid">
               ${this._files.map(file => html`
-                <div class="file-cache-card">
-                    <div class="file-cache-thumbnail">
+                <div class="print-history-card">
+                    <div class="print-history-thumbnail">
                       ${(() => {
                         const cacheKey = `${file.filename}-${file.thumbnail_path}`;
                         const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
@@ -340,18 +340,18 @@ export class FileCachePopup extends LitElement {
                                             @error=${(e) => e.target.style.display = 'none'}>`;
                         } else {
                             this._getThumbnailUrl(file); // Start loading
-                            return html`<div class="file-cache-placeholder">
+                            return html`<div class="print-history-placeholder">
                             ${this._getFileIcon(file.type)}
                             </div>`;
                         }
                       })()}
                   </div>
-                  <div class="file-cache-info">
-                    <div class="file-cache-name">${file.filename}</div>
-                    <div class="file-cache-meta">
+                  <div class="print-history-info">
+                    <div class="print-history-name">${file.filename}</div>
+                    <div class="print-history-meta">
                       ${file.size_human} • ${this._formatDate(file.modified)}
                     </div>
-                    <button class="file-cache-print-btn" @click=${() => this._showPrintDialog(file)}>
+                    <button class="print-history-print-btn" @click=${() => this._showPrintDialog(file)}>
                       <ha-icon icon="mdi:printer-3d"></ha-icon>
                       Print Again
                     </button>

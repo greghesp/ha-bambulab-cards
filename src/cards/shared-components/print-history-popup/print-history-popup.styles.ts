@@ -1,7 +1,7 @@
 import { css } from "lit";
 
 export default css`
-  .file-cache-overlay {
+  .print-history-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -15,7 +15,7 @@ export default css`
     overflow: hidden;
   }
 
-  .file-cache-popup {
+  .print-history-popup {
     background: var(--ha-card-background, var(--card-background-color, white));
     border-radius: var(--ha-card-border-radius, 8px);
     box-shadow: var(--ha-card-box-shadow, 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2));
@@ -29,7 +29,7 @@ export default css`
     border: 1px solid var(--divider-color, #e0e0e0);
   }
 
-  .file-cache-header {
+  .print-history-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -38,13 +38,13 @@ export default css`
     background: var(--ha-card-background, var(--card-background-color, white));
   }
 
-  .file-cache-title {
+  .print-history-title {
     font-size: 18px;
     font-weight: 500;
     color: var(--primary-text-color, #212121);
   }
 
-  .file-cache-close {
+  .print-history-close {
     background: none;
     border: none;
     color: var(--secondary-text-color, #757575);
@@ -57,15 +57,15 @@ export default css`
     transition: background-color 0.2s;
   }
 
-  .file-cache-close:hover {
+  .print-history-close:hover {
     background: var(--divider-color, #e0e0e0);
   }
 
-  .file-cache-close ha-icon {
+  .print-history-close ha-icon {
     --mdc-icon-size: 24px;
   }
 
-  .file-cache-controls {
+  .print-history-controls {
     display: flex;
     gap: 8px;
     padding: 16px;
@@ -73,7 +73,7 @@ export default css`
     background: var(--ha-card-background, var(--card-background-color, white));
   }
 
-  .file-cache-btn {
+  .print-history-btn {
     padding: 8px 16px;
     border: none;
     border-radius: 4px;
@@ -85,25 +85,25 @@ export default css`
     font-weight: 500;
   }
 
-  .file-cache-btn:hover {
+  .print-history-btn:hover {
     background: var(--primary-color-dark, #0288d1);
   }
 
-  .file-cache-btn.secondary {
+  .print-history-btn.secondary {
     background: var(--secondary-text-color, #757575);
     color: var(--primary-text-color, white);
   }
 
-  .file-cache-btn.secondary:hover {
+  .print-history-btn.secondary:hover {
     background: var(--disabled-text-color, #9e9e9e);
   }
 
-  .file-cache-btn:disabled {
+  .print-history-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
 
-  .file-cache-error {
+  .print-history-error {
     color: var(--error-color, #f44336);
     padding: 8px 16px;
     background: var(--error-color-light, rgba(244, 67, 54, 0.1));
@@ -112,7 +112,7 @@ export default css`
     border-left: 4px solid var(--error-color, #f44336);
   }
 
-  .file-cache-stats {
+  .print-history-stats {
     display: flex;
     justify-content: space-between;
     padding: 8px 16px;
@@ -122,38 +122,38 @@ export default css`
     background: var(--ha-card-background, var(--card-background-color, white));
   }
 
-  .file-cache-count {
+  .print-history-count {
     font-weight: 500;
     color: var(--primary-text-color, #212121);
   }
 
-  .file-cache-loading {
+  .print-history-loading {
     text-align: center;
     padding: 40px;
     color: var(--secondary-text-color, #757575);
     background: var(--ha-card-background, var(--card-background-color, white));
   }
 
-  .file-cache-empty {
+  .print-history-empty {
     text-align: center;
     padding: 40px;
     color: var(--secondary-text-color, #757575);
     background: var(--ha-card-background, var(--card-background-color, white));
   }
 
-  .file-cache-empty-icon {
+  .print-history-empty-icon {
     font-size: 48px;
     margin-bottom: 16px;
     opacity: 0.6;
   }
 
-  .file-cache-empty-subtitle {
+  .print-history-empty-subtitle {
     margin-top: 8px;
     font-size: 12px;
     opacity: 0.8;
   }
 
-  .file-cache-grid {
+  .print-history-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
@@ -163,7 +163,7 @@ export default css`
     background: var(--ha-card-background, var(--card-background-color, white));
   }
 
-  .file-cache-card {
+  .print-history-card {
     border: 1px solid var(--divider-color, #e0e0e0);
     border-radius: var(--ha-card-border-radius, 8px);
     overflow: hidden;
@@ -171,12 +171,12 @@ export default css`
     background: var(--ha-card-background, var(--card-background-color, white));
   }
 
-  .file-cache-card:hover {
+  .print-history-card:hover {
     box-shadow: var(--ha-card-box-shadow, 0 4px 8px rgba(0, 0, 0, 0.1));
     border-color: var(--primary-color, #03a9f4);
   }
 
-  .file-cache-thumbnail {
+  .print-history-thumbnail {
     width: 100%;
     height: 210px;
     background: var(--divider-color, #e0e0e0);
@@ -186,24 +186,24 @@ export default css`
     position: relative;
   }
 
-  .file-cache-thumbnail img {
+  .print-history-thumbnail img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
-  .file-cache-placeholder {
+  .print-history-placeholder {
     color: var(--secondary-text-color, #757575);
     font-size: 24px;
     opacity: 0.6;
   }
 
-  .file-cache-info {
+  .print-history-info {
     padding: 12px;
     background: var(--ha-card-background, var(--card-background-color, white));
   }
 
-  .file-cache-name {
+  .print-history-name {
     font-weight: 500;
     margin-bottom: 4px;
     color: var(--primary-text-color, #212121);
@@ -212,13 +212,13 @@ export default css`
     line-height: 1.3;
   }
 
-  .file-cache-meta {
+  .print-history-meta {
     font-size: 12px;
     color: var(--secondary-text-color, #757575);
     line-height: 1.4;
   }
 
-  .file-cache-print-btn {
+  .print-history-print-btn {
     margin-top: 8px;
     padding: 6px 12px;
     border: none;
@@ -236,15 +236,15 @@ export default css`
     justify-content: center;
   }
 
-  .file-cache-print-btn:hover {
+  .print-history-print-btn:hover {
     background: var(--primary-color-dark, #0288d1);
   }
 
-  .file-cache-print-btn ha-icon {
+  .print-history-print-btn ha-icon {
     --mdc-icon-size: 16px;
   }
 
-  .file-cache-type {
+  .print-history-type {
     display: inline-block;
     padding: 2px 6px;
     border-radius: 3px;
@@ -254,27 +254,27 @@ export default css`
     margin-bottom: 4px;
   }
 
-  .file-cache-type.3mf { 
+  .print-history-type.3mf { 
     background: var(--primary-color-light, #e3f2fd); 
     color: var(--primary-color, #1976d2); 
   }
   
-  .file-cache-type.gcode { 
+  .print-history-type.gcode { 
     background: var(--accent-color-light, #f3e5f5); 
     color: var(--accent-color, #7b1fa2); 
   }
   
-  .file-cache-type.timelapse { 
+  .print-history-type.timelapse { 
     background: var(--success-color-light, #e8f5e8); 
     color: var(--success-color, #388e3c); 
   }
   
-  .file-cache-type.thumbnail { 
+  .print-history-type.thumbnail { 
     background: var(--warning-color-light, #fff3e0); 
     color: var(--warning-color, #f57c00); 
   }
   
-  .file-cache-type.unknown { 
+  .print-history-type.unknown { 
     background: var(--divider-color, #f5f5f5); 
     color: var(--secondary-text-color, #666); 
   }
@@ -438,11 +438,11 @@ export default css`
 
   /* Dark mode adjustments */
   @media (prefers-color-scheme: dark) {
-    .file-cache-overlay {
+    .print-history-overlay {
       background: rgba(0, 0, 0, 0.7);
     }
     
-    .file-cache-card:hover {
+    .print-history-card:hover {
       border-color: var(--primary-color, #29b6f6);
     }
 
