@@ -4,6 +4,7 @@ import { hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
 import styles from "./print-history-popup.styles.js";
 import * as helpers from "../../../utils/helpers";
+import { css } from "lit";
 
 interface FileCacheFile {
   filename: string;
@@ -59,6 +60,8 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _sliceInfo: any = null;
   @state() private _sliceInfoLoading: boolean = false;
   @state() private _sliceInfoError: string | null = null;
+  @state() private _selectedAmsFilament: number[] = [];
+  @state() private _dropdownOpen: number | null = null;
 
   static styles = styles;
 
@@ -418,58 +421,67 @@ export class PrintHistoryPopup extends LitElement {
       })
       .map(amsId => this._hass.devices[amsId]);
 
-    // Helper to compute the global AMS filament index
     const getGlobalAMSIndex = (fil: any) => {
       const amsModel = fil.amsId && fil.amsId in this._hass.devices ? this._hass.devices[fil.amsId].model.toLowerCase() : '';
       if (amsModel.includes('ht')) {
-        // AMS HT: index is AMS HT order in list (after all regular AMS)
         const amsHTDevices = amsDevices.filter((d: any) => d.model.toLowerCase().includes('ht'));
         const amsHTIndex = amsHTDevices.findIndex((d: any) => d.id === fil.amsId);
-        // Offset by number of regular AMS * 4
         const regularAMSCount = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).length;
         return regularAMSCount * 4 + amsHTIndex;
       } else {
-        // Regular AMS: index = amsIndex * 4 + trayIndex
         const amsIndex = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).findIndex((d: any) => d.id === fil.amsId);
         return amsIndex * 4 + fil.trayIndex;
       }
     };
 
-    return this._sliceInfo.map((filament, _) => {
+    // Ensure _selectedAmsFilament is initialized
+    if (this._selectedAmsFilament.length !== this._sliceInfo.length) {
+      this._selectedAmsFilament = Array(this._sliceInfo.length).fill(0);
+    }
 
-      // Find all matching AMS filaments by color and type
+    return this._sliceInfo.map((filament, idx) => {
       const matches = amsFilaments.filter(amsFil => {
-          const colorMatch = (filament.color && amsFil.color && `${filament.color.toLowerCase()}ff` === amsFil.color.toLowerCase());
-          const idMatch = (filament.tray_info_idx == amsFil.filament_id);
-          const typeMatch = (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase());
-          return colorMatch && idMatch && typeMatch;
+        const colorMatch = (filament.color && amsFil.color && `${filament.color.toLowerCase()}ff` === amsFil.color.toLowerCase());
+        const idMatch = (filament.tray_info_idx == amsFil.filament_id);
+        const typeMatch = (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase());
+        return colorMatch && idMatch && typeMatch;
       });
-      // Default: match by color/type, then by index
       let defaultIdx = 0;
       if (matches.length > 0) {
-        // Try to match by index (3mf filament id is zero-based)
         const matchByIndex = matches.find(m => getGlobalAMSIndex(m) === Number(filament.id));
-        defaultIdx = matchByIndex ? matches.indexOf(matchByIndex) : 0;
+        defaultIdx = matchByIndex ? amsFilaments.indexOf(matchByIndex) : amsFilaments.indexOf(matches[0]);
       }
+      // If not already set, set the default
+      if (this._selectedAmsFilament[idx] !== defaultIdx) {
+        this._selectedAmsFilament[idx] = defaultIdx;
+      }
+      const selected = amsFilaments[this._selectedAmsFilament[idx]];
       return html`
-        <div class="print-settings-group">
-          <label 
-            <div style="margin-left:12px;">
-              ${filament.id ? `Filament ${filament.id}` : ''}:
-              <span style="display:inline-block;width:1em;height:1em;background:${filament.color || '#ccc'};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
-              ${filament.type || ''} ${filament.name || ''} (${filament.tray_info_idx ?? 'N/A'})
-            </div>
-            <select style="margin-left:12px;">
-              ${amsFilaments.map((amsFil, i) => html`
-                <option value="${i}" 
-                  ?selected=${matches.length > 0 && matches[defaultIdx] === amsFil}
-                >
-                  AMS ${amsFil.amsIndex + 1}, Tray ${amsFil.trayIndex + 1} (${amsFil.state.attributes.filament_id ?? 'N/A'})
-                  - ${amsFil.type || ''} ${amsFil.name || ''}
-                </option>
-              `)}
-            </select>
+        <div class="print-settings-group" style="position:relative;">
+          <label>
+            ${filament.id ? `Filament ${filament.id}` : ''}:
+            <span style="display:inline-block;width:1em;height:1em;background:${filament.color || '#ccc'};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+            ${filament.type || ''} ${filament.name || ''} (${filament.tray_info_idx ?? 'N/A'})
           </label>
+          <div class="custom-dropdown" @click=${(e: Event) => { e.stopPropagation(); this._dropdownOpen = this._dropdownOpen === idx ? null : idx; }}>
+            <div class="custom-dropdown-selected">
+              <span style="display:inline-block;width:1em;height:1em;background:${selected.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+              AMS ${selected.amsIndex + 1}, Tray ${selected.trayIndex + 1} (${selected.state.attributes.filament_id ?? 'N/A'})
+              - ${selected.type || ''} ${selected.name || ''}
+              <span style="float:right;">▼</span>
+            </div>
+            ${this._dropdownOpen === idx ? html`
+              <div class="custom-dropdown-list">
+                ${amsFilaments.map((amsFil, i) => html`
+                  <div class="custom-dropdown-option" @click=${(e: Event) => { e.stopPropagation(); this._selectedAmsFilament[idx] = i; this._dropdownOpen = null; this.requestUpdate(); }}>
+                    <span style="display:inline-block;width:1em;height:1em;background:${amsFil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+                    AMS ${amsFil.amsIndex + 1}, Tray ${amsFil.trayIndex + 1} (${amsFil.state.attributes.filament_id ?? 'N/A'})
+                    - ${amsFil.type || ''} ${amsFil.name || ''}
+                  </div>
+                `)}
+              </div>
+            ` : nothing}
+          </div>
         </div>
       `;
     });

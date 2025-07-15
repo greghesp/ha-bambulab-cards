@@ -448,6 +448,49 @@ export default css`
     cursor: not-allowed;
   }
 
+  .custom-dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 400px;
+    margin-top: 8px;
+    cursor: pointer;
+    z-index: 10;
+  }
+  .custom-dropdown-selected {
+    padding: 8px 12px;
+    border: 1px solid var(--divider-color, #e0e0e0);
+    border-radius: 4px;
+    background: var(--ha-card-background, var(--card-background-color, white));
+    color: var(--primary-text-color, #212121);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+  }
+  .custom-dropdown-list {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: var(--ha-card-background, var(--card-background-color, white));
+    border: 1px solid var(--divider-color, #e0e0e0);
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+  }
+  .custom-dropdown-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s;
+  }
+  .custom-dropdown-option:hover {
+    background: var(--divider-color, #e0e0e0);
+  }
+
   /* Dark mode adjustments */
   @media (prefers-color-scheme: dark) {
     .print-history-overlay {
