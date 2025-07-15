@@ -498,7 +498,7 @@ export class PrintHistoryPopup extends LitElement {
               <div class="custom-dropdown-option${selectedIdx === i ? ' selected' : ''}"
                    @click=${(e: Event) => { e.stopPropagation(); this._selectedAmsFilament[idx] = i; this._closeDropdown(); }}>
                 <span style="display:inline-block;width:1em;height:1em;background:${amsFil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
-                AMS ${amsFil.amsIndex + 1}, Tray ${amsFil.trayIndex + 1} (${amsFil.state.attributes.filament_id ?? 'N/A'})
+                AMS ${amsFil.amsIndex + 1}, Tray ${amsFil.trayIndex + 1}
                 - ${amsFil.type || ''} ${amsFil.name || ''}
               </div>
             `)}
@@ -525,7 +525,7 @@ export class PrintHistoryPopup extends LitElement {
         }
         const selected = amsFilaments[this._selectedAmsFilament[idx]];
         return html`
-          <div class="print-settings-group" style="position:relative;">
+          <div class="print-settings-group filament-mapping-row">
             <label>
               ${filament.id ? `Filament ${filament.id}` : ''}:
               <span style="display:inline-block;width:1em;height:1em;background:${filament.color || '#ccc'};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>

@@ -493,15 +493,29 @@ export default css`
     border-radius: 4px;
     margin: 2px 8px;
     border: 2px solid transparent;
+    background: none;
+    color: var(--primary-text-color, #212121);
   }
   .custom-dropdown-option.selected {
     background: var(--primary-color, #03a9f4);
     color: #fff;
     border: 2px solid var(--primary-color-dark, #0288d1);
   }
-  .custom-dropdown-option:hover {
-    background: var(--primary-color-light, #e3f2fd);
-    color: var(--primary-text-color, #212121);
+  .custom-dropdown-option:hover,
+  .custom-dropdown-option.selected:hover {
+    background: var(--primary-color-dark, #0288d1);
+    color: #fff;
+  }
+
+  .filament-mapping-row {
+    /* no margin here */
+  }
+
+  .filament-mapping-row label {
+    margin-left: 30px;
+  }
+  .filament-mapping-row .custom-dropdown {
+    margin-left: 30px;
   }
 
   /* Dark mode adjustments */
