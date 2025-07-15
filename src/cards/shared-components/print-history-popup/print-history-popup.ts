@@ -744,12 +744,11 @@ export class PrintHistoryPopup extends LitElement {
       <div class="print-history-overlay" @click=${this.hide}>
         <div class="print-history-popup" @click=${(e) => e.stopPropagation()}>
           <div class="print-history-header">
-            <div class="print-history-title">Print History</div>
+            ${renderTabs}
             <button class="print-history-close" @click=${this.hide}>
               <ha-icon icon="mdi:close"></ha-icon>
             </button>
           </div>
-          ${renderTabs}
           ${this._activeTab === 0 ? html`
             <div class="print-history-controls">
               <input
