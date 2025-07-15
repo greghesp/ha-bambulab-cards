@@ -340,7 +340,12 @@ export class PrintHistoryPopup extends LitElement {
   // Returns a sorted list of all available filaments from every AMS (by AMS index, then tray slot), ignoring empty slots
   getAvailableAMSFilaments() {
     if (!this._hass || !this.device_id) return [];
-    const amsDeviceIds = helpers.getAttachedDeviceIds(this._hass, this.device_id);
+    // Only include AMS devices, not external spools
+    const amsDeviceIds = helpers.getAttachedDeviceIds(this._hass, this.device_id)
+      .filter(amsId => {
+        const device = this._hass.devices[amsId];
+        return device && device.model && device.model.toLowerCase().includes('ams');
+      });
     let allFilaments: any[] = [];
     amsDeviceIds.forEach((amsId, amsIndex) => {
       // Get all tray entities for this AMS
@@ -368,6 +373,38 @@ export class PrintHistoryPopup extends LitElement {
     });
     // Sort by AMS index, then tray index
     allFilaments.sort((a, b) => a.amsIndex - b.amsIndex || a.trayIndex - b.trayIndex);
+    return allFilaments;
+  }
+
+  getExternalSpoolFilaments() {
+    if (!this._hass || !this.device_id) return [];
+    // Only include external spool devices
+    const extDeviceIds = helpers.getAttachedDeviceIds(this._hass, this.device_id)
+      .filter(devId => {
+        const device = this._hass.devices[devId];
+        return device && device.model && device.model.toLowerCase().includes('external spool');
+      });
+    let allFilaments: any[] = [];
+    extDeviceIds.forEach((extId, extIndex) => {
+      // Get the external_spool entity for this device
+      const entities = helpers.getBambuDeviceEntities(this._hass, extId, ["external_spool"]);
+      const entity = entities["external_spool"];
+      if (entity) {
+        const state = this._hass.states[entity.entity_id];
+        if (state && !state.attributes.empty) {
+          allFilaments.push({
+            extIndex,
+            extId,
+            entity,
+            state,
+            color: state.attributes.color,
+            type: state.attributes.type,
+            name: state.attributes.name,
+            filament_id: state.attributes.filament_id,
+          });
+        }
+      }
+    });
     return allFilaments;
   }
 
@@ -464,30 +501,19 @@ export class PrintHistoryPopup extends LitElement {
                 </div>
                 
                 <div class="print-settings-content">
+                  <!-- Cover image for the selected file -->
+                  ${(() => {
+                    if (this._selectedFile) {
+                      const cacheKey = `${this._selectedFile.filename}-${this._selectedFile.thumbnail_path}`;
+                      const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
+                      if (thumbnailUrl) {
+                        return html`<div style="text-align:center;margin-bottom:16px;"><img src="${thumbnailUrl}" alt="${this._selectedFile.filename}" style="max-width:200px;max-height:200px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);" /></div>`;
+                      }
+                    }
+                    return nothing;
+                  })()}
                   <div class="print-settings-file">
                     <strong>File:</strong> ${this._selectedFile?.filename}
-                  </div>
-                  ${this._sliceInfoLoading ? html`<div>Loading filament info...</div>` : nothing}
-                  ${this._sliceInfoError ? html`<div style="color:red;">${this._sliceInfoError}</div>` : nothing}
-                  ${this._sliceInfo && this._sliceInfo.length > 0 ? html`
-                    <div class="print-settings-group">
-                      <strong>Filaments in 3MF:</strong>
-                      <ul>
-                        ${this._sliceInfo.map(filament => html`<li>${Object.entries(filament).map(([k, v]) => html`${k}: ${v} `)}</li>`)}
-                      </ul>
-                    </div>
-                  ` : nothing}
-                  <div class="print-settings-group">
-                    <strong>Available AMS Filaments:</strong>
-                    <ul>
-                      ${this.getAvailableAMSFilaments().map(fil => html`
-                        <li>
-                          AMS ${fil.amsIndex + 1}, Tray ${fil.trayIndex + 1}: 
-                          <span style="display:inline-block;width:1em;height:1em;background:${fil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
-                          ${fil.type || ''} ${fil.name || ''}
-                        </li>
-                      `)}
-                    </ul>
                   </div>
                   
                   <div class="print-settings-group">
@@ -554,6 +580,57 @@ export class PrintHistoryPopup extends LitElement {
                       <span>Use AMS</span>
                     </label>
                   </div>
+
+                  ${this._sliceInfoLoading ? html`<div>Loading filament info...</div>` : nothing}
+                  ${this._sliceInfoError ? html`<div style="color:red;">${this._sliceInfoError}</div>` : nothing}
+
+                  ${this._sliceInfo && this._sliceInfo.length > 0 ? html`
+                    <div class="print-settings-group">
+                      <strong>Filaments in 3MF:</strong>
+                      <ul>
+                        ${this._sliceInfo.map((filament) => html`
+                          <li>
+                            ${filament.id ? `Filament ${filament.id}` : ''}:
+                            <span style="display:inline-block;width:1em;height:1em;background:${filament.color || '#ccc'};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+                            ${filament.type || ''} ${filament.name || ''} (${filament.tray_info_idx ?? 'N/A'})
+                          </li>
+                        `)}
+                      </ul>
+                    </div>
+                  ` : nothing}
+
+                  ${this._printSettings.use_ams
+                    ? html`
+                        <div class="print-settings-group">
+                          <strong>Available AMS Filaments:</strong>
+                          <ul>
+                            ${this.getAvailableAMSFilaments().map(fil => html`
+                              <li>
+                                AMS ${fil.amsIndex + 1}, Tray ${fil.trayIndex + 1}: 
+                                <span style="display:inline-block;width:1em;height:1em;background:${fil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+                                ${fil.type || ''} ${fil.name || ''} (${fil.state.attributes.filament_id ?? 'N/A'})
+                              </li>
+                            `)}
+                          </ul>
+                        </div>
+                      `
+                    : html`
+                        <div class="print-settings-group">
+                          <strong>Available External Spool Filaments:</strong>
+                          <ul>
+                            ${this.getExternalSpoolFilaments().map(fil => html`
+                              <li>
+                                External Spool ${fil.extIndex + 1}: 
+                                <span style="display:inline-block;width:1em;height:1em;background:${fil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+                                ${fil.type || ''} ${fil.name || ''} (${fil.filament_id ?? 'N/A'})
+                              </li>
+                            `)}
+                          </ul>
+                        </div>
+                      `
+                    }
+                  </div>
+
                 </div>
 
                 <div class="print-settings-actions">
