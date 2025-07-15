@@ -29,7 +29,6 @@ interface PrintSettings {
 export class PrintHistoryPopup extends LitElement {
   @property() public device_serial: string = "";
   @property() public device_id: string = "";
-  @property() public file_type: string = "";
   @property() public max_files: number = 20;
 
   @consume({ context: hassContext, subscribe: true })
@@ -63,6 +62,10 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _selectedAmsFilament: number[] = [];
   @state() private _dropdownOpen: number | null = null;
   @state() private _dropdownPosition: {left: number, top: number, width: number, height: number} | null = null;
+  @state() private _activeTab: number = 0;
+  @state() private _timelapseFiles: FileCacheFile[] = [];
+  @state() private _timelapseLoading: boolean = false;
+  @state() private _timelapseError: string | null = null;
 
   static styles = styles;
 
@@ -80,6 +83,7 @@ export class PrintHistoryPopup extends LitElement {
   show() {
     this._show = true;
     this._refreshFiles();
+    this._refreshTimelapseFiles();
     this._preventBackgroundScroll();
   }
 
@@ -112,7 +116,7 @@ export class PrintHistoryPopup extends LitElement {
 
     try {
       // Use the API endpoint to get file cache data
-      const url = `/api/bambu_lab/file_cache/${this.device_serial}?file_type=${this.file_type}`;
+      const url = `/api/bambu_lab/file_cache/${this.device_serial}?file_type=3mf`;
       
       const response = await fetch(url, {
         headers: {
@@ -163,6 +167,32 @@ export class PrintHistoryPopup extends LitElement {
     }
   }
 
+  async _refreshTimelapseFiles() {
+    this._timelapseLoading = true;
+    this._timelapseError = null;
+    try {
+      const url = `/api/bambu_lab/file_cache/${this.device_serial}?file_type=timelapse`;
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${this._hass.auth.data.access_token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      if (result && result.files) {
+        this._timelapseFiles = result.files;
+      }
+    } catch (error) {
+      this._timelapseError = error instanceof Error ? error.message : String(error);
+    } finally {
+      this._timelapseLoading = false;
+      this.requestUpdate();
+    }
+  }
+
   _showPrintDialog(file: FileCacheFile) {
     this._selectedFile = file;
     this._showPrintSettings = true;
@@ -179,7 +209,7 @@ export class PrintHistoryPopup extends LitElement {
         baseName = baseName.slice(0, -4);
     }
     const configFilename = baseName + ".slice_info.config";
-    const url = `/api/bambu_lab/file_cache/${this.device_serial}/${this.file_type}/${configFilename}`;
+    const url = `/api/bambu_lab/file_cache/${this.device_serial}/3mf/${configFilename}`;
     try {
         const response = await fetch(url, {
             headers: {
@@ -247,7 +277,7 @@ export class PrintHistoryPopup extends LitElement {
     }
   }
 
-  _getThumbnailUrl(file: FileCacheFile) {
+  _getThumbnailUrl(file: FileCacheFile, fileType: string) {
     const cacheKey = `${file.filename}-${file.thumbnail_path}`;
     if (this._thumbnailCache.has(cacheKey)) {
       return this._thumbnailCache.get(cacheKey);
@@ -258,15 +288,15 @@ export class PrintHistoryPopup extends LitElement {
     }
     
     // Start loading the thumbnail asynchronously
-    this._loadThumbnail(file, cacheKey);
+    this._loadThumbnail(file, cacheKey, fileType);
     
     // Return null initially, will be updated when loaded
     return null;
   }
 
-  async _loadThumbnail(file: FileCacheFile, cacheKey: string) {
+  async _loadThumbnail(file: FileCacheFile, cacheKey: string, fileType: string) {
     try {
-      const url = `/api/bambu_lab/file_cache/${this.device_serial}/${this.file_type}/${file.thumbnail_path}`;
+      const url = `/api/bambu_lab/file_cache/${this.device_serial}/${fileType}/${file.thumbnail_path}`;
       console.log("Fetching thumbnail:", url);
       
       const response = await fetch(url, {
@@ -657,10 +687,58 @@ export class PrintHistoryPopup extends LitElement {
       return nothing;
     }
 
-    // Filter files by search query
+    // Tab bar
+    const tabLabels = ["Print History", "Timelapse Videos"];
+    const renderTabs = html`
+      <div class="print-history-tabs">
+        ${tabLabels.map((label, i) => html`
+          <div class="print-history-tab${this._activeTab === i ? ' active' : ''}"
+               @click=${() => { this._activeTab = i; this.requestUpdate(); }}>
+            ${label}
+          </div>
+        `)}
+      </div>
+    `;
+
+    // Print History Tab
     const filteredFiles = this._files.filter(file =>
       file.filename.toLowerCase().includes(this._searchQuery.toLowerCase())
     );
+
+    // Timelapse Tab
+    const renderTimelapseGrid = html`
+      ${this._timelapseError ? html`<div class="print-history-error">${this._timelapseError}</div>` : nothing}
+      ${this._timelapseLoading ? html`<div class="print-history-loading">Loading timelapse videos...</div>` :
+        this._timelapseFiles.length === 0 ? html`
+          <div class="print-history-empty">
+            <div class="print-history-empty-icon">🎬</div>
+            <div>No timelapse videos found</div>
+          </div>
+        ` : html`
+          <div class="print-history-grid">
+            ${this._timelapseFiles.map(file => html`
+              <div class="print-history-card">
+                <div class="print-history-thumbnail" style="position:relative;">
+                  ${(() => {
+                    const cacheKey = `${file.filename}-${file.thumbnail_path}`;
+                    const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
+                    if (thumbnailUrl) {
+                      return html`<img src="${thumbnailUrl}" alt="${file.filename}" @error=${(e) => e.target.style.display = 'none'}>`;
+                    } else {
+                      this._getThumbnailUrl(file, 'timelapse'); // Start loading
+                      return html`<div class="print-history-placeholder">${this._getFileIcon(file.type)}</div>`;
+                    }
+                  })()}
+                  <div class="timelapse-overlay">
+                    ${this._formatDate(file.modified)}
+                  </div>
+                </div>
+              </div>
+            `)}
+          </div>
+        `
+      }
+    `;
 
     return html`
       <div class="print-history-overlay" @click=${this.hide}>
@@ -671,184 +749,182 @@ export class PrintHistoryPopup extends LitElement {
               <ha-icon icon="mdi:close"></ha-icon>
             </button>
           </div>
-
-          <div class="print-history-controls">
-            <input
-              type="text"
-              class="print-history-search"
-              placeholder="Search by filename..."
-              .value=${this._searchQuery}
-              @input=${(e: any) => { this._searchQuery = e.target.value; }}
-            />
-            <button class="print-history-btn secondary" @click=${this._clearCache}>
-              Clear Cache
-            </button>
-          </div>
-
-          ${this._error ? html`
-            <div class="print-history-error">${this._error}</div>
-          ` : nothing}
-
-          ${this._loading ? html`
-            <div class="print-history-loading">Loading files...</div>
-          ` : filteredFiles.length === 0 ? html`
-            <div class="print-history-empty">
-              <div class="print-history-empty-icon">📁</div>
-              <div>No cached files found</div>
-              <div class="print-history-empty-subtitle">
-                Enable file cache in your Bambu Lab integration settings
-              </div>
+          ${renderTabs}
+          ${this._activeTab === 0 ? html`
+            <div class="print-history-controls">
+              <input
+                type="text"
+                class="print-history-search"
+                placeholder="Search by filename..."
+                .value=${this._searchQuery}
+                @input=${(e: any) => { this._searchQuery = e.target.value; }}
+              />
+              <button class="print-history-btn secondary" @click=${this._clearCache}>
+                Clear Cache
+              </button>
             </div>
-          ` : html`
-            <div class="print-history-grid">
-              ${filteredFiles.map(file => html`
-                <div class="print-history-card">
-                    <div class="print-history-thumbnail">
-                      ${(() => {
-                        const cacheKey = `${file.filename}-${file.thumbnail_path}`;
+            ${this._error ? html`
+              <div class="print-history-error">${this._error}</div>
+            ` : nothing}
+            ${this._loading ? html`
+              <div class="print-history-loading">Loading files...</div>
+            ` : filteredFiles.length === 0 ? html`
+              <div class="print-history-empty">
+                <div class="print-history-empty-icon">📁</div>
+                <div>No cached files found</div>
+                <div class="print-history-empty-subtitle">
+                  Enable file cache in your Bambu Lab integration settings
+                </div>
+              </div>
+            ` : html`
+              <div class="print-history-grid">
+                ${filteredFiles.map(file => html`
+                  <div class="print-history-card">
+                      <div class="print-history-thumbnail">
+                        ${(() => {
+                          const cacheKey = `${file.filename}-${file.thumbnail_path}`;
+                          const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
+                          if (thumbnailUrl) {
+                              return html`<img src="${thumbnailUrl}" 
+                                              alt="${file.filename}" 
+                                              @error=${(e) => e.target.style.display = 'none'}>`;
+                          } else {
+                              this._getThumbnailUrl(file, '3mf'); // Start loading
+                              return html`<div class="print-history-placeholder">
+                              ${this._getFileIcon(file.type)}
+                              </div>`;
+                          }
+                        })()}
+                    </div>
+                    <div class="print-history-info">
+                      <div class="print-history-name">${file.filename}</div>
+                      <div class="print-history-meta">
+                        ${file.size_human} • ${this._formatDate(file.modified)}
+                      </div>
+                      <button class="print-history-print-btn" @click=${() => this._showPrintDialog(file)}>
+                        <ha-icon icon="mdi:printer-3d"></ha-icon>
+                        Print Again
+                      </button>
+                    </div>
+                  </div>
+                `)}
+              </div>
+            `}
+            ${this._showPrintSettings ? html`
+              <div class="print-settings-overlay" @click=${this._hidePrintDialog}>
+                <div class="print-settings-popup" @click=${(e) => e.stopPropagation()}>
+                  <div class="print-settings-header">
+                    <div class="print-settings-title">Print Settings</div>
+                    <button class="print-settings-close" @click=${this._hidePrintDialog}>
+                      <ha-icon icon="mdi:close"></ha-icon>
+                    </button>
+                  </div>
+                  <div class="print-settings-content">
+                    <!-- Cover image for the selected file -->
+                    ${(() => {
+                      if (this._selectedFile) {
+                        const cacheKey = `${this._selectedFile.filename}-${this._selectedFile.thumbnail_path}`;
                         const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
                         if (thumbnailUrl) {
-                            return html`<img src="${thumbnailUrl}" 
-                                            alt="${file.filename}" 
-                                            @error=${(e) => e.target.style.display = 'none'}>`;
-                        } else {
-                            this._getThumbnailUrl(file); // Start loading
-                            return html`<div class="print-history-placeholder">
-                            ${this._getFileIcon(file.type)}
-                            </div>`;
+                          return html`<div style="text-align:center;margin-bottom:16px;"><img src="${thumbnailUrl}" alt="${this._selectedFile.filename}" style="max-width:200px;max-height:200px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);" /></div>`;
                         }
-                      })()}
-                  </div>
-                  <div class="print-history-info">
-                    <div class="print-history-name">${file.filename}</div>
-                    <div class="print-history-meta">
-                      ${file.size_human} • ${this._formatDate(file.modified)}
+                      }
+                      return nothing;
+                    })()}
+                    <div class="print-settings-file">
+                      <strong>File:</strong> ${this._selectedFile?.filename}
                     </div>
-                    <button class="print-history-print-btn" @click=${() => this._showPrintDialog(file)}>
-                      <ha-icon icon="mdi:printer-3d"></ha-icon>
-                      Print Again
+                    
+                    <div class="print-settings-group">
+                      <label class="print-settings-label">
+                        <span>Plate Number:</span>
+                        <input type="number" 
+                               min="1" 
+                               max="4" 
+                               value=${this._printSettings.plate}
+                               @change=${(e) => this._updatePrintSetting('plate', parseInt(e.target.value))}>
+                      </label>
+                    </div>
+
+                    <div class="print-settings-group">
+                      <label class="print-settings-checkbox">
+                        <input type="checkbox" 
+                               ?checked=${this._printSettings.timelapse}
+                               @change=${(e) => this._updatePrintSetting('timelapse', e.target.checked)}>
+                        <span>Timelapse</span>
+                      </label>
+                    </div>
+
+                    <div class="print-settings-group">
+                      <label class="print-settings-checkbox">
+                        <input type="checkbox" 
+                               ?checked=${this._printSettings.bed_leveling}
+                               @change=${(e) => this._updatePrintSetting('bed_leveling', e.target.checked)}>
+                        <span>Bed Leveling</span>
+                      </label>
+                    </div>
+
+                    <div class="print-settings-group">
+                      <label class="print-settings-checkbox">
+                        <input type="checkbox" 
+                               ?checked=${this._printSettings.flow_cali}
+                               @change=${(e) => this._updatePrintSetting('flow_cali', e.target.checked)}>
+                        <span>Flow Calibration</span>
+                      </label>
+                    </div>
+
+                    <div class="print-settings-group">
+                      <label class="print-settings-checkbox">
+                        <input type="checkbox" 
+                               ?checked=${this._printSettings.use_ams}
+                               @change=${(e) => this._updatePrintSetting('use_ams', e.target.checked)}>
+                        <span>Use AMS</span>
+                      </label>
+                    </div>
+
+                    ${this._sliceInfoLoading ? html`<div>Loading filament info...</div>` : nothing}
+                    ${this._sliceInfoError ? html`<div style="color:red;">${this._sliceInfoError}</div>` : nothing}
+
+                    ${this._printSettings.use_ams && this._sliceInfo && this._sliceInfo.length > 0 ? html`
+                      <div class="print-settings-group">
+                        ${this.renderFilamentComboBoxes()}
+                      </div>
+                    ` : nothing}
+
+                    ${this._printSettings.use_ams
+                      ? nothing
+                      : html`
+                          <div class="print-settings-group">
+                            <strong>Available External Spool Filaments:</strong>
+                            <ul>
+                              ${this.getExternalSpoolFilaments().map(fil => html`
+                                <li>
+                                  External Spool ${fil.extIndex + 1}: 
+                                  <span style="display:inline-block;width:1em;height:1em;background:${fil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+                                  ${fil.type || ''} ${fil.name || ''} (${fil.filament_id ?? 'N/A'})
+                                </li>
+                              `)}
+                            </ul>
+                          </div>
+                        `
+                      }
+
+                  </div>
+
+                  <div class="print-settings-actions">
+                    <button class="print-settings-btn secondary" @click=${this._hidePrintDialog}>
+                      Cancel
+                    </button>
+                    <button class="print-settings-btn primary" 
+                            @click=${this._startPrint}
+                            ?disabled=${this._printLoading || !this._isAmsMappingValid()}>
+                      ${this._printLoading ? 'Starting Print...' : 'Start Print'}
                     </button>
                   </div>
                 </div>
-              `)}
-            </div>
-          `}
-
-          ${this._showPrintSettings ? html`
-            <div class="print-settings-overlay" @click=${this._hidePrintDialog}>
-              <div class="print-settings-popup" @click=${(e) => e.stopPropagation()}>
-                <div class="print-settings-header">
-                  <div class="print-settings-title">Print Settings</div>
-                  <button class="print-settings-close" @click=${this._hidePrintDialog}>
-                    <ha-icon icon="mdi:close"></ha-icon>
-                  </button>
-                </div>
-                
-                <div class="print-settings-content">
-                  <!-- Cover image for the selected file -->
-                  ${(() => {
-                    if (this._selectedFile) {
-                      const cacheKey = `${this._selectedFile.filename}-${this._selectedFile.thumbnail_path}`;
-                      const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
-                      if (thumbnailUrl) {
-                        return html`<div style="text-align:center;margin-bottom:16px;"><img src="${thumbnailUrl}" alt="${this._selectedFile.filename}" style="max-width:200px;max-height:200px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);" /></div>`;
-                      }
-                    }
-                    return nothing;
-                  })()}
-                  <div class="print-settings-file">
-                    <strong>File:</strong> ${this._selectedFile?.filename}
-                  </div>
-                  
-                  <div class="print-settings-group">
-                    <label class="print-settings-label">
-                      <span>Plate Number:</span>
-                      <input type="number" 
-                             min="1" 
-                             max="4" 
-                             value=${this._printSettings.plate}
-                             @change=${(e) => this._updatePrintSetting('plate', parseInt(e.target.value))}>
-                    </label>
-                  </div>
-
-                  <div class="print-settings-group">
-                    <label class="print-settings-checkbox">
-                      <input type="checkbox" 
-                             ?checked=${this._printSettings.timelapse}
-                             @change=${(e) => this._updatePrintSetting('timelapse', e.target.checked)}>
-                      <span>Timelapse</span>
-                    </label>
-                  </div>
-
-                  <div class="print-settings-group">
-                    <label class="print-settings-checkbox">
-                      <input type="checkbox" 
-                             ?checked=${this._printSettings.bed_leveling}
-                             @change=${(e) => this._updatePrintSetting('bed_leveling', e.target.checked)}>
-                      <span>Bed Leveling</span>
-                    </label>
-                  </div>
-
-                  <div class="print-settings-group">
-                    <label class="print-settings-checkbox">
-                      <input type="checkbox" 
-                             ?checked=${this._printSettings.flow_cali}
-                             @change=${(e) => this._updatePrintSetting('flow_cali', e.target.checked)}>
-                      <span>Flow Calibration</span>
-                    </label>
-                  </div>
-
-                  <div class="print-settings-group">
-                    <label class="print-settings-checkbox">
-                      <input type="checkbox" 
-                             ?checked=${this._printSettings.use_ams}
-                             @change=${(e) => this._updatePrintSetting('use_ams', e.target.checked)}>
-                      <span>Use AMS</span>
-                    </label>
-                  </div>
-
-                  ${this._sliceInfoLoading ? html`<div>Loading filament info...</div>` : nothing}
-                  ${this._sliceInfoError ? html`<div style="color:red;">${this._sliceInfoError}</div>` : nothing}
-
-                  ${this._printSettings.use_ams && this._sliceInfo && this._sliceInfo.length > 0 ? html`
-                    <div class="print-settings-group">
-                      ${this.renderFilamentComboBoxes()}
-                    </div>
-                  ` : nothing}
-
-                  ${this._printSettings.use_ams
-                    ? nothing
-                    : html`
-                        <div class="print-settings-group">
-                          <strong>Available External Spool Filaments:</strong>
-                          <ul>
-                            ${this.getExternalSpoolFilaments().map(fil => html`
-                              <li>
-                                External Spool ${fil.extIndex + 1}: 
-                                <span style="display:inline-block;width:1em;height:1em;background:${fil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
-                                ${fil.type || ''} ${fil.name || ''} (${fil.filament_id ?? 'N/A'})
-                              </li>
-                            `)}
-                          </ul>
-                        </div>
-                      `
-                    }
-
-                </div>
-
-                <div class="print-settings-actions">
-                  <button class="print-settings-btn secondary" @click=${this._hidePrintDialog}>
-                    Cancel
-                  </button>
-                  <button class="print-settings-btn primary" 
-                          @click=${this._startPrint}
-                          ?disabled=${this._printLoading || !this._isAmsMappingValid()}>
-                    ${this._printLoading ? 'Starting Print...' : 'Start Print'}
-                  </button>
-                </div>
               </div>
-            </div>
-          ` : nothing}
+            ` : nothing}
+          ` : renderTimelapseGrid}
         </div>
       </div>
     `;

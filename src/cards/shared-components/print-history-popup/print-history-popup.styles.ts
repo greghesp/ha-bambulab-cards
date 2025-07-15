@@ -545,6 +545,41 @@ export default css`
     margin-left: 32px;
   }
 
+  .print-history-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--divider-color, #e0e0e0);
+    background: var(--ha-card-background, var(--card-background-color, white));
+  }
+  .print-history-tab {
+    padding: 12px 24px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--secondary-text-color, #757575);
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    user-select: none;
+  }
+  .print-history-tab.active {
+    color: var(--primary-color, #03a9f4);
+    border-bottom: 2px solid var(--primary-color, #03a9f4);
+    font-weight: 600;
+  }
+  .timelapse-overlay {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 14px;
+    padding: 6px 10px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    box-sizing: border-box;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
   /* Dark mode adjustments */
   @media (prefers-color-scheme: dark) {
     .print-history-overlay {
