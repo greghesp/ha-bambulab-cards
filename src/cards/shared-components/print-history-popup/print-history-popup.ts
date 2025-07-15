@@ -55,6 +55,9 @@ export class PrintHistoryPopup extends LitElement {
   private _thumbnailCache = new Map<string, string | null>();
   private _scrollHandler: ((e: Event) => void) | null = null;
   @state() private _searchQuery: string = "";
+  @state() private _sliceInfo: any = null;
+  @state() private _sliceInfoLoading: boolean = false;
+  @state() private _sliceInfoError: string | null = null;
 
   static styles = styles;
 
@@ -157,7 +160,48 @@ export class PrintHistoryPopup extends LitElement {
   _showPrintDialog(file: FileCacheFile) {
     this._selectedFile = file;
     this._showPrintSettings = true;
+    this._loadSliceInfo(file);
   }
+
+  async _loadSliceInfo(file: FileCacheFile) {
+    this._sliceInfo = null;
+    this._sliceInfoError = null;
+    this._sliceInfoLoading = true;
+    // Remove .3mf extension if present
+    let baseName = file.filename;
+    if (baseName.toLowerCase().endsWith('.3mf')) {
+        baseName = baseName.slice(0, -4);
+    }
+    const configFilename = baseName + ".slice_info.config";
+    const url = `/api/bambu_lab/file_cache/${this.device_serial}/${this.file_type}/${configFilename}`;
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${this._hass.auth.data.access_token}`,
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const text = await response.text();
+        // Parse XML and extract <filament/> entries
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(text, "application/xml");
+        const filaments = Array.from(xml.getElementsByTagName("filament"));
+        this._sliceInfo = filaments.map(filament => {
+            const attrs = {};
+            for (const attr of filament.attributes) {
+                attrs[attr.name] = attr.value;
+            }
+            return attrs;
+        });
+    } catch (error) {
+        this._sliceInfoError = error instanceof Error ? error.message : String(error);
+    } finally {
+        this._sliceInfoLoading = false;
+        this.requestUpdate();
+    }
+}
 
   _hidePrintDialog() {
     this._showPrintSettings = false;
@@ -216,7 +260,7 @@ export class PrintHistoryPopup extends LitElement {
 
   async _loadThumbnail(file: FileCacheFile, cacheKey: string) {
     try {
-      const url = `/api/bambu_lab/file_cache/${this.device_serial}/media/${this.file_type}/${file.thumbnail_path}`;
+      const url = `/api/bambu_lab/file_cache/${this.device_serial}/${this.file_type}/${file.thumbnail_path}`;
       console.log("Fetching thumbnail:", url);
       
       const response = await fetch(url, {
@@ -388,6 +432,16 @@ export class PrintHistoryPopup extends LitElement {
                   <div class="print-settings-file">
                     <strong>File:</strong> ${this._selectedFile?.filename}
                   </div>
+                  ${this._sliceInfoLoading ? html`<div>Loading filament info...</div>` : nothing}
+                  ${this._sliceInfoError ? html`<div style="color:red;">${this._sliceInfoError}</div>` : nothing}
+                  ${this._sliceInfo && this._sliceInfo.length > 0 ? html`
+                    <div class="print-settings-group">
+                      <strong>Filaments:</strong>
+                      <ul>
+                        ${this._sliceInfo.map(filament => html`<li>${Object.entries(filament).map(([k, v]) => html`${k}: ${v} `)}</li>`)}
+                      </ul>
+                    </div>
+                  ` : nothing}
                   
                   <div class="print-settings-group">
                     <label class="print-settings-label">
