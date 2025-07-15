@@ -365,6 +365,7 @@ export class PrintHistoryPopup extends LitElement {
               color: state.attributes.color,
               type: state.attributes.type,
               name: state.attributes.name,
+              filament_id: state.attributes.filament_id,
               // add more attributes as needed
             });
           }
@@ -406,6 +407,92 @@ export class PrintHistoryPopup extends LitElement {
       }
     });
     return allFilaments;
+  }
+
+  renderFilamentComboBoxes() {
+    const amsFilaments = this.getAvailableAMSFilaments();
+    const amsDevices = helpers.getAttachedDeviceIds(this._hass, this.device_id)
+      .filter(amsId => {
+        const device = this._hass.devices[amsId];
+        return device && device.model && device.model.toLowerCase().includes('ams');
+      })
+      .map(amsId => this._hass.devices[amsId]);
+
+    // Helper to compute the global AMS filament index
+    const getGlobalAMSIndex = (fil: any) => {
+      const amsModel = fil.amsId && fil.amsId in this._hass.devices ? this._hass.devices[fil.amsId].model.toLowerCase() : '';
+      if (amsModel.includes('ht')) {
+        // AMS HT: index is AMS HT order in list (after all regular AMS)
+        const amsHTDevices = amsDevices.filter((d: any) => d.model.toLowerCase().includes('ht'));
+        const amsHTIndex = amsHTDevices.findIndex((d: any) => d.id === fil.amsId);
+        // Offset by number of regular AMS * 4
+        const regularAMSCount = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).length;
+        return regularAMSCount * 4 + amsHTIndex;
+      } else {
+        // Regular AMS: index = amsIndex * 4 + trayIndex
+        const amsIndex = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).findIndex((d: any) => d.id === fil.amsId);
+        return amsIndex * 4 + fil.trayIndex;
+      }
+    };
+
+    return this._sliceInfo.map((filament, idx) => {
+      console.log(`--- Checking 3MF Filament ${idx}:`, {
+        color: filament.color,
+        type: filament.type,
+        tray_info_idx: filament.tray_info_idx
+      });
+
+      // Find all matching AMS filaments by color and type
+      const matches = amsFilaments.filter(amsFil => {
+          const colorMatch = (filament.color && amsFil.color && `${filament.color.toLowerCase()}ff` === amsFil.color.toLowerCase());
+          const idMatch = (filament.tray_info_idx == amsFil.filament_id);
+          const typeMatch = (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase());
+
+          console.log(`... Comparing with AMS: ${amsFil.name} (AMS ${amsFil.amsIndex + 1}, Tray ${amsFil.trayIndex + 1})`, {
+              '3mf_color': filament.color,
+              'ams_color': amsFil.color,
+              'color_match_result': colorMatch,
+              '3mf_id': filament.tray_info_idx,
+              'ams_id': amsFil.filament_id,
+              'id_match_result': idMatch,
+              '3mf_type': filament.type,
+              'ams_type': amsFil.type,
+              'type_match_result': typeMatch,
+              'OVERALL_MATCH': colorMatch && idMatch && typeMatch
+          });
+          
+          return colorMatch && idMatch && typeMatch;
+      });
+      // Default: match by color/type, then by index
+      console.log("Found matching filaments", matches.length);
+      let defaultIdx = 0;
+      if (matches.length > 0) {
+        // Try to match by index (3mf filament id is zero-based)
+        const matchByIndex = matches.find(m => getGlobalAMSIndex(m) === Number(filament.id));
+        defaultIdx = matchByIndex ? matches.indexOf(matchByIndex) : 0;
+      }
+      return html`
+        <div class="print-settings-group">
+          <label 
+            <div style="margin-left:12px;">
+              ${filament.id ? `Filament ${filament.id}` : ''}:
+              <span style="display:inline-block;width:1em;height:1em;background:${filament.color || '#ccc'};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+              ${filament.type || ''} ${filament.name || ''} (${filament.tray_info_idx ?? 'N/A'})
+            </div>
+            <select style="margin-left:12px;">
+              ${amsFilaments.map((amsFil, i) => html`
+                <option value="${i}" 
+                  ?selected=${matches.length > 0 && matches[defaultIdx] === amsFil}
+                >
+                  AMS ${amsFil.amsIndex + 1}, Tray ${amsFil.trayIndex + 1} (${amsFil.state.attributes.filament_id ?? 'N/A'})
+                  - ${amsFil.type || ''} ${amsFil.name || ''}
+                </option>
+              `)}
+            </select>
+          </label>
+        </div>
+      `;
+    });
   }
 
   render() {
@@ -584,36 +671,15 @@ export class PrintHistoryPopup extends LitElement {
                   ${this._sliceInfoLoading ? html`<div>Loading filament info...</div>` : nothing}
                   ${this._sliceInfoError ? html`<div style="color:red;">${this._sliceInfoError}</div>` : nothing}
 
-                  ${this._sliceInfo && this._sliceInfo.length > 0 ? html`
+                  ${this._printSettings.use_ams && this._sliceInfo && this._sliceInfo.length > 0 ? html`
                     <div class="print-settings-group">
-                      <strong>Filaments in 3MF:</strong>
-                      <ul>
-                        ${this._sliceInfo.map((filament) => html`
-                          <li>
-                            ${filament.id ? `Filament ${filament.id}` : ''}:
-                            <span style="display:inline-block;width:1em;height:1em;background:${filament.color || '#ccc'};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
-                            ${filament.type || ''} ${filament.name || ''} (${filament.tray_info_idx ?? 'N/A'})
-                          </li>
-                        `)}
-                      </ul>
+                      <strong>Assign AMS Filaments:</strong>
+                      ${this.renderFilamentComboBoxes()}
                     </div>
                   ` : nothing}
 
                   ${this._printSettings.use_ams
-                    ? html`
-                        <div class="print-settings-group">
-                          <strong>Available AMS Filaments:</strong>
-                          <ul>
-                            ${this.getAvailableAMSFilaments().map(fil => html`
-                              <li>
-                                AMS ${fil.amsIndex + 1}, Tray ${fil.trayIndex + 1}: 
-                                <span style="display:inline-block;width:1em;height:1em;background:${fil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
-                                ${fil.type || ''} ${fil.name || ''} (${fil.state.attributes.filament_id ?? 'N/A'})
-                              </li>
-                            `)}
-                          </ul>
-                        </div>
-                      `
+                    ? nothing
                     : html`
                         <div class="print-settings-group">
                           <strong>Available External Spool Filaments:</strong>
