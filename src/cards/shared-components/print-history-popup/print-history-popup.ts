@@ -538,6 +538,22 @@ export class PrintHistoryPopup extends LitElement {
       `;
     }
 
+    // Compute the result array for the read-only text box
+    // The array length is the number of non-empty AMS filaments
+    const resultArray = Array(amsFilaments.length).fill(-1);
+    if (this._sliceInfo) {
+      this._sliceInfo.forEach((filament, idx) => {
+        const selectedGlobalAMSIndex = this._selectedAmsFilament[idx];
+        const foundIdx = amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalAMSIndex);
+        if (
+          foundIdx !== -1 &&
+          foundIdx < resultArray.length
+        ) {
+          resultArray[foundIdx] = Number(filament.id);
+        }
+      });
+    }
+
     return html`
       ${this._sliceInfo.map((filament, idx) => {
         // Find the selected AMS filament by global index
@@ -589,8 +605,51 @@ export class PrintHistoryPopup extends LitElement {
           </div>
         `;
       })}
+      ${(amsFilaments.length > 0 && this._sliceInfo && this._sliceInfo.length > 0)
+        ? html`<input type="text" readonly value="${resultArray.join(',')}" style="width:100%;margin-top:8px;" />`
+        : nothing}
       ${dropdownOverlays}
     `;
+  }
+
+  private _getAmsMappingArray() {
+    const amsFilaments = this.getAvailableAMSFilaments();
+    const amsDevices = helpers.getAttachedDeviceIds(this._hass, this.device_id)
+      .filter(amsId => {
+        const device = this._hass.devices[amsId];
+        return device && device.model && device.model.toLowerCase().includes('ams');
+      })
+      .map(amsId => this._hass.devices[amsId]);
+    const getGlobalAMSIndex = (fil: any) => {
+      const amsModel = this._hass.devices[fil.amsId].model.toLowerCase();
+      if (amsModel.includes('ht')) {
+        const amsHTDevices = amsDevices.filter((d: any) => d.model.toLowerCase().includes('ht'));
+        const amsHTIndex = amsHTDevices.findIndex((d: any) => d.id === fil.amsId);
+        const regularAMSCount = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).length;
+        return regularAMSCount * 4 + amsHTIndex;
+      } else {
+        const amsIndex = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).findIndex((d: any) => d.id === fil.amsId);
+        return amsIndex * 4 + fil.trayIndex;
+      }
+    };
+    const resultArray = Array(amsFilaments.length).fill(-1);
+    if (this._sliceInfo) {
+      this._sliceInfo.forEach((filament, idx) => {
+        const selectedGlobalAMSIndex = this._selectedAmsFilament[idx];
+        const foundIdx = amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalAMSIndex);
+        if (foundIdx !== -1 && foundIdx < resultArray.length) {
+          resultArray[foundIdx] = Number(filament.id);
+        }
+      });
+    }
+    return resultArray;
+  }
+
+  private _isAmsMappingValid() {
+    const arr = this._getAmsMappingArray();
+    if (!this._sliceInfo || !arr.length) return false;
+    // All 3MF filament ids must be present in the array (not -1)
+    return this._sliceInfo.every(filament => arr.includes(Number(filament.id)));
   }
 
   render() {
@@ -783,7 +842,7 @@ export class PrintHistoryPopup extends LitElement {
                   </button>
                   <button class="print-settings-btn primary" 
                           @click=${this._startPrint}
-                          ?disabled=${this._printLoading}>
+                          ?disabled=${this._printLoading || !this._isAmsMappingValid()}>
                     ${this._printLoading ? 'Starting Print...' : 'Start Print'}
                   </button>
                 </div>
