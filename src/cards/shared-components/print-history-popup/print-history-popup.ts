@@ -3,6 +3,7 @@ import { html, LitElement, nothing } from "lit";
 import { hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
 import styles from "./print-history-popup.styles.js";
+import * as helpers from "../../../utils/helpers";
 
 interface FileCacheFile {
   filename: string;
@@ -336,6 +337,40 @@ export class PrintHistoryPopup extends LitElement {
     }
   }
 
+  // Returns a sorted list of all available filaments from every AMS (by AMS index, then tray slot), ignoring empty slots
+  getAvailableAMSFilaments() {
+    if (!this._hass || !this.device_id) return [];
+    const amsDeviceIds = helpers.getAttachedDeviceIds(this._hass, this.device_id);
+    let allFilaments: any[] = [];
+    amsDeviceIds.forEach((amsId, amsIndex) => {
+      // Get all tray entities for this AMS
+      const entities = helpers.getBambuDeviceEntities(this._hass, amsId, ["tray_1", "tray_2", "tray_3", "tray_4"]);
+      ["tray_1", "tray_2", "tray_3", "tray_4"].forEach((tray, trayIndex) => {
+        const entity = entities[tray];
+        if (entity) {
+          const state = this._hass.states[entity.entity_id];
+          if (state && !state.attributes.empty) {
+            allFilaments.push({
+              amsIndex,
+              trayIndex,
+              amsId,
+              tray,
+              entity,
+              state,
+              color: state.attributes.color,
+              type: state.attributes.type,
+              name: state.attributes.name,
+              // add more attributes as needed
+            });
+          }
+        }
+      });
+    });
+    // Sort by AMS index, then tray index
+    allFilaments.sort((a, b) => a.amsIndex - b.amsIndex || a.trayIndex - b.trayIndex);
+    return allFilaments;
+  }
+
   render() {
     if (!this._show) {
       return nothing;
@@ -436,12 +471,24 @@ export class PrintHistoryPopup extends LitElement {
                   ${this._sliceInfoError ? html`<div style="color:red;">${this._sliceInfoError}</div>` : nothing}
                   ${this._sliceInfo && this._sliceInfo.length > 0 ? html`
                     <div class="print-settings-group">
-                      <strong>Filaments:</strong>
+                      <strong>Filaments in 3MF:</strong>
                       <ul>
                         ${this._sliceInfo.map(filament => html`<li>${Object.entries(filament).map(([k, v]) => html`${k}: ${v} `)}</li>`)}
                       </ul>
                     </div>
                   ` : nothing}
+                  <div class="print-settings-group">
+                    <strong>Available AMS Filaments:</strong>
+                    <ul>
+                      ${this.getAvailableAMSFilaments().map(fil => html`
+                        <li>
+                          AMS ${fil.amsIndex + 1}, Tray ${fil.trayIndex + 1}: 
+                          <span style="display:inline-block;width:1em;height:1em;background:${fil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+                          ${fil.type || ''} ${fil.name || ''}
+                        </li>
+                      `)}
+                    </ul>
+                  </div>
                   
                   <div class="print-settings-group">
                     <label class="print-settings-label">
