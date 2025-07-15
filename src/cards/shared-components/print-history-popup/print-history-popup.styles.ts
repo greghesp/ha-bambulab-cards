@@ -451,11 +451,13 @@ export default css`
   .custom-dropdown {
     position: relative;
     display: inline-block;
-    width: 100%;
-    max-width: 400px;
+    width: auto;
+    max-width: 100%;
+    box-sizing: border-box;
     margin-top: 8px;
     cursor: pointer;
     z-index: 10;
+    max-width: 100%;
   }
   .custom-dropdown-selected {
     padding: 8px 12px;
@@ -465,8 +467,33 @@ export default css`
     color: var(--primary-text-color, #212121);
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 8px;
     min-width: 0;
+    width: auto;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dropdown-label-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 0;
+    overflow: hidden;
+  }
+  .dropdown-label-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    display: inline-block;
+  }
+  .dropdown-arrow {
+    flex-shrink: 0;
+    margin-left: 4px;
   }
   .custom-dropdown-list {
     position: absolute;
@@ -512,10 +539,10 @@ export default css`
   }
 
   .filament-mapping-row label {
-    margin-left: 30px;
+    margin-left: 32px;
   }
   .filament-mapping-row .custom-dropdown {
-    margin-left: 30px;
+    margin-left: 32px;
   }
 
   /* Dark mode adjustments */

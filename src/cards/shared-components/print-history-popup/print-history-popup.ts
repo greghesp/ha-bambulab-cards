@@ -469,17 +469,42 @@ export class PrintHistoryPopup extends LitElement {
       }
     };
 
+    // Ensure _selectedAmsFilament is initialized to global AMS indices
     if (this._selectedAmsFilament.length !== this._sliceInfo.length) {
-      this._selectedAmsFilament = Array(this._sliceInfo.length).fill(0);
+      this._selectedAmsFilament = Array(this._sliceInfo.length).fill(null);
     }
 
     let dropdownOverlays: TemplateResult | typeof nothing = nothing;
     if (this._dropdownOpen !== null && this._dropdownPosition) {
       const idx = this._dropdownOpen;
       const filament = this._sliceInfo[idx];
-      const selectedIdx = this._selectedAmsFilament[idx];
+      // Find the selected AMS filament by global index
+      let selectedGlobalIdx = this._selectedAmsFilament[idx];
+      let selectedIdx = 0;
+      if (
+        selectedGlobalIdx === null ||
+        amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalIdx) === -1
+      ) {
+        // Matching logic from previous implementation
+        const matches = amsFilaments.filter(amsFil => {
+          const colorMatch = (filament.color && amsFil.color && `${filament.color.toLowerCase()}ff` === amsFil.color.toLowerCase());
+          const idMatch = (filament.tray_info_idx == amsFil.filament_id);
+          const typeMatch = (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase());
+          return colorMatch && idMatch && typeMatch;
+        });
+        if (matches.length > 0) {
+          const matchByIndex = matches.find(m => getGlobalAMSIndex(m) === Number(filament.id));
+          selectedIdx = matchByIndex ? amsFilaments.indexOf(matchByIndex) : amsFilaments.indexOf(matches[0]);
+        }
+        // Set the global index for this filament
+        selectedGlobalIdx = getGlobalAMSIndex(amsFilaments[selectedIdx]);
+        this._selectedAmsFilament[idx] = selectedGlobalIdx;
+      } else {
+        // Use the stored global index
+        const foundIdx = amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalIdx);
+        if (foundIdx !== -1) selectedIdx = foundIdx;
+      }
       const selected = amsFilaments[selectedIdx];
-      // Calculate dropdown list position: vertically center on trigger
       const { left, top, width, height } = this._dropdownPosition;
       const dropdownListStyle = `
         position:fixed;
@@ -494,9 +519,15 @@ export class PrintHistoryPopup extends LitElement {
       dropdownOverlays = html`
         <div class="custom-dropdown-portal" style="position:fixed;z-index:3000;left:0;top:0;width:100vw;height:100vh;">
           <div class="custom-dropdown-list" style="${dropdownListStyle}">
-            ${amsFilaments.map((amsFil, i) => html`
-              <div class="custom-dropdown-option${selectedIdx === i ? ' selected' : ''}"
-                   @click=${(e: Event) => { e.stopPropagation(); this._selectedAmsFilament[idx] = i; this._closeDropdown(); }}>
+            ${amsFilaments.map((amsFil, _) => html`
+              <div class="custom-dropdown-option${getGlobalAMSIndex(amsFil) === this._selectedAmsFilament[idx] ? ' selected' : ''}"
+                   @mousedown=${(e: Event) => {
+                     e.stopPropagation();
+                     const newSelected = [...this._selectedAmsFilament];
+                     newSelected[idx] = getGlobalAMSIndex(amsFil);
+                     this._selectedAmsFilament = newSelected;
+                     this._closeDropdown();
+                   }}>
                 <span style="display:inline-block;width:1em;height:1em;background:${amsFil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
                 AMS ${amsFil.amsIndex + 1}, Tray ${amsFil.trayIndex + 1}
                 - ${amsFil.type || ''} ${amsFil.name || ''}
@@ -509,21 +540,34 @@ export class PrintHistoryPopup extends LitElement {
 
     return html`
       ${this._sliceInfo.map((filament, idx) => {
-        const matches = amsFilaments.filter(amsFil => {
-          const colorMatch = (filament.color && amsFil.color && `${filament.color.toLowerCase()}ff` === amsFil.color.toLowerCase());
-          const idMatch = (filament.tray_info_idx == amsFil.filament_id);
-          const typeMatch = (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase());
-          return colorMatch && idMatch && typeMatch;
-        });
-        let defaultIdx = 0;
-        if (matches.length > 0) {
-          const matchByIndex = matches.find(m => getGlobalAMSIndex(m) === Number(filament.id));
-          defaultIdx = matchByIndex ? amsFilaments.indexOf(matchByIndex) : amsFilaments.indexOf(matches[0]);
+        // Find the selected AMS filament by global index
+        let selectedGlobalIdx = this._selectedAmsFilament[idx];
+        // If not set or not found, run matching logic to pick the best AMS filament
+        let selectedIdx = 0;
+        if (
+          selectedGlobalIdx === null ||
+          amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalIdx) === -1
+        ) {
+          // Matching logic from previous implementation
+          const matches = amsFilaments.filter(amsFil => {
+            const colorMatch = (filament.color && amsFil.color && `${filament.color.toLowerCase()}ff` === amsFil.color.toLowerCase());
+            const idMatch = (filament.tray_info_idx == amsFil.filament_id);
+            const typeMatch = (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase());
+            return colorMatch && idMatch && typeMatch;
+          });
+          if (matches.length > 0) {
+            const matchByIndex = matches.find(m => getGlobalAMSIndex(m) === Number(filament.id));
+            selectedIdx = matchByIndex ? amsFilaments.indexOf(matchByIndex) : amsFilaments.indexOf(matches[0]);
+          }
+          // Set the global index for this filament
+          selectedGlobalIdx = getGlobalAMSIndex(amsFilaments[selectedIdx]);
+          this._selectedAmsFilament[idx] = selectedGlobalIdx;
+        } else {
+          // Use the stored global index
+          const foundIdx = amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalIdx);
+          if (foundIdx !== -1) selectedIdx = foundIdx;
         }
-        if (this._selectedAmsFilament[idx] !== defaultIdx) {
-          this._selectedAmsFilament[idx] = defaultIdx;
-        }
-        const selected = amsFilaments[this._selectedAmsFilament[idx]];
+        const selected = amsFilaments[selectedIdx];
         return html`
           <div class="print-settings-group filament-mapping-row">
             <label>
@@ -533,10 +577,13 @@ export class PrintHistoryPopup extends LitElement {
             </label>
             <div class="custom-dropdown" @click=${(e: Event) => this._openDropdown(idx, e)}>
               <div class="custom-dropdown-selected">
-                <span style="display:inline-block;width:1em;height:1em;background:${selected.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
-                AMS ${selected.amsIndex + 1}, Tray ${selected.trayIndex + 1}
-                - ${selected.type || ''} ${selected.name || ''}
-                <span style="float:right;">▼</span>
+                <span class="dropdown-label-content">
+                  <span style="display:inline-block;width:1em;height:1em;background:${selected.color};border-radius:50%;vertical-align:middle;"></span>
+                  <span class="dropdown-label-text">
+                    AMS ${selected.amsIndex + 1}, Tray ${selected.trayIndex + 1} - ${selected.type || ''} ${selected.name || ''}
+                  </span>
+                </span>
+                <span class="dropdown-arrow">▼</span>
               </div>
             </div>
           </div>
