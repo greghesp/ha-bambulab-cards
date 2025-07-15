@@ -721,8 +721,9 @@ export class PrintHistoryPopup extends LitElement {
             ${this._timelapseFiles.map(file => {
               const isOpen = this._openTimelapseVideo === file.filename;
               const videoUrl = `/local/media/ha-bambulab/00M09A391501288/timelapse/video_2025-01-20_16-48-34.mp4`;
+              //const videoUrl = `/local/media/ha-bambulab/01S00A292501557/timelapse/${file.filename}`;
               return html`
-                <div class="print-history-card">
+                <div class="print-history-card" style="position:relative;">
                   <div class="print-history-thumbnail" style="position:relative;">
                     ${isOpen
                       ? html`<video controls autoplay width="100%" src="${videoUrl}" style="border-radius:8px;max-width:100%;max-height:210px;background:#000;"></video>`
@@ -743,6 +744,9 @@ export class PrintHistoryPopup extends LitElement {
                         `
                     }
                   </div>
+                  <a class="timelapse-download-btn" href="${videoUrl}" download target="_blank" title="Download video">
+                    ⬇ Download
+                  </a>
                 </div>
               `;
             })}

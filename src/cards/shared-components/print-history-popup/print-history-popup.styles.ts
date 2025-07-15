@@ -580,6 +580,28 @@ export default css`
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
   }
 
+  .timelapse-download-btn {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    text-align: center;
+    padding: 6px 0;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 15px;
+    z-index: 2;
+    transition: background 0.2s;
+  }
+  .timelapse-download-btn:hover {
+    background: var(--primary-color, #03a9f4);
+    color: #fff;
+  }
+
   /* Dark mode adjustments */
   @media (prefers-color-scheme: dark) {
     .print-history-overlay {
