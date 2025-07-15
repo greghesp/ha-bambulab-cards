@@ -472,23 +472,36 @@ export default css`
     position: absolute;
     left: 0;
     right: 0;
+    top: 50%;
+    transform: translateY(-50%);
     background: var(--ha-card-background, var(--card-background-color, white));
-    border: 1px solid var(--divider-color, #e0e0e0);
-    border-radius: 0 0 4px 4px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    max-height: 200px;
+    border: 1.5px solid var(--primary-color, #03a9f4);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    max-height: 240px;
     overflow-y: auto;
-    z-index: 100;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
   }
   .custom-dropdown-option {
-    padding: 8px 12px;
+    padding: 10px 16px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    transition: background 0.2s;
+    transition: background 0.2s, border 0.2s;
+    border-radius: 4px;
+    margin: 2px 8px;
+    border: 2px solid transparent;
+  }
+  .custom-dropdown-option.selected {
+    background: var(--primary-color, #03a9f4);
+    color: #fff;
+    border: 2px solid var(--primary-color-dark, #0288d1);
   }
   .custom-dropdown-option:hover {
-    background: var(--divider-color, #e0e0e0);
+    background: var(--primary-color-light, #e3f2fd);
+    color: var(--primary-text-color, #212121);
   }
 
   /* Dark mode adjustments */

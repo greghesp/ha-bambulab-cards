@@ -1,5 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { html, LitElement, nothing } from "lit";
+import { html, LitElement, nothing, TemplateResult } from "lit";
 import { hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
 import styles from "./print-history-popup.styles.js";
@@ -46,9 +46,9 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _printSettings: PrintSettings = {
     plate: 1,
     timelapse: false,
-    bed_leveling: true,
-    flow_cali: true,
-    vibration_cali: true,
+    bed_leveling: false,
+    flow_cali: false,
+    vibration_cali: false,
     layer_inspect: true,
     use_ams: true,
     ams_mapping: "0"
@@ -62,6 +62,7 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _sliceInfoError: string | null = null;
   @state() private _selectedAmsFilament: number[] = [];
   @state() private _dropdownOpen: number | null = null;
+  @state() private _dropdownPosition: {left: number, top: number, width: number, height: number} | null = null;
 
   static styles = styles;
 
@@ -92,6 +93,7 @@ export class PrintHistoryPopup extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this._restoreBackgroundScroll();
+    window.removeEventListener('mousedown', this._dropdownLightDismissHandler, true);
   }
 
   async _updateContent() {
@@ -412,6 +414,39 @@ export class PrintHistoryPopup extends LitElement {
     return allFilaments;
   }
 
+  private _dropdownLightDismissHandler = (e: MouseEvent) => {
+    // Only close if click is outside the dropdown list
+    const dropdown = this.renderRoot.querySelector('.custom-dropdown-portal');
+    if (dropdown && !dropdown.contains(e.target as Node)) {
+      this._dropdownOpen = null;
+      this._dropdownPosition = null;
+      this.requestUpdate();
+    }
+  };
+
+  private _openDropdown(idx: number, event: Event) {
+    event.stopPropagation();
+    // Get bounding rect for positioning
+    const trigger = (event.currentTarget as HTMLElement);
+    const rect = trigger.getBoundingClientRect();
+    this._dropdownOpen = idx;
+    this._dropdownPosition = {
+      left: rect.left,
+      top: rect.top + rect.height / 2, // vertical center of trigger
+      width: rect.width,
+      height: rect.height
+    };
+    window.addEventListener('mousedown', this._dropdownLightDismissHandler, true);
+    this.requestUpdate();
+  }
+
+  private _closeDropdown() {
+    this._dropdownOpen = null;
+    this._dropdownPosition = null;
+    window.removeEventListener('mousedown', this._dropdownLightDismissHandler, true);
+    this.requestUpdate();
+  }
+
   renderFilamentComboBoxes() {
     const amsFilaments = this.getAvailableAMSFilaments();
     const amsDevices = helpers.getAttachedDeviceIds(this._hass, this.device_id)
@@ -434,57 +469,81 @@ export class PrintHistoryPopup extends LitElement {
       }
     };
 
-    // Ensure _selectedAmsFilament is initialized
     if (this._selectedAmsFilament.length !== this._sliceInfo.length) {
       this._selectedAmsFilament = Array(this._sliceInfo.length).fill(0);
     }
 
-    return this._sliceInfo.map((filament, idx) => {
-      const matches = amsFilaments.filter(amsFil => {
-        const colorMatch = (filament.color && amsFil.color && `${filament.color.toLowerCase()}ff` === amsFil.color.toLowerCase());
-        const idMatch = (filament.tray_info_idx == amsFil.filament_id);
-        const typeMatch = (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase());
-        return colorMatch && idMatch && typeMatch;
-      });
-      let defaultIdx = 0;
-      if (matches.length > 0) {
-        const matchByIndex = matches.find(m => getGlobalAMSIndex(m) === Number(filament.id));
-        defaultIdx = matchByIndex ? amsFilaments.indexOf(matchByIndex) : amsFilaments.indexOf(matches[0]);
-      }
-      // If not already set, set the default
-      if (this._selectedAmsFilament[idx] !== defaultIdx) {
-        this._selectedAmsFilament[idx] = defaultIdx;
-      }
-      const selected = amsFilaments[this._selectedAmsFilament[idx]];
-      return html`
-        <div class="print-settings-group" style="position:relative;">
-          <label>
-            ${filament.id ? `Filament ${filament.id}` : ''}:
-            <span style="display:inline-block;width:1em;height:1em;background:${filament.color || '#ccc'};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
-            ${filament.type || ''} ${filament.name || ''} (${filament.tray_info_idx ?? 'N/A'})
-          </label>
-          <div class="custom-dropdown" @click=${(e: Event) => { e.stopPropagation(); this._dropdownOpen = this._dropdownOpen === idx ? null : idx; }}>
-            <div class="custom-dropdown-selected">
-              <span style="display:inline-block;width:1em;height:1em;background:${selected.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
-              AMS ${selected.amsIndex + 1}, Tray ${selected.trayIndex + 1} (${selected.state.attributes.filament_id ?? 'N/A'})
-              - ${selected.type || ''} ${selected.name || ''}
-              <span style="float:right;">▼</span>
-            </div>
-            ${this._dropdownOpen === idx ? html`
-              <div class="custom-dropdown-list">
-                ${amsFilaments.map((amsFil, i) => html`
-                  <div class="custom-dropdown-option" @click=${(e: Event) => { e.stopPropagation(); this._selectedAmsFilament[idx] = i; this._dropdownOpen = null; this.requestUpdate(); }}>
-                    <span style="display:inline-block;width:1em;height:1em;background:${amsFil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
-                    AMS ${amsFil.amsIndex + 1}, Tray ${amsFil.trayIndex + 1} (${amsFil.state.attributes.filament_id ?? 'N/A'})
-                    - ${amsFil.type || ''} ${amsFil.name || ''}
-                  </div>
-                `)}
+    let dropdownOverlays: TemplateResult | typeof nothing = nothing;
+    if (this._dropdownOpen !== null && this._dropdownPosition) {
+      const idx = this._dropdownOpen;
+      const filament = this._sliceInfo[idx];
+      const selectedIdx = this._selectedAmsFilament[idx];
+      const selected = amsFilaments[selectedIdx];
+      // Calculate dropdown list position: vertically center on trigger
+      const { left, top, width, height } = this._dropdownPosition;
+      const dropdownListStyle = `
+        position:fixed;
+        left:${left}px;
+        top:${top}px;
+        width:${width}px;
+        transform: translateY(-50%);
+        min-width:320px;
+        max-width:90vw;
+        z-index:3100;
+      `;
+      dropdownOverlays = html`
+        <div class="custom-dropdown-portal" style="position:fixed;z-index:3000;left:0;top:0;width:100vw;height:100vh;">
+          <div class="custom-dropdown-list" style="${dropdownListStyle}">
+            ${amsFilaments.map((amsFil, i) => html`
+              <div class="custom-dropdown-option${selectedIdx === i ? ' selected' : ''}"
+                   @click=${(e: Event) => { e.stopPropagation(); this._selectedAmsFilament[idx] = i; this._closeDropdown(); }}>
+                <span style="display:inline-block;width:1em;height:1em;background:${amsFil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+                AMS ${amsFil.amsIndex + 1}, Tray ${amsFil.trayIndex + 1} (${amsFil.state.attributes.filament_id ?? 'N/A'})
+                - ${amsFil.type || ''} ${amsFil.name || ''}
               </div>
-            ` : nothing}
+            `)}
           </div>
         </div>
       `;
-    });
+    }
+
+    return html`
+      ${this._sliceInfo.map((filament, idx) => {
+        const matches = amsFilaments.filter(amsFil => {
+          const colorMatch = (filament.color && amsFil.color && `${filament.color.toLowerCase()}ff` === amsFil.color.toLowerCase());
+          const idMatch = (filament.tray_info_idx == amsFil.filament_id);
+          const typeMatch = (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase());
+          return colorMatch && idMatch && typeMatch;
+        });
+        let defaultIdx = 0;
+        if (matches.length > 0) {
+          const matchByIndex = matches.find(m => getGlobalAMSIndex(m) === Number(filament.id));
+          defaultIdx = matchByIndex ? amsFilaments.indexOf(matchByIndex) : amsFilaments.indexOf(matches[0]);
+        }
+        if (this._selectedAmsFilament[idx] !== defaultIdx) {
+          this._selectedAmsFilament[idx] = defaultIdx;
+        }
+        const selected = amsFilaments[this._selectedAmsFilament[idx]];
+        return html`
+          <div class="print-settings-group" style="position:relative;">
+            <label>
+              ${filament.id ? `Filament ${filament.id}` : ''}:
+              <span style="display:inline-block;width:1em;height:1em;background:${filament.color || '#ccc'};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+              ${filament.type || ''} ${filament.name || ''}
+            </label>
+            <div class="custom-dropdown" @click=${(e: Event) => this._openDropdown(idx, e)}>
+              <div class="custom-dropdown-selected">
+                <span style="display:inline-block;width:1em;height:1em;background:${selected.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+                AMS ${selected.amsIndex + 1}, Tray ${selected.trayIndex + 1}
+                - ${selected.type || ''} ${selected.name || ''}
+                <span style="float:right;">▼</span>
+              </div>
+            </div>
+          </div>
+        `;
+      })}
+      ${dropdownOverlays}
+    `;
   }
 
   render() {
@@ -636,24 +695,6 @@ export class PrintHistoryPopup extends LitElement {
                   <div class="print-settings-group">
                     <label class="print-settings-checkbox">
                       <input type="checkbox" 
-                             ?checked=${this._printSettings.vibration_cali}
-                             @change=${(e) => this._updatePrintSetting('vibration_cali', e.target.checked)}>
-                      <span>Vibration Calibration</span>
-                    </label>
-                  </div>
-
-                  <div class="print-settings-group">
-                    <label class="print-settings-checkbox">
-                      <input type="checkbox" 
-                             ?checked=${this._printSettings.layer_inspect}
-                             @change=${(e) => this._updatePrintSetting('layer_inspect', e.target.checked)}>
-                      <span>Layer Inspection</span>
-                    </label>
-                  </div>
-
-                  <div class="print-settings-group">
-                    <label class="print-settings-checkbox">
-                      <input type="checkbox" 
                              ?checked=${this._printSettings.use_ams}
                              @change=${(e) => this._updatePrintSetting('use_ams', e.target.checked)}>
                       <span>Use AMS</span>
@@ -665,7 +706,6 @@ export class PrintHistoryPopup extends LitElement {
 
                   ${this._printSettings.use_ams && this._sliceInfo && this._sliceInfo.length > 0 ? html`
                     <div class="print-settings-group">
-                      <div style="margin-left:12px;">Assign AMS Filaments:</div>
                       ${this.renderFilamentComboBoxes()}
                     </div>
                   ` : nothing}
