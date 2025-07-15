@@ -629,7 +629,6 @@ export class PrintHistoryPopup extends LitElement {
                         </div>
                       `
                     }
-                  </div>
 
                 </div>
 

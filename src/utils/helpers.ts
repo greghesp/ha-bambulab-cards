@@ -327,8 +327,6 @@ export function getAttachedDeviceIds(hass, device_id): string[] {
   const connectedDevices = Object.values(hass.devices)
     .filter((device: any) => device.via_device_id === device_id);
   
-  console.log("Connected devices:", connectedDevices);
-  
   // Add each connected device to the list
   connectedDevices.forEach((device: any) => {
     devices.push(device.id);
