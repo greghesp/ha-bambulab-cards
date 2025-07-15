@@ -435,36 +435,16 @@ export class PrintHistoryPopup extends LitElement {
       }
     };
 
-    return this._sliceInfo.map((filament, idx) => {
-      console.log(`--- Checking 3MF Filament ${idx}:`, {
-        color: filament.color,
-        type: filament.type,
-        tray_info_idx: filament.tray_info_idx
-      });
+    return this._sliceInfo.map((filament, _) => {
 
       // Find all matching AMS filaments by color and type
       const matches = amsFilaments.filter(amsFil => {
           const colorMatch = (filament.color && amsFil.color && `${filament.color.toLowerCase()}ff` === amsFil.color.toLowerCase());
           const idMatch = (filament.tray_info_idx == amsFil.filament_id);
           const typeMatch = (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase());
-
-          console.log(`... Comparing with AMS: ${amsFil.name} (AMS ${amsFil.amsIndex + 1}, Tray ${amsFil.trayIndex + 1})`, {
-              '3mf_color': filament.color,
-              'ams_color': amsFil.color,
-              'color_match_result': colorMatch,
-              '3mf_id': filament.tray_info_idx,
-              'ams_id': amsFil.filament_id,
-              'id_match_result': idMatch,
-              '3mf_type': filament.type,
-              'ams_type': amsFil.type,
-              'type_match_result': typeMatch,
-              'OVERALL_MATCH': colorMatch && idMatch && typeMatch
-          });
-          
           return colorMatch && idMatch && typeMatch;
       });
       // Default: match by color/type, then by index
-      console.log("Found matching filaments", matches.length);
       let defaultIdx = 0;
       if (matches.length > 0) {
         // Try to match by index (3mf filament id is zero-based)
@@ -673,7 +653,7 @@ export class PrintHistoryPopup extends LitElement {
 
                   ${this._printSettings.use_ams && this._sliceInfo && this._sliceInfo.length > 0 ? html`
                     <div class="print-settings-group">
-                      <strong>Assign AMS Filaments:</strong>
+                      <div style="margin-left:12px;">Assign AMS Filaments:</div>
                       ${this.renderFilamentComboBoxes()}
                     </div>
                   ` : nothing}
