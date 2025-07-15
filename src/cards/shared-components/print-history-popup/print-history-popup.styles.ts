@@ -103,6 +103,18 @@ export default css`
     cursor: not-allowed;
   }
 
+  .print-history-search {
+    padding: 8px;
+    border: 1px solid var(--divider-color, #e0e0e0);
+    border-radius: 4px;
+    font-size: 14px;
+    margin-right: 8px;
+    flex: 1 1 0;
+    min-width: 0;
+    background: var(--ha-card-background, var(--card-background-color, white));
+    color: var(--primary-text-color, #212121);
+  }
+
   .print-history-error {
     color: var(--error-color, #f44336);
     padding: 8px 16px;

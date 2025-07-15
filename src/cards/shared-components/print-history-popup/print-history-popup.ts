@@ -54,6 +54,7 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _printLoading: boolean = false;
   private _thumbnailCache = new Map<string, string | null>();
   private _scrollHandler: ((e: Event) => void) | null = null;
+  @state() private _searchQuery: string = "";
 
   static styles = styles;
 
@@ -296,6 +297,11 @@ export class PrintHistoryPopup extends LitElement {
       return nothing;
     }
 
+    // Filter files by search query
+    const filteredFiles = this._files.filter(file =>
+      file.filename.toLowerCase().includes(this._searchQuery.toLowerCase())
+    );
+
     return html`
       <div class="print-history-overlay" @click=${this.hide}>
         <div class="print-history-popup" @click=${(e) => e.stopPropagation()}>
@@ -307,6 +313,13 @@ export class PrintHistoryPopup extends LitElement {
           </div>
 
           <div class="print-history-controls">
+            <input
+              type="text"
+              class="print-history-search"
+              placeholder="Search by filename..."
+              .value=${this._searchQuery}
+              @input=${(e: any) => { this._searchQuery = e.target.value; }}
+            />
             <button class="print-history-btn secondary" @click=${this._clearCache}>
               Clear Cache
             </button>
@@ -318,7 +331,7 @@ export class PrintHistoryPopup extends LitElement {
 
           ${this._loading ? html`
             <div class="print-history-loading">Loading files...</div>
-          ` : this._files.length === 0 ? html`
+          ` : filteredFiles.length === 0 ? html`
             <div class="print-history-empty">
               <div class="print-history-empty-icon">📁</div>
               <div>No cached files found</div>
@@ -328,7 +341,7 @@ export class PrintHistoryPopup extends LitElement {
             </div>
           ` : html`
             <div class="print-history-grid">
-              ${this._files.map(file => html`
+              ${filteredFiles.map(file => html`
                 <div class="print-history-card">
                     <div class="print-history-thumbnail">
                       ${(() => {
