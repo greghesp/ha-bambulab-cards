@@ -66,6 +66,7 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _timelapseFiles: FileCacheFile[] = [];
   @state() private _timelapseLoading: boolean = false;
   @state() private _timelapseError: string | null = null;
+  @state() private _openTimelapseVideo: string | null = null;
 
   static styles = styles;
 
@@ -91,6 +92,7 @@ export class PrintHistoryPopup extends LitElement {
     this._show = false;
     this._showPrintSettings = false;
     this._selectedFile = null;
+    this._openTimelapseVideo = null;
     this._restoreBackgroundScroll();
   }
 
@@ -693,7 +695,7 @@ export class PrintHistoryPopup extends LitElement {
       <div class="print-history-tabs">
         ${tabLabels.map((label, i) => html`
           <div class="print-history-tab${this._activeTab === i ? ' active' : ''}"
-               @click=${() => { this._activeTab = i; this.requestUpdate(); }}>
+               @click=${() => { this._activeTab = i; this._openTimelapseVideo = null; this.requestUpdate(); }}>
             ${label}
           </div>
         `)}
@@ -716,25 +718,34 @@ export class PrintHistoryPopup extends LitElement {
           </div>
         ` : html`
           <div class="print-history-grid">
-            ${this._timelapseFiles.map(file => html`
-              <div class="print-history-card">
-                <div class="print-history-thumbnail" style="position:relative;">
-                  ${(() => {
-                    const cacheKey = `${file.filename}-${file.thumbnail_path}`;
-                    const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
-                    if (thumbnailUrl) {
-                      return html`<img src="${thumbnailUrl}" alt="${file.filename}" @error=${(e) => e.target.style.display = 'none'}>`;
-                    } else {
-                      this._getThumbnailUrl(file, 'timelapse'); // Start loading
-                      return html`<div class="print-history-placeholder">${this._getFileIcon(file.type)}</div>`;
+            ${this._timelapseFiles.map(file => {
+              const isOpen = this._openTimelapseVideo === file.filename;
+              const videoUrl = `/local/media/ha-bambulab/00M09A391501288/timelapse/video_2025-01-20_16-48-34.mp4`;
+              return html`
+                <div class="print-history-card">
+                  <div class="print-history-thumbnail" style="position:relative;">
+                    ${isOpen
+                      ? html`<video controls autoplay width="100%" src="${videoUrl}" style="border-radius:8px;max-width:100%;max-height:210px;background:#000;"></video>`
+                      : html`
+                          ${(() => {
+                            const cacheKey = `${file.filename}-${file.thumbnail_path}`;
+                            const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
+                            if (thumbnailUrl) {
+                              return html`<img src="${thumbnailUrl}" alt="${file.filename}" style="cursor:pointer;" @click=${() => { this._openTimelapseVideo = file.filename; this.requestUpdate(); }} @error=${(e) => e.target.style.display = 'none'}>`;
+                            } else {
+                              this._getThumbnailUrl(file, 'timelapse'); // Start loading
+                              return html`<div class="print-history-placeholder" style="cursor:pointer;" @click=${() => { this._openTimelapseVideo = file.filename; this.requestUpdate(); }}>${this._getFileIcon(file.type)}</div>`;
+                            }
+                          })()}
+                          <div class="timelapse-overlay">
+                            ${this._formatDate(file.modified)}
+                          </div>
+                        `
                     }
-                  })()}
-                  <div class="timelapse-overlay">
-                    ${this._formatDate(file.modified)}
                   </div>
                 </div>
-              </div>
-            `)}
+              `;
+            })}
           </div>
         `
       }
