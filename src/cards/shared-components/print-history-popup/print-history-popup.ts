@@ -9,12 +9,13 @@ import { css } from "lit";
 interface FileCacheFile {
   filename: string;
   type: string;
+  size: number;
   size_human: string;
   modified: string;
   thumbnail_path?: string;
-  printer_name?: string;
-  printer_serial?: string;
-  path: string; // Add path field for video URLs
+  printer_name: string;
+  printer_serial: string;
+  path: string;
 }
 
 interface PrintSettings {
@@ -72,6 +73,7 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _selectedPrinter: string = "all";
   @state() private _allFiles: FileCacheFile[] = []; // Store original unfiltered files
   @state() private _allTimelapseFiles: FileCacheFile[] = []; // Store original unfiltered timelapse files
+  @state() private _uploadingFile: boolean = false;
 
   // Add a private property to track the last logged AMS mapping
   private _lastLoggedAmsMapping: number[] = [];
@@ -331,22 +333,57 @@ export class PrintHistoryPopup extends LitElement {
     this.requestUpdate();
 
     try {
+      // Use the full path (including serial) for ensure_cache_file
+      const cache_path = this._selectedFile.path;
+      // Use the relative path under /prints/ for the print command
       let filepath = this._selectedFile.path;
       const printsIdx = filepath.indexOf('/prints/');
-      filepath = filepath.substring(printsIdx + '/prints/'.length);
+      if (printsIdx !== -1) {
+        filepath = filepath.substring(printsIdx + '/prints/'.length);
+      }
+      // Log and call ensure_cache_file
+      this._uploadingFile = true;
+      this.requestUpdate();
+      console.log('Ensuring cache file:', {
+        serial: this.device_serial,
+        cache_path,
+        expected_size: this._selectedFile.size
+      });
+      const ensureResp = await fetch('/api/bambu_lab/ensure_cache_file', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this._hass.auth.data.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          serial: this.device_serial,
+          cache_path,
+          expected_size: this._selectedFile.size
+        })
+      });
+      this._uploadingFile = false;
+      this.requestUpdate();
+      const ensureRespText = await ensureResp.text();
+      console.log('ensure_cache_file response:', ensureResp.status, ensureRespText);
+      if (!ensureResp.ok) {
+        this._error = `Failed to upload file: ${ensureRespText}`;
+        this.requestUpdate();
+        return;
+      }
+      // Now proceed to print
       await this._hass.callService(
         'bambu_lab',
         'print_project_file', 
         {
           device_id: [ this.device_id ],
-          filepath,
+          filepath, // relative path for print command
           ...this._printSettings
         }
       );
-
       this._hidePrintDialog();
       // Show success message or notification
     } catch (error) {
+      this._uploadingFile = false;
       console.error('[FileCachePopup] _startPrint() - error:', error);
       this._error = error instanceof Error ? error.message : String(error);
       this.requestUpdate();
@@ -1050,8 +1087,8 @@ export class PrintHistoryPopup extends LitElement {
                     </button>
                     <button class="print-settings-btn primary" 
                             @click=${this._startPrint}
-                            ?disabled=${this._printLoading || !this._isAmsMappingValid()}>
-                      ${this._printLoading ? 'Starting Print...' : 'Start Print'}
+                            ?disabled=${this._printLoading || this._uploadingFile || !this._isAmsMappingValid()}>
+                      ${this._uploadingFile ? 'Uploading file...' : (this._printLoading ? 'Starting Print...' : 'Start Print')}
                     </button>
                   </div>
                 </div>
