@@ -73,6 +73,10 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _allFiles: FileCacheFile[] = []; // Store original unfiltered files
   @state() private _allTimelapseFiles: FileCacheFile[] = []; // Store original unfiltered timelapse files
 
+  // Add a private property to track the last logged AMS mapping
+  private _lastLoggedAmsMapping: number[] = [];
+  private _lastLoggedAmsMappingValid: { arr: number[]; ids: number[]; valid: boolean } | null = null;
+
   static styles = styles;
 
   connectedCallback() {
@@ -230,6 +234,50 @@ export class PrintHistoryPopup extends LitElement {
     this._loadSliceInfo(file);
   }
 
+  // Helper to auto-select AMS mapping based on scoring (id > type > color)
+  private _autoSelectAmsMapping() {
+    const amsFilaments = this.getAvailableAMSFilaments();
+    if (!this._sliceInfo) return;
+    const getGlobalAMSIndex = (fil: any) => {
+      const amsDevices = helpers.getAttachedDeviceIds(this._hass, this.device_id)
+        .filter(amsId => {
+          const device = this._hass.devices[amsId];
+          return device && device.model && device.model.toLowerCase().includes('ams');
+        })
+        .map(amsId => this._hass.devices[amsId]);
+      const amsModel = fil.amsId && fil.amsId in this._hass.devices ? this._hass.devices[fil.amsId].model.toLowerCase() : '';
+      if (amsModel.includes('ht')) {
+        const amsHTDevices = amsDevices.filter((d: any) => d.model.toLowerCase().includes('ht'));
+        const amsHTIndex = amsHTDevices.findIndex((d: any) => d.id === fil.amsId);
+        const regularAMSCount = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).length;
+        return regularAMSCount * 4 + amsHTIndex;
+      } else {
+        const amsIndex = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).findIndex((d: any) => d.id === fil.amsId);
+        return amsIndex * 4 + fil.trayIndex;
+      }
+    };
+    this._selectedAmsFilament = this._sliceInfo.map(filament => {
+      let bestIdx = 0;
+      let bestScore = -1;
+      amsFilaments.forEach((amsFil, i) => {
+        let score = 0;
+        if (filament.tray_info_idx && amsFil.filament_id && filament.tray_info_idx == amsFil.filament_id) score += 100;
+        if (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase()) score += 10;
+        if (filament.color && amsFil.color) {
+          const fColor = filament.color.toLowerCase().replace(/ff$/, '');
+          const aColor = amsFil.color.toLowerCase().replace(/ff$/, '');
+          if (fColor === aColor) score += 1;
+        }
+        if (score > bestScore) {
+          bestScore = score;
+          bestIdx = i;
+        }
+      });
+      return amsFilaments[bestIdx] ? getGlobalAMSIndex(amsFilaments[bestIdx]) : null;
+    });
+  }
+
+  // Call this after loading slice info
   async _loadSliceInfo(file: FileCacheFile) {
     this._sliceInfo = null;
     this._sliceInfoError = null;
@@ -258,6 +306,7 @@ export class PrintHistoryPopup extends LitElement {
         }
         return attrs;
       });
+      this._autoSelectAmsMapping();
     } catch (error) {
       this._sliceInfoError = error instanceof Error ? error.message : String(error);
     } finally {
@@ -282,15 +331,18 @@ export class PrintHistoryPopup extends LitElement {
     this.requestUpdate();
 
     try {
+      let filepath = this._selectedFile.path;
+      const printsIdx = filepath.indexOf('/prints/');
+      filepath = filepath.substring(printsIdx + '/prints/'.length);
       await this._hass.callService(
-            'bambu_lab',
-            'print_project_file', 
-            {
-                device_id: [ this.device_id ],
-                filepath: this._selectedFile.path,
-                ...this._printSettings
-            }
-        );
+        'bambu_lab',
+        'print_project_file', 
+        {
+          device_id: [ this.device_id ],
+          filepath,
+          ...this._printSettings
+        }
+      );
 
       this._hidePrintDialog();
       // Show success message or notification
@@ -325,7 +377,6 @@ export class PrintHistoryPopup extends LitElement {
     try {
       // The thumbnail_path now contains the full path including printer serial
       const url = `/api/bambu_lab/file_cache/${file.thumbnail_path}`;
-      console.log("Fetching thumbnail:", url);
       
       const response = await fetch(url, {
         headers: {
@@ -341,7 +392,6 @@ export class PrintHistoryPopup extends LitElement {
       
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
-      console.log("Created blob URL:", blobUrl);
       
       this._thumbnailUrls.set(cacheKey, blobUrl);
       this.requestUpdate();
@@ -542,18 +592,23 @@ export class PrintHistoryPopup extends LitElement {
         selectedGlobalIdx === null ||
         amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalIdx) === -1
       ) {
-        // Matching logic from previous implementation
-        const matches = amsFilaments.filter(amsFil => {
-          const colorMatch = (filament.color && amsFil.color && `${filament.color.toLowerCase()}ff` === amsFil.color.toLowerCase());
-          const idMatch = (filament.tray_info_idx == amsFil.filament_id);
-          const typeMatch = (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase());
-          return colorMatch && idMatch && typeMatch;
+        // Prefer id, then type, then color
+        const scored = amsFilaments.map((amsFil, i) => {
+          let score = 0;
+          if (filament.tray_info_idx && amsFil.filament_id && filament.tray_info_idx == amsFil.filament_id) score += 100;
+          if (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase()) score += 10;
+          if (filament.color && amsFil.color) {
+            // Compare ignoring alpha
+            const fColor = filament.color.toLowerCase().replace(/ff$/, '');
+            const aColor = amsFil.color.toLowerCase().replace(/ff$/, '');
+            if (fColor === aColor) score += 1;
+          }
+          return { i, score };
         });
-        if (matches.length > 0) {
-          const matchByIndex = matches.find(m => getGlobalAMSIndex(m) === Number(filament.id));
-          selectedIdx = matchByIndex ? amsFilaments.indexOf(matchByIndex) : amsFilaments.indexOf(matches[0]);
+        scored.sort((a, b) => b.score - a.score);
+        if (scored[0].score > 0) {
+          selectedIdx = scored[0].i;
         }
-        // Set the global index for this filament
         selectedGlobalIdx = getGlobalAMSIndex(amsFilaments[selectedIdx]);
         this._selectedAmsFilament[idx] = selectedGlobalIdx;
       } else {
@@ -611,35 +666,18 @@ export class PrintHistoryPopup extends LitElement {
       });
     }
 
+    // Only log if the mapping changed
+    if (JSON.stringify(resultArray) !== JSON.stringify(this._lastLoggedAmsMapping)) {
+      console.log('AMS mapping array:', resultArray);
+      this._lastLoggedAmsMapping = [...resultArray];
+    }
     return html`
       ${this._sliceInfo.map((filament, idx) => {
-        // Find the selected AMS filament by global index
+        // Only use the stored global index
         let selectedGlobalIdx = this._selectedAmsFilament[idx];
-        // If not set or not found, run matching logic to pick the best AMS filament
         let selectedIdx = 0;
-        if (
-          selectedGlobalIdx === null ||
-          amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalIdx) === -1
-        ) {
-          // Matching logic from previous implementation
-          const matches = amsFilaments.filter(amsFil => {
-            const colorMatch = (filament.color && amsFil.color && `${filament.color.toLowerCase()}ff` === amsFil.color.toLowerCase());
-            const idMatch = (filament.tray_info_idx == amsFil.filament_id);
-            const typeMatch = (filament.type && amsFil.type && filament.type.toLowerCase() === amsFil.type.toLowerCase());
-            return colorMatch && idMatch && typeMatch;
-          });
-          if (matches.length > 0) {
-            const matchByIndex = matches.find(m => getGlobalAMSIndex(m) === Number(filament.id));
-            selectedIdx = matchByIndex ? amsFilaments.indexOf(matchByIndex) : amsFilaments.indexOf(matches[0]);
-          }
-          // Set the global index for this filament
-          selectedGlobalIdx = getGlobalAMSIndex(amsFilaments[selectedIdx]);
-          this._selectedAmsFilament[idx] = selectedGlobalIdx;
-        } else {
-          // Use the stored global index
-          const foundIdx = amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalIdx);
-          if (foundIdx !== -1) selectedIdx = foundIdx;
-        }
+        const foundIdx = amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalIdx);
+        if (foundIdx !== -1) selectedIdx = foundIdx;
         const selected = amsFilaments[selectedIdx];
         return html`
           <div class="print-settings-group filament-mapping-row">
@@ -662,9 +700,6 @@ export class PrintHistoryPopup extends LitElement {
           </div>
         `;
       })}
-      ${(amsFilaments.length > 0 && this._sliceInfo && this._sliceInfo.length > 0)
-        ? html`<input type="text" readonly value="${resultArray.join(',')}" style="width:100%;margin-top:8px;" />`
-        : nothing}
       ${dropdownOverlays}
     `;
   }
@@ -704,9 +739,24 @@ export class PrintHistoryPopup extends LitElement {
 
   private _isAmsMappingValid() {
     const arr = this._getAmsMappingArray();
-    if (!this._sliceInfo || !arr.length) return false;
-    // All 3MF filament ids must be present in the array (not -1)
-    return this._sliceInfo.every(filament => arr.includes(Number(filament.id)));
+    if (!this._sliceInfo || !arr.length) {
+      return false;
+    }
+    // Each filament id from the slice info must be present in the AMS mapping array exactly once
+    const ids = this._sliceInfo.map(filament => Number(filament.id));
+    // Filter out -1 entries for duplicate check
+    const filteredArr = arr.filter(v => v !== -1);
+    const arrSet = new Set(filteredArr);
+    if (filteredArr.length !== arrSet.size) {
+      return false;
+    }
+    // Check that every id is present exactly once
+    const valid = ids.every(id => filteredArr.includes(id)) && filteredArr.length === ids.length;
+    const logObj = { arr, ids, valid };
+    if (!this._lastLoggedAmsMappingValid || JSON.stringify(this._lastLoggedAmsMappingValid) !== JSON.stringify(logObj)) {
+      this._lastLoggedAmsMappingValid = logObj;
+    }
+    return valid;
   }
 
   render() {
