@@ -12,6 +12,9 @@ interface FileCacheFile {
   size_human: string;
   modified: string;
   thumbnail_path?: string;
+  printer_name?: string;
+  printer_serial?: string;
+  path?: string; // Add path field for video URLs
 }
 
 interface PrintSettings {
@@ -67,6 +70,7 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _timelapseLoading: boolean = false;
   @state() private _timelapseError: string | null = null;
   @state() private _openTimelapseVideo: string | null = null;
+  @state() private _selectedPrinter: string = "all";
 
   static styles = styles;
 
@@ -117,8 +121,8 @@ export class PrintHistoryPopup extends LitElement {
     this.requestUpdate();
 
     try {
-      // Use the API endpoint to get file cache data
-      const url = `/api/bambu_lab/file_cache/${this.device_serial}?file_type=3mf`;
+      // Use the new print history API endpoint
+      const url = `/api/bambu_lab/print_history`;
       
       const response = await fetch(url, {
         headers: {
@@ -135,7 +139,14 @@ export class PrintHistoryPopup extends LitElement {
       console.log('[FileCachePopup] _refreshFiles() - API result:', result);
       
       if (result && result.files) {
-        this._files = result.files.slice(0, this.max_files);
+        // Filter by selected printer if not "all"
+        let filteredFiles = result.files;
+        if (this._selectedPrinter !== "all") {
+          filteredFiles = result.files.filter((file: FileCacheFile) => 
+            file.printer_serial === this._selectedPrinter
+          );
+        }
+        this._files = filteredFiles.slice(0, this.max_files);
       }
     } catch (error) {
       console.error('[FileCachePopup] _refreshFiles() - error:', error);
@@ -173,7 +184,8 @@ export class PrintHistoryPopup extends LitElement {
     this._timelapseLoading = true;
     this._timelapseError = null;
     try {
-      const url = `/api/bambu_lab/file_cache/${this.device_serial}?file_type=timelapse`;
+      // Use the new videos API endpoint
+      const url = `/api/bambu_lab/videos`;
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${this._hass.auth.data.access_token}`,
@@ -184,8 +196,16 @@ export class PrintHistoryPopup extends LitElement {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const result = await response.json();
-      if (result && result.files) {
-        this._timelapseFiles = result.files;
+      console.log('[FileCachePopup] _refreshTimelapseFiles() - API result:', result);
+      if (result && result.videos) {
+        // Filter by selected printer if not "all"
+        let filteredFiles = result.videos;
+        if (this._selectedPrinter !== "all") {
+          filteredFiles = result.videos.filter((file: FileCacheFile) => 
+            file.printer_serial === this._selectedPrinter
+          );
+        }
+        this._timelapseFiles = filteredFiles;
       }
     } catch (error) {
       this._timelapseError = error instanceof Error ? error.message : String(error);
@@ -211,7 +231,7 @@ export class PrintHistoryPopup extends LitElement {
         baseName = baseName.slice(0, -4);
     }
     const configFilename = baseName + ".slice_info.config";
-    const url = `/api/bambu_lab/file_cache/${this.device_serial}/3mf/${configFilename}`;
+    const url = `/api/bambu_lab/file_cache/${file.printer_serial || this.device_serial}/3mf/${configFilename}`;
     try {
         const response = await fetch(url, {
             headers: {
@@ -279,7 +299,7 @@ export class PrintHistoryPopup extends LitElement {
     }
   }
 
-  _getThumbnailUrl(file: FileCacheFile, fileType: string) {
+  _getThumbnailUrl(file: FileCacheFile) {
     const cacheKey = `${file.filename}-${file.thumbnail_path}`;
     if (this._thumbnailCache.has(cacheKey)) {
       return this._thumbnailCache.get(cacheKey);
@@ -290,15 +310,16 @@ export class PrintHistoryPopup extends LitElement {
     }
     
     // Start loading the thumbnail asynchronously
-    this._loadThumbnail(file, cacheKey, fileType);
+    this._loadThumbnail(file, cacheKey);
     
     // Return null initially, will be updated when loaded
     return null;
   }
 
-  async _loadThumbnail(file: FileCacheFile, cacheKey: string, fileType: string) {
+  async _loadThumbnail(file: FileCacheFile, cacheKey: string) {
     try {
-      const url = `/api/bambu_lab/file_cache/${this.device_serial}/${fileType}/${file.thumbnail_path}`;
+      // The thumbnail_path now contains the full path including printer serial
+      const url = `/api/bambu_lab/file_cache/${file.thumbnail_path}`;
       console.log("Fetching thumbnail:", url);
       
       const response = await fetch(url, {
@@ -689,6 +710,19 @@ export class PrintHistoryPopup extends LitElement {
       return nothing;
     }
 
+    // Get unique printers for filter dropdown
+    const allPrinters = new Set<string>();
+    this._files.forEach(file => {
+      if (file.printer_serial) allPrinters.add(file.printer_serial);
+    });
+    this._timelapseFiles.forEach(file => {
+      if (file.printer_serial) allPrinters.add(file.printer_serial);
+    });
+    const printerOptions = Array.from(allPrinters).map(serial => ({
+      serial,
+      name: this._files.find(f => f.printer_serial === serial)?.printer_name || serial
+    }));
+
     // Tab bar
     const tabLabels = ["Print History", "Timelapse Videos"];
     const renderTabs = html`
@@ -721,7 +755,7 @@ export class PrintHistoryPopup extends LitElement {
             ${this._timelapseFiles.map(file => {
               const isOpen = this._openTimelapseVideo === file.filename;
               const isAvi = file.filename.toLowerCase().endsWith('.avi');
-              const videoUrl = `/local/media/ha-bambulab/${this.device_serial}/timelapse/${file.filename}`;
+              const videoUrl = `/local/media/ha-bambulab/${file.path}`;
               return html`
                 <div class="print-history-card" style="position:relative;">
                   <div class="print-history-thumbnail" style="position:relative;">
@@ -733,7 +767,7 @@ export class PrintHistoryPopup extends LitElement {
                             if (thumbnailUrl) {
                               return html`<img src="${thumbnailUrl}" alt="${file.filename}">`;
                             } else {
-                              this._getThumbnailUrl(file, 'timelapse'); // Start loading
+                              this._getThumbnailUrl(file); // Start loading
                               return html`<div class="print-history-placeholder">${this._getFileIcon(file.type)}</div>`;
                             }
                           })()}
@@ -750,7 +784,7 @@ export class PrintHistoryPopup extends LitElement {
                               if (thumbnailUrl) {
                                 return html`<img src="${thumbnailUrl}" alt="${file.filename}" style="cursor:pointer;" @click=${() => { this._openTimelapseVideo = file.filename; this.requestUpdate(); }} @error=${(e) => e.target.style.display = 'none'}>`;
                               } else {
-                                this._getThumbnailUrl(file, 'timelapse'); // Start loading
+                                this._getThumbnailUrl(file); // Start loading
                                 return html`<div class="print-history-placeholder" style="cursor:pointer;" @click=${() => { this._openTimelapseVideo = file.filename; this.requestUpdate(); }}>${this._getFileIcon(file.type)}</div>`;
                               }
                             })()}
@@ -763,6 +797,7 @@ export class PrintHistoryPopup extends LitElement {
                   <a class="timelapse-download-btn" href="${videoUrl}" download target="_blank" title="Download video">
                     ⬇ Download
                   </a>
+                  ${file.printer_name ? html`<div class="printer-info">${file.printer_name}</div>` : nothing}
                 </div>
               `;
             })}
@@ -782,13 +817,23 @@ export class PrintHistoryPopup extends LitElement {
           </div>
           ${this._activeTab === 0 ? html`
             <div class="print-history-controls">
-              <input
-                type="text"
-                class="print-history-search"
-                placeholder="Search by filename..."
-                .value=${this._searchQuery}
-                @input=${(e: any) => { this._searchQuery = e.target.value; }}
-              />
+              <div class="print-history-filters">
+                <select class="printer-filter" @change=${(e) => { this._selectedPrinter = e.target.value; this._refreshFiles(); }}>
+                  <option value="all">All Printers</option>
+                  ${printerOptions.map(printer => html`
+                    <option value="${printer.serial}" ?selected=${this._selectedPrinter === printer.serial}>
+                      ${printer.name}
+                    </option>
+                  `)}
+                </select>
+                <input
+                  type="text"
+                  class="print-history-search"
+                  placeholder="Search by filename..."
+                  .value=${this._searchQuery}
+                  @input=${(e: any) => { this._searchQuery = e.target.value; }}
+                />
+              </div>
               <button class="print-history-btn secondary" @click=${this._clearCache}>
                 Clear Cache
               </button>
@@ -819,7 +864,7 @@ export class PrintHistoryPopup extends LitElement {
                                               alt="${file.filename}" 
                                               @error=${(e) => e.target.style.display = 'none'}>`;
                           } else {
-                              this._getThumbnailUrl(file, '3mf'); // Start loading
+                              this._getThumbnailUrl(file); // Start loading
                               return html`<div class="print-history-placeholder">
                               ${this._getFileIcon(file.type)}
                               </div>`;
@@ -830,6 +875,7 @@ export class PrintHistoryPopup extends LitElement {
                       <div class="print-history-name">${file.filename}</div>
                       <div class="print-history-meta">
                         ${file.size_human} • ${this._formatDate(file.modified)}
+                        ${file.printer_name ? html`<br><small>${file.printer_name}</small>` : nothing}
                       </div>
                       <button class="print-history-print-btn" @click=${() => this._showPrintDialog(file)}>
                         <ha-icon icon="mdi:printer-3d"></ha-icon>
@@ -863,6 +909,7 @@ export class PrintHistoryPopup extends LitElement {
                     })()}
                     <div class="print-settings-file">
                       <strong>File:</strong> ${this._selectedFile?.filename}
+                      ${this._selectedFile?.printer_name ? html`<br><small>Printer: ${this._selectedFile.printer_name}</small>` : nothing}
                     </div>
                     
                     <div class="print-settings-group">
@@ -954,7 +1001,21 @@ export class PrintHistoryPopup extends LitElement {
                 </div>
               </div>
             ` : nothing}
-          ` : renderTimelapseGrid}
+          ` : html`
+            <div class="print-history-controls">
+              <div class="print-history-filters">
+                <select class="printer-filter" @change=${(e) => { this._selectedPrinter = e.target.value; this._refreshTimelapseFiles(); }}>
+                  <option value="all">All Printers</option>
+                  ${printerOptions.map(printer => html`
+                    <option value="${printer.serial}" ?selected=${this._selectedPrinter === printer.serial}>
+                      ${printer.name}
+                    </option>
+                  `)}
+                </select>
+              </div>
+            </div>
+            ${renderTimelapseGrid}
+          `}
         </div>
       </div>
     `;
