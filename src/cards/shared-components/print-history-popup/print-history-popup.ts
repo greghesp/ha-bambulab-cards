@@ -56,7 +56,6 @@ export class PrintHistoryPopup extends LitElement {
     ams_mapping: "0"
   };
   @state() private _printLoading: boolean = false;
-  private _thumbnailCache = new Map<string, string | null>();
   private _scrollHandler: ((e: Event) => void) | null = null;
   @state() private _searchQuery: string = "";
   @state() private _sliceInfo: any = null;
@@ -71,6 +70,8 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _timelapseError: string | null = null;
   @state() private _openTimelapseVideo: string | null = null;
   @state() private _selectedPrinter: string = "all";
+  @state() private _allFiles: FileCacheFile[] = []; // Store original unfiltered files
+  @state() private _allTimelapseFiles: FileCacheFile[] = []; // Store original unfiltered timelapse files
 
   static styles = styles;
 
@@ -117,7 +118,7 @@ export class PrintHistoryPopup extends LitElement {
   async _refreshFiles() {
     this._loading = true;
     this._error = null;
-    this._thumbnailCache.clear(); // Clear thumbnail cache
+    this._thumbnailUrls.clear(); // Clear thumbnail cache
     this.requestUpdate();
 
     try {
@@ -139,6 +140,8 @@ export class PrintHistoryPopup extends LitElement {
       console.log('[FileCachePopup] _refreshFiles() - API result:', result);
       
       if (result && result.files) {
+        // Store all files unfiltered
+        this._allFiles = result.files;
         // Filter by selected printer if not "all"
         let filteredFiles = result.files;
         if (this._selectedPrinter !== "all") {
@@ -198,6 +201,8 @@ export class PrintHistoryPopup extends LitElement {
       const result = await response.json();
       console.log('[FileCachePopup] _refreshTimelapseFiles() - API result:', result);
       if (result && result.videos) {
+        // Store all timelapse files unfiltered
+        this._allTimelapseFiles = result.videos;
         // Filter by selected printer if not "all"
         let filteredFiles = result.videos;
         if (this._selectedPrinter !== "all") {
@@ -225,13 +230,9 @@ export class PrintHistoryPopup extends LitElement {
     this._sliceInfo = null;
     this._sliceInfoError = null;
     this._sliceInfoLoading = true;
-    // Remove .3mf extension if present
-    let baseName = file.filename;
-    if (baseName.toLowerCase().endsWith('.3mf')) {
-        baseName = baseName.slice(0, -4);
-    }
-    const configFilename = baseName + ".slice_info.config";
-    const url = `/api/bambu_lab/file_cache/${file.printer_serial || this.device_serial}/3mf/${configFilename}`;
+    // Use the original file path and replace .3mf extension with .slice_info.config
+    let configPath = file.filename.slice(0, -4) + '.slice_info.config';
+    const url = `/api/bambu_lab/file_cache/${configPath}`;
     try {
         const response = await fetch(url, {
             headers: {
@@ -300,12 +301,12 @@ export class PrintHistoryPopup extends LitElement {
   }
 
   _getThumbnailUrl(file: FileCacheFile) {
-    const cacheKey = `${file.filename}-${file.thumbnail_path}`;
-    if (this._thumbnailCache.has(cacheKey)) {
-      return this._thumbnailCache.get(cacheKey);
+    const cacheKey = file.thumbnail_path ?? "";
+    if (this._thumbnailUrls.has(cacheKey)) {
+      return this._thumbnailUrls.get(cacheKey);
     }
     if (!file.thumbnail_path) {
-      this._thumbnailCache.set(cacheKey, null);
+      this._thumbnailUrls.set(cacheKey, null);
       return null;
     }
     
@@ -330,7 +331,7 @@ export class PrintHistoryPopup extends LitElement {
       
       if (!response.ok) {
         console.error('Failed to fetch thumbnail:', response.status);
-        this._thumbnailCache.set(cacheKey, null);
+        this._thumbnailUrls.set(cacheKey, null);
         return;
       }
       
@@ -338,12 +339,11 @@ export class PrintHistoryPopup extends LitElement {
       const blobUrl = URL.createObjectURL(blob);
       console.log("Created blob URL:", blobUrl);
       
-      this._thumbnailCache.set(cacheKey, blobUrl);
       this._thumbnailUrls.set(cacheKey, blobUrl);
       this.requestUpdate();
     } catch (error) {
       console.error('Error fetching thumbnail:', error);
-      this._thumbnailCache.set(cacheKey, null);
+      this._thumbnailUrls.set(cacheKey, null);
     }
   }
 
@@ -710,17 +710,19 @@ export class PrintHistoryPopup extends LitElement {
       return nothing;
     }
 
-    // Get unique printers for filter dropdown
+    // Get unique printers for filter dropdown from all unfiltered data
     const allPrinters = new Set<string>();
-    this._files.forEach(file => {
+    this._allFiles.forEach(file => {
       if (file.printer_serial) allPrinters.add(file.printer_serial);
     });
-    this._timelapseFiles.forEach(file => {
+    this._allTimelapseFiles.forEach(file => {
       if (file.printer_serial) allPrinters.add(file.printer_serial);
     });
     const printerOptions = Array.from(allPrinters).map(serial => ({
       serial,
-      name: this._files.find(f => f.printer_serial === serial)?.printer_name || serial
+      name: this._allFiles.find(f => f.printer_serial === serial)?.printer_name || 
+            this._allTimelapseFiles.find(f => f.printer_serial === serial)?.printer_name || 
+            serial
     }));
 
     // Tab bar
@@ -762,7 +764,7 @@ export class PrintHistoryPopup extends LitElement {
                     ${isAvi
                       ? html`
                           ${(() => {
-                            const cacheKey = `${file.filename}-${file.thumbnail_path}`;
+                            const cacheKey = file.thumbnail_path ?? "";
                             const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
                             if (thumbnailUrl) {
                               return html`<img src="${thumbnailUrl}" alt="${file.filename}">`;
@@ -779,7 +781,7 @@ export class PrintHistoryPopup extends LitElement {
                         ? html`<video controls width="100%" src="${videoUrl}" style="border-radius:8px;max-width:100%;max-height:210px;background:#000;"></video>`
                         : html`
                             ${(() => {
-                              const cacheKey = `${file.filename}-${file.thumbnail_path}`;
+                              const cacheKey = file.thumbnail_path ?? "";
                               const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
                               if (thumbnailUrl) {
                                 return html`<img src="${thumbnailUrl}" alt="${file.filename}" style="cursor:pointer;" @click=${() => { this._openTimelapseVideo = file.filename; this.requestUpdate(); }} @error=${(e) => e.target.style.display = 'none'}>`;
@@ -857,7 +859,7 @@ export class PrintHistoryPopup extends LitElement {
                   <div class="print-history-card">
                       <div class="print-history-thumbnail">
                         ${(() => {
-                          const cacheKey = `${file.filename}-${file.thumbnail_path}`;
+                          const cacheKey = file.thumbnail_path ?? "";
                           const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
                           if (thumbnailUrl) {
                               return html`<img src="${thumbnailUrl}" 
@@ -899,7 +901,7 @@ export class PrintHistoryPopup extends LitElement {
                     <!-- Cover image for the selected file -->
                     ${(() => {
                       if (this._selectedFile) {
-                        const cacheKey = `${this._selectedFile.filename}-${this._selectedFile.thumbnail_path}`;
+                        const cacheKey = this._selectedFile?.thumbnail_path ?? "";
                         const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
                         if (thumbnailUrl) {
                           return html`<div style="text-align:center;margin-bottom:16px;"><img src="${thumbnailUrl}" alt="${this._selectedFile.filename}" style="max-width:200px;max-height:200px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);" /></div>`;
@@ -1020,4 +1022,4 @@ export class PrintHistoryPopup extends LitElement {
       </div>
     `;
   }
-} 
+}
