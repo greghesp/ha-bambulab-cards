@@ -14,7 +14,7 @@ interface FileCacheFile {
   thumbnail_path?: string;
   printer_name?: string;
   printer_serial?: string;
-  path?: string; // Add path field for video URLs
+  path: string; // Add path field for video URLs
 }
 
 interface PrintSettings {
@@ -223,6 +223,10 @@ export class PrintHistoryPopup extends LitElement {
   _showPrintDialog(file: FileCacheFile) {
     this._selectedFile = file;
     this._showPrintSettings = true;
+    this._sliceInfo = null;
+    this._sliceInfoError = null;
+    this._sliceInfoLoading = true;
+    this._selectedAmsFilament = [];
     this._loadSliceInfo(file);
   }
 
@@ -231,36 +235,36 @@ export class PrintHistoryPopup extends LitElement {
     this._sliceInfoError = null;
     this._sliceInfoLoading = true;
     // Use the original file path and replace .3mf extension with .slice_info.config
-    let configPath = file.filename.slice(0, -4) + '.slice_info.config';
+    const configPath = file.path.slice(0, -4) + '.slice_info.config';
     const url = `/api/bambu_lab/file_cache/${configPath}`;
     try {
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${this._hass.auth.data.access_token}`,
-            }
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${this._hass.auth.data.access_token}`,
         }
-        const text = await response.text();
-        // Parse XML and extract <filament/> entries
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(text, "application/xml");
-        const filaments = Array.from(xml.getElementsByTagName("filament"));
-        this._sliceInfo = filaments.map(filament => {
-            const attrs = {};
-            for (const attr of filament.attributes) {
-                attrs[attr.name] = attr.value;
-            }
-            return attrs;
-        });
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const text = await response.text();
+      // Parse XML and extract <filament/> entries
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(text, "application/xml");
+      const filaments = Array.from(xml.getElementsByTagName("filament"));
+      this._sliceInfo = filaments.map(filament => {
+        const attrs = {};
+        for (const attr of filament.attributes) {
+          attrs[attr.name] = attr.value;
+        }
+        return attrs;
+      });
     } catch (error) {
-        this._sliceInfoError = error instanceof Error ? error.message : String(error);
+      this._sliceInfoError = error instanceof Error ? error.message : String(error);
     } finally {
-        this._sliceInfoLoading = false;
-        this.requestUpdate();
+      this._sliceInfoLoading = false;
+      this.requestUpdate();
     }
-}
+  }
 
   _hidePrintDialog() {
     this._showPrintSettings = false;
@@ -283,7 +287,7 @@ export class PrintHistoryPopup extends LitElement {
             'print_project_file', 
             {
                 device_id: [ this.device_id ],
-                filepath: this._selectedFile.filename,
+                filepath: this._selectedFile.path,
                 ...this._printSettings
             }
         );
