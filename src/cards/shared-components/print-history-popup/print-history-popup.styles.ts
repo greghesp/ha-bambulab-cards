@@ -5,8 +5,8 @@ export default css`
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
@@ -23,10 +23,16 @@ export default css`
     max-width: 90vw;
     max-height: 90vh;
     width: 800px;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     border: 1px solid var(--divider-color, #e0e0e0);
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  .print-history-header,
+  .print-history-controls {
+    flex-shrink: 0;
   }
 
   .print-history-header {
@@ -170,11 +176,8 @@ export default css`
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
     padding: 16px;
-    overflow-y: auto;
-    max-height: 60vh;
     background: var(--ha-card-background, var(--card-background-color, white));
   }
-
   .print-history-card {
     border: 1px solid var(--divider-color, #e0e0e0);
     border-radius: var(--ha-card-border-radius, 8px);
@@ -291,20 +294,19 @@ export default css`
     color: var(--secondary-text-color, #666); 
   }
 
-  /* Print Settings Popup Styles */
+  /* Print Settings Popup: ensure scrollability */
   .print-settings-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2000;
   }
-
   .print-settings-popup {
     background: var(--ha-card-background, var(--card-background-color, white));
     border-radius: var(--ha-card-border-radius, 8px);
@@ -312,12 +314,22 @@ export default css`
     max-width: 90vw;
     width: 400px;
     max-height: 90vh;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     border: 1px solid var(--divider-color, #e0e0e0);
+    height: auto;
   }
-
+  .print-settings-header,
+  .print-settings-actions {
+    flex-shrink: 0;
+  }
+  .print-settings-content {
+    padding: 16px;
+    overflow-y: auto;
+    background: var(--ha-card-background, var(--card-background-color, white));
+    min-height: 0;
+    max-height: unset;
+  }
   .print-settings-header {
     display: flex;
     justify-content: space-between;
@@ -352,13 +364,6 @@ export default css`
 
   .print-settings-close ha-icon {
     --mdc-icon-size: 24px;
-  }
-
-  .print-settings-content {
-    padding: 16px;
-    overflow-y: auto;
-    max-height: 60vh;
-    background: var(--ha-card-background, var(--card-background-color, white));
   }
 
   .print-settings-file {
@@ -614,6 +619,25 @@ export default css`
 
     .print-settings-overlay {
       background: rgba(0, 0, 0, 0.8);
+    }
+  }
+
+  /* Responsive adjustments for small screens */
+  @media (max-width: 600px), (max-height: 600px) {
+    .print-history-popup {
+      max-height: 100vh !important;
+      height: 100vh !important;
+      overflow-y: auto !important;
+    }
+  }
+
+  @media (max-height: 600px) {
+    .print-history-grid {
+      grid-auto-rows: minmax(260px, auto);
+      max-height: calc(100vh - 120px);
+    }
+    .print-settings-popup {
+      min-height: 260px;
     }
   }
 `; 
