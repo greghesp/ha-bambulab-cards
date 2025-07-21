@@ -74,16 +74,25 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _allFiles: FileCacheFile[] = []; // Store original unfiltered files
   @state() private _allTimelapseFiles: FileCacheFile[] = []; // Store original unfiltered timelapse files
   @state() private _uploadingFile: boolean = false;
+  @state() private _uploadProgress: number = 0;
 
   // Add a private property to track the last logged AMS mapping
   private _lastLoggedAmsMapping: number[] = [];
   private _lastLoggedAmsMappingValid: { arr: number[]; ids: number[]; valid: boolean } | null = null;
+
+  private _unsubscribeUploadProgress: (() => void) | null = null;
 
   static styles = styles;
 
   connectedCallback() {
     super.connectedCallback();
     this._updateContent();
+    if (this._hass && this._hass.connection) {
+      this._unsubscribeUploadProgress = this._hass.connection.subscribeEvents(
+        (event) => this._onUploadProgress(event),
+        'bambu_upload_progress'
+      );
+    }
   }
 
   updated(changedProperties) {
@@ -111,6 +120,10 @@ export class PrintHistoryPopup extends LitElement {
     super.disconnectedCallback();
     this._restoreBackgroundScroll();
     window.removeEventListener('mousedown', this._dropdownLightDismissHandler, true);
+    if (this._unsubscribeUploadProgress) {
+      this._unsubscribeUploadProgress();
+      this._unsubscribeUploadProgress = null;
+    }
   }
 
   async _updateContent() {
@@ -343,6 +356,7 @@ export class PrintHistoryPopup extends LitElement {
       }
       // Log and call ensure_cache_file
       this._uploadingFile = true;
+      this._uploadProgress = 0;
       this.requestUpdate();
       console.log('Ensuring cache file:', {
         serial: this.device_serial,
@@ -362,6 +376,7 @@ export class PrintHistoryPopup extends LitElement {
         })
       });
       this._uploadingFile = false;
+      this._uploadProgress = 0;
       this.requestUpdate();
       const ensureRespText = await ensureResp.text();
       console.log('ensure_cache_file response:', ensureResp.status, ensureRespText);
@@ -384,6 +399,7 @@ export class PrintHistoryPopup extends LitElement {
       // Show success message or notification
     } catch (error) {
       this._uploadingFile = false;
+      this._uploadProgress = 0;
       console.error('[FileCachePopup] _startPrint() - error:', error);
       this._error = error instanceof Error ? error.message : String(error);
       this.requestUpdate();
@@ -796,6 +812,17 @@ export class PrintHistoryPopup extends LitElement {
     return valid;
   }
 
+  private _onUploadProgress = (event: any) => {
+    const data = event.data;
+    if (!data) return;
+    if (data.serial !== this.device_serial) return;
+    if (!this._uploadingFile) return;
+    if (typeof data.bytes_sent === 'number' && typeof data.total === 'number' && data.total > 0) {
+      this._uploadProgress = Math.floor((data.bytes_sent / data.total) * 100);
+      this.requestUpdate();
+    }
+  };
+
   render() {
     if (!this._show) {
       return nothing;
@@ -1088,7 +1115,7 @@ export class PrintHistoryPopup extends LitElement {
                     <button class="print-settings-btn primary" 
                             @click=${this._startPrint}
                             ?disabled=${this._printLoading || this._uploadingFile || !this._isAmsMappingValid()}>
-                      ${this._uploadingFile ? 'Uploading file...' : (this._printLoading ? 'Starting Print...' : 'Start Print')}
+                      ${this._uploadingFile ? `Uploading file... ${this._uploadProgress}%` : (this._printLoading ? 'Starting Print...' : 'Start Print')}
                     </button>
                   </div>
                 </div>
