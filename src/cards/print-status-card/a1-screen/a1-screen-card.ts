@@ -445,6 +445,9 @@ export class A1ScreenCard extends LitElement {
           : html`
               <div class="ha-bambulab-ssc-status-content">
                 <div class="ha-bambulab-ssc-status-icon" style="position: relative;">
+                  <button class="video-toggle-button" @click="${this.#toggleVideoFeed}" title="${this.showVideoFeed ? 'Return to cover image' : 'Show video feed'}">
+                    <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
+                  </button>
                   ${this.showVideoFeed
                     ? html `
                         ${videoHtml}
@@ -477,7 +480,6 @@ export class A1ScreenCard extends LitElement {
   }
 
   #renderMainControlsColumn() {
-
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
         <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleExtraControls}">
@@ -487,8 +489,8 @@ export class A1ScreenCard extends LitElement {
           @click="${() => helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}">
           <ha-icon icon="mdi:lightbulb"></ha-icon>
         </button>
-        <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleVideoFeed}" title="Toggle video feed">
-          <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
+        <button class="ha-bambulab-ssc-control-button" @click="${this.#showFileCache}" title="Show print history/timelapse">
+          <ha-icon icon="mdi:list-box-outline"></ha-icon>
         </button>
         <button
           class="ha-bambulab-ssc-control-button"
@@ -529,7 +531,7 @@ export class A1ScreenCard extends LitElement {
           @click="${() => this.#showSkipObjects()}">
           <ha-icon icon="mdi:debug-step-over"></ha-icon>
         </button>
-        <button class="ha-bambulab-ssc-control-button" @click="${this.#showFileCache}" title="Show file cache">
+        <button class="ha-bambulab-ssc-control-button" @click="${this.#openDevicePage}" title="Show Home Assistant device page">
           <ha-icon icon="mdi:dots-horizontal"></ha-icon>
         </button>
         ${hasPower ? html`

@@ -606,8 +606,8 @@ export default css`
 
   .video-toggle-button {
     position: absolute;
-    top: 8px;
-    left: 8px;
+    top: 1px;
+    left: 1px;
     background: var(--control-background);
     border: none;
     border-radius: 50%;
