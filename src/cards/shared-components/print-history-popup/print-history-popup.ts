@@ -1049,12 +1049,21 @@ export class PrintHistoryPopup extends LitElement {
                       <strong>File:</strong> ${this._selectedFile?.filename}
                       ${this._selectedFile?.printer_name ? html`<br><small>Printer: ${this._selectedFile.printer_name}</small>` : nothing}
                       ${(() => {
-                        // UX warning for incompatible printer model
+                        // UX warning for incompatible or not-exact-match printer model
                         if (this._selectedFile) {
                           const fileModel = this._selectedFile.printer_model;
                           const currentModel = this._getCurrentPrinterModel();
-                          if (fileModel && currentModel && !this._areModelsCompatible(fileModel, currentModel)) {
-                            return html`<div style="color: var(--error-color, #f44336); margin-top: 8px; font-weight: bold;">This print is incompatible with the selected printer model. File model: ${fileModel}, Current: ${currentModel}</div>`;
+                          const eqSet = ["P1P", "P1S", "X1C", "X1E"];
+                          const normFile = (fileModel || '').trim().toUpperCase();
+                          const normCurrent = (currentModel || '').trim().toUpperCase();
+                          if (fileModel && currentModel) {
+                            if (!this._areModelsCompatible(fileModel, currentModel)) {
+                              return html`<div style="color: var(--error-color, #f44336); margin-top: 8px; font-weight: bold;">This print is incompatible with the selected printer model (${fileModel} vs ${currentModel}).</div>`;
+                            } else if (
+                              eqSet.includes(normFile) && eqSet.includes(normCurrent) && normFile !== normCurrent
+                            ) {
+                              return html`<div style="color: #ff6f00; margin-top: 8px; font-weight: normal;">Warning: The file was created for a different printer model (${fileModel} vs ${currentModel}). Printing is allowed, but compatibility is not guaranteed.</div>`;
+                            }
                           }
                         }
                         return nothing;
