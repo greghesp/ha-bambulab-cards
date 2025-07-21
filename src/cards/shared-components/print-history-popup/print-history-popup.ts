@@ -16,6 +16,7 @@ interface FileCacheFile {
   printer_name: string;
   printer_serial: string;
   path: string;
+  printer_model: string;
 }
 
 interface PrintSettings {
@@ -823,6 +824,23 @@ export class PrintHistoryPopup extends LitElement {
     }
   };
 
+  // Helper to get the current printer's model
+  private _getCurrentPrinterModel(): string | null {
+    if (!this._hass || !this.device_id) return null;
+    const device = (this._hass.devices as any)?.[this.device_id];
+    return device?.model || null;
+  }
+
+  // Helper to check if two models are compatible (P1P, P1S, X1C, X1E are equivalent)
+  private _areModelsCompatible(modelA: string | null, modelB: string | null): boolean {
+    if (!modelA || !modelB) return false;
+    const eqSet = ["P1P", "P1S", "X1C", "X1E"];
+    const normA = modelA.trim().toUpperCase();
+    const normB = modelB.trim().toUpperCase();
+    if (eqSet.includes(normA) && eqSet.includes(normB)) return true;
+    return normA === normB;
+  }
+
   render() {
     if (!this._show) {
       return nothing;
@@ -1030,6 +1048,17 @@ export class PrintHistoryPopup extends LitElement {
                     <div class="print-settings-file">
                       <strong>File:</strong> ${this._selectedFile?.filename}
                       ${this._selectedFile?.printer_name ? html`<br><small>Printer: ${this._selectedFile.printer_name}</small>` : nothing}
+                      ${(() => {
+                        // UX warning for incompatible printer model
+                        if (this._selectedFile) {
+                          const fileModel = this._selectedFile.printer_model;
+                          const currentModel = this._getCurrentPrinterModel();
+                          if (fileModel && currentModel && !this._areModelsCompatible(fileModel, currentModel)) {
+                            return html`<div style="color: var(--error-color, #f44336); margin-top: 8px; font-weight: bold;">This print is incompatible with the selected printer model. File model: ${fileModel}, Current: ${currentModel}</div>`;
+                          }
+                        }
+                        return nothing;
+                      })()}
                     </div>
                     
                     <div class="print-settings-group">
@@ -1114,7 +1143,16 @@ export class PrintHistoryPopup extends LitElement {
                     </button>
                     <button class="print-settings-btn primary" 
                             @click=${this._startPrint}
-                            ?disabled=${this._printLoading || this._uploadingFile || !this._isAmsMappingValid()}>
+                            ?disabled=${this._printLoading || this._uploadingFile || !this._isAmsMappingValid() || (() => {
+                              if (this._selectedFile) {
+                                const fileModel = this._selectedFile.printer_model;
+                                const currentModel = this._getCurrentPrinterModel();
+                                if (fileModel && currentModel && !this._areModelsCompatible(fileModel, currentModel)) {
+                                  return true;
+                                }
+                              }
+                              return false;
+                            })()}>
                       ${this._uploadingFile ? `Uploading file... ${this._uploadProgress}%` : (this._printLoading ? 'Starting Print...' : 'Start Print')}
                     </button>
                   </div>
