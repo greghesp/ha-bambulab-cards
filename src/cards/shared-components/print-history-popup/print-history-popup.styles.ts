@@ -7,6 +7,8 @@ export default css`
     left: 0;
     width: 100vw;
     height: 100vh;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
@@ -17,8 +19,8 @@ export default css`
 
   .print-history-popup {
     box-shadow: var(--ha-card-box-shadow, 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2));
-    border-radius: var(--ha-card-border-radius, 8px);
     border: 1px solid var(--divider-color, #e0e0e0);
+    border-radius: var(--ha-card-border-radius, 8px);
     background: var(--ha-card-background, var(--card-background-color, white));
     font-family: var(--ha-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif);
     max-width: 80vw;
