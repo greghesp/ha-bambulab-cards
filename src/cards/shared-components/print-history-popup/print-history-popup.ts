@@ -113,8 +113,8 @@ export class PrintHistoryPopup extends LitElement {
   }
 
   show() {
-    this._refreshFiles();
-    this._refreshTimelapseFiles();
+    this._selectedPrinter = "all";
+    this.#changeTab(0);
     document.body.style.overflow = 'hidden';
     this._show = true;
   }
@@ -813,6 +813,14 @@ export class PrintHistoryPopup extends LitElement {
     return normA === normB;
   }
 
+  #changeTab(index) {
+    this._activeTab = index;
+    this._openTimelapseVideo = null;
+    this._refreshFiles();
+    this._refreshTimelapseFiles();
+    this.requestUpdate();
+  }
+
   render() {
     if (!this._show) {
       return nothing;
@@ -839,7 +847,7 @@ export class PrintHistoryPopup extends LitElement {
       <div class="print-history-tabs">
         ${tabLabels.map((label, i) => html`
           <div class="print-history-tab${this._activeTab === i ? ' active' : ''}"
-               @click=${() => { this._activeTab = i; this._openTimelapseVideo = null; this.requestUpdate(); }}>
+               @click=${() => { this.#changeTab(i) }}>
             ${label}
           </div>
         `)}
