@@ -1072,6 +1072,18 @@ export class PrintHistoryPopup extends LitElement {
 
     // Timelapse Tab
     const renderTimelapseGrid = html`
+      <div class="print-history-controls">
+        <div class="print-history-filters">
+          <select class="printer-filter" @change=${(e) => { this._selectedPrinter = e.target.value; this._refreshTimelapseFiles(); }}>
+            <option value="all">All Printers</option>
+            ${printerOptions.map(printer => html`
+              <option value="${printer.serial}" ?selected=${this._selectedPrinter === printer.serial}>
+                ${printer.name}
+              </option>
+            `)}
+          </select>
+        </div>
+      </div>
       ${this._timelapseError ? html`<div class="print-history-error">${this._timelapseError}</div>` : nothing}
       ${this._timelapseLoading ? html`<div class="print-history-loading">Loading timelapse videos...</div>` :
         this._timelapseFiles.length === 0 ? html`
@@ -1148,18 +1160,6 @@ export class PrintHistoryPopup extends LitElement {
           ${this._activeTab === 0 ? html`
             ${renderPrintHistoryGrid}
           ` : html`
-            <div class="print-history-controls">
-              <div class="print-history-filters">
-                <select class="printer-filter" @change=${(e) => { this._selectedPrinter = e.target.value; this._refreshTimelapseFiles(); }}>
-                  <option value="all">All Printers</option>
-                  ${printerOptions.map(printer => html`
-                    <option value="${printer.serial}" ?selected=${this._selectedPrinter === printer.serial}>
-                      ${printer.name}
-                    </option>
-                  `)}
-                </select>
-              </div>
-            </div>
             ${renderTimelapseGrid}
           `}
         </div>

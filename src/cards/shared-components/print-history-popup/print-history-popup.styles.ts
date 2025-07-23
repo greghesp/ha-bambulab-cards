@@ -25,7 +25,7 @@ export default css`
     max-height: 70vh;
     min-height: 260px;
     width: 800px;
-    overflow-y: auto !important;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     touch-action: manipulation;
   }
