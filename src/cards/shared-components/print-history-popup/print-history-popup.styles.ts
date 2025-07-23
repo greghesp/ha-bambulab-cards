@@ -7,8 +7,6 @@ export default css`
     left: 0;
     width: 100vw;
     height: 100vh;
-    width: 100vw;
-    height: 100vh;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
@@ -23,15 +21,13 @@ export default css`
     border-radius: var(--ha-card-border-radius, 8px);
     background: var(--ha-card-background, var(--card-background-color, white));
     font-family: var(--ha-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif);
-    max-width: 80vw;
-    max-height: 90vh;
+    max-width: 90%;
+    max-height: 70vh;
     min-height: 260px;
-    height: 100%;
     width: 800px;
-    display: flex;
-    flex-direction: column;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
+    touch-action: manipulation;
   }
 
   .print-history-header,
@@ -182,7 +178,10 @@ export default css`
     gap: 16px;
     padding: 16px;
     background: var(--ha-card-background, var(--card-background-color, white));
+    flex: 1
+    min-height: 0;
   }
+
   .print-history-card {
     border: 1px solid var(--divider-color, #e0e0e0);
     border-radius: var(--ha-card-border-radius, 8px);
@@ -312,13 +311,14 @@ export default css`
     justify-content: center;
     z-index: 2000;
   }
+
   .print-settings-popup {
     background: var(--ha-card-background, var(--card-background-color, white));
     border-radius: var(--ha-card-border-radius, 8px);
     box-shadow: var(--ha-card-box-shadow, 0 4px 8px rgba(0, 0, 0, 0.2));
     max-width: 90vw;
     width: 400px;
-    max-height: 90vh;
+    max-height: 70vh;
     display: flex;
     flex-direction: column;
     border: 1px solid var(--divider-color, #e0e0e0);

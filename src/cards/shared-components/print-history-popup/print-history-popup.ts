@@ -96,6 +96,16 @@ export class PrintHistoryPopup extends LitElement {
     }
   }
 
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.body.style.overflow = '';
+    window.removeEventListener('mousedown', this._dropdownLightDismissHandler, true);
+    if (this._unsubscribeUploadProgress) {
+      this._unsubscribeUploadProgress();
+      this._unsubscribeUploadProgress = null;
+    }
+  }
+
   updated(changedProperties) {
     if (changedProperties.has("device_serial")) {
       this._updateContent();
@@ -103,10 +113,10 @@ export class PrintHistoryPopup extends LitElement {
   }
 
   show() {
-    this._show = true;
     this._refreshFiles();
     this._refreshTimelapseFiles();
-    this._preventBackgroundScroll();
+    document.body.style.overflow = 'hidden';
+    this._show = true;
   }
 
   hide() {
@@ -114,17 +124,7 @@ export class PrintHistoryPopup extends LitElement {
     this._showPrintSettings = false;
     this._selectedFile = null;
     this._openTimelapseVideo = null;
-    this._restoreBackgroundScroll();
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this._restoreBackgroundScroll();
-    window.removeEventListener('mousedown', this._dropdownLightDismissHandler, true);
-    if (this._unsubscribeUploadProgress) {
-      this._unsubscribeUploadProgress();
-      this._unsubscribeUploadProgress = null;
-    }
+    document.body.style.overflow = '';
   }
 
   async _updateContent() {
@@ -473,34 +473,6 @@ export class PrintHistoryPopup extends LitElement {
     const date = new Date(dateString);
     const formatted = date.toLocaleDateString();
     return formatted;
-  }
-
-  _preventBackgroundScroll() {
-    // Prevent scroll events from reaching the background
-    const preventScroll = (e: Event) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-
-    // Store the handler so we can remove it later
-    this._scrollHandler = preventScroll;
-
-    // Add event listeners to prevent scrolling
-    document.addEventListener('wheel', preventScroll, { passive: false });
-    document.addEventListener('touchmove', preventScroll, { passive: false });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'PageUp' || e.key === 'PageDown' || e.key === 'Home' || e.key === 'End') {
-        e.preventDefault();
-      }
-    });
-  }
-
-  _restoreBackgroundScroll() {
-    if (this._scrollHandler) {
-      document.removeEventListener('wheel', this._scrollHandler);
-      document.removeEventListener('touchmove', this._scrollHandler);
-      this._scrollHandler = null;
-    }
   }
 
   // Returns a sorted list of all available filaments from every AMS (by AMS index, then tray slot), ignoring empty slots
@@ -879,6 +851,225 @@ export class PrintHistoryPopup extends LitElement {
       file.filename.toLowerCase().includes(this._searchQuery.toLowerCase())
     );
 
+    const renderPrintHistoryGrid = html`
+      <div class="print-history-controls">
+        <div class="print-history-filters">
+          <select class="printer-filter" @change=${(e) => { this._selectedPrinter = e.target.value; this._refreshFiles(); }}>
+            <option value="all">All Printers</option>
+            ${printerOptions.map(printer => html`
+              <option value="${printer.serial}" ?selected=${this._selectedPrinter === printer.serial}>
+                ${printer.name}
+              </option>
+            `)}
+          </select>
+          <input
+            type="text"
+            class="print-history-search"
+            placeholder="Search by filename..."
+            .value=${this._searchQuery}
+            @input=${(e: any) => { this._searchQuery = e.target.value; }}
+          />
+        </div>
+        <button class="print-history-btn secondary" @click=${this._clearCache}>
+          Clear Cache
+        </button>
+      </div>
+      ${this._error ? html`
+        <div class="print-history-error">${this._error}</div>
+      ` : nothing}
+      ${this._loading ? html`
+        <div class="print-history-loading">Loading files...</div>
+      ` : filteredFiles.length === 0 ? html`
+        <div class="print-history-empty">
+          <div class="print-history-empty-icon">📁</div>
+          <div>No cached files found</div>
+          <div class="print-history-empty-subtitle">
+            Enable file cache in your Bambu Lab integration settings
+          </div>
+        </div>
+      ` : html`
+        <div class="print-history-grid">
+          ${filteredFiles.map(file => html`
+            <div class="print-history-card">
+                <div class="print-history-thumbnail">
+                  ${(() => {
+                    const cacheKey = file.thumbnail_path ?? "";
+                    const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
+                    if (thumbnailUrl) {
+                        return html`<img src="${thumbnailUrl}" 
+                                        alt="${file.filename}" 
+                                        @error=${(e) => e.target.style.display = 'none'}>`;
+                    } else {
+                        this._getThumbnailUrl(file); // Start loading
+                        return html`<div class="print-history-placeholder">
+                        ${this._getFileIcon(file.type)}
+                        </div>`;
+                    }
+                  })()}
+              </div>
+              <div class="print-history-info">
+                <div class="print-history-name">${file.filename}</div>
+                <div class="print-history-meta">
+                  ${file.size_human} • ${this._formatDate(file.modified)}
+                  ${file.printer_name ? html`<br><small>${file.printer_name}</small>` : nothing}
+                </div>
+                <button class="print-history-print-btn" @click=${() => this._showPrintDialog(file)}>
+                  <ha-icon icon="mdi:printer-3d"></ha-icon>
+                  Print Again
+                </button>
+              </div>
+            </div>
+          `)}
+        </div>
+      `}`;
+
+    const renderPrintSettings = html`
+      ${this._showPrintSettings ? html`
+        <div class="print-settings-overlay" @click=${this._hidePrintDialog}>
+          <div class="print-settings-popup" @click=${(e) => e.stopPropagation()}>
+            <div class="print-settings-header">
+              <div class="print-settings-title">Print Settings</div>
+              <button class="print-settings-close" @click=${this._hidePrintDialog}>
+                <ha-icon icon="mdi:close"></ha-icon>
+              </button>
+            </div>
+            <div class="print-settings-content">
+              <!-- Cover image for the selected file -->
+              ${(() => {
+                if (this._selectedFile) {
+                  const cacheKey = this._selectedFile?.thumbnail_path ?? "";
+                  const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
+                  if (thumbnailUrl) {
+                    return html`<div style="text-align:center;margin-bottom:16px;"><img src="${thumbnailUrl}" alt="${this._selectedFile.filename}" style="max-width:200px;max-height:200px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);" /></div>`;
+                  }
+                }
+                return nothing;
+              })()}
+              <div class="print-settings-file">
+                <strong>File:</strong> ${this._selectedFile?.filename}
+                ${this._selectedFile?.printer_name ? html`<br><small>Printer: ${this._selectedFile.printer_name}</small>` : nothing}
+                ${(() => {
+                  // UX warning for incompatible or not-exact-match printer model
+                  if (this._selectedFile) {
+                    const fileModel = this._selectedFile.printer_model;
+                    const currentModel = this._getCurrentPrinterModel();
+                    const eqSet = ["P1P", "P1S", "X1C", "X1E"];
+                    const normFile = (fileModel || '').trim().toUpperCase();
+                    const normCurrent = (currentModel || '').trim().toUpperCase();
+                    if (fileModel && currentModel) {
+                      if (!this._areModelsCompatible(fileModel, currentModel)) {
+                        return html`<div style="color: var(--error-color, #f44336); margin-top: 8px; font-weight: bold;">This print is incompatible with the selected printer model (${fileModel} vs ${currentModel}).</div>`;
+                      } else if (
+                        eqSet.includes(normFile) && eqSet.includes(normCurrent) && normFile !== normCurrent
+                      ) {
+                        return html`<div style="color: #ff6f00; margin-top: 8px; font-weight: normal;">Warning: The file was created for a different printer model (${fileModel} vs ${currentModel}). Printing is allowed, but compatibility is not guaranteed.</div>`;
+                      }
+                    }
+                  }
+                  return nothing;
+                })()}
+              </div>
+              
+              <div class="print-settings-group">
+                <label class="print-settings-label">
+                  <span>Plate Number:</span>
+                  <input type="number" 
+                        min="1" 
+                        max="4" 
+                        value=${this._printSettings.plate}
+                        @change=${(e) => this._updatePrintSetting('plate', parseInt(e.target.value))}>
+                </label>
+              </div>
+
+              <div class="print-settings-group">
+                <label class="print-settings-checkbox">
+                  <input type="checkbox" 
+                        ?checked=${this._printSettings.timelapse}
+                        @change=${(e) => this._updatePrintSetting('timelapse', e.target.checked)}>
+                  <span>Timelapse</span>
+                </label>
+              </div>
+
+              <div class="print-settings-group">
+                <label class="print-settings-checkbox">
+                  <input type="checkbox" 
+                        ?checked=${this._printSettings.bed_leveling}
+                        @change=${(e) => this._updatePrintSetting('bed_leveling', e.target.checked)}>
+                  <span>Bed Leveling</span>
+                </label>
+              </div>
+
+              <div class="print-settings-group">
+                <label class="print-settings-checkbox">
+                  <input type="checkbox" 
+                        ?checked=${this._printSettings.flow_cali}
+                        @change=${(e) => this._updatePrintSetting('flow_cali', e.target.checked)}>
+                  <span>Flow Calibration</span>
+                </label>
+              </div>
+
+              <div class="print-settings-group">
+                <label class="print-settings-checkbox">
+                  <input type="checkbox" 
+                        ?checked=${this._printSettings.use_ams}
+                        @change=${(e) => this._updatePrintSetting('use_ams', e.target.checked)}>
+                  <span>Use AMS</span>
+                </label>
+              </div>
+
+              ${this._sliceInfoLoading ? html`<div>Loading filament info...</div>` : nothing}
+              ${this._sliceInfoError ? html`<div style="color:red;">${this._sliceInfoError}</div>` : nothing}
+
+              ${this._printSettings.use_ams && this._sliceInfo && this._sliceInfo.length > 0 ? html`
+                <div class="print-settings-group">
+                  ${this.renderFilamentComboBoxes()}
+                </div>
+              ` : nothing}
+
+              ${this._printSettings.use_ams
+                ? nothing
+                : html`
+                    <div class="print-settings-group">
+                      <strong>Available External Spool Filaments:</strong>
+                      <ul>
+                        ${this.getExternalSpoolFilaments().map(fil => html`
+                          <li>
+                            External Spool ${fil.extIndex + 1}: 
+                            <span style="display:inline-block;width:1em;height:1em;background:${fil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
+                            ${fil.type || ''} ${fil.name || ''} (${fil.filament_id ?? 'N/A'})
+                          </li>
+                        `)}
+                      </ul>
+                    </div>
+                  `
+                }
+
+            </div>
+
+            <div class="print-settings-actions">
+              <button class="print-settings-btn secondary" @click=${this._hidePrintDialog}>
+                Cancel
+              </button>
+              <button class="print-settings-btn primary" 
+                      @click=${this._startPrint}
+                      ?disabled=${this._printLoading || this._uploadingFile || !this._isAmsMappingValid() || (() => {
+                        if (this._selectedFile) {
+                          const fileModel = this._selectedFile.printer_model;
+                          const currentModel = this._getCurrentPrinterModel();
+                          if (fileModel && currentModel && !this._areModelsCompatible(fileModel, currentModel)) {
+                            return true;
+                          }
+                        }
+                        return false;
+                      })()}>
+                ${this._uploadingFile ? `Uploading file... ${this._uploadProgress}%` : (this._printLoading ? 'Starting Print...' : 'Start Print')}
+              </button>
+            </div>
+          </div>
+        </div>
+      ` : nothing}
+      `
+
     // Timelapse Tab
     const renderTimelapseGrid = html`
       ${this._timelapseError ? html`<div class="print-history-error">${this._timelapseError}</div>` : nothing}
@@ -946,6 +1137,7 @@ export class PrintHistoryPopup extends LitElement {
 
     return html`
       <div class="print-history-overlay" @click=${this.hide}>
+        ${renderPrintSettings}
         <div class="print-history-popup" @click=${(e) => e.stopPropagation()}>
           <div class="print-history-header">
             ${renderTabs}
@@ -954,220 +1146,7 @@ export class PrintHistoryPopup extends LitElement {
             </button>
           </div>
           ${this._activeTab === 0 ? html`
-            <div class="print-history-controls">
-              <div class="print-history-filters">
-                <select class="printer-filter" @change=${(e) => { this._selectedPrinter = e.target.value; this._refreshFiles(); }}>
-                  <option value="all">All Printers</option>
-                  ${printerOptions.map(printer => html`
-                    <option value="${printer.serial}" ?selected=${this._selectedPrinter === printer.serial}>
-                      ${printer.name}
-                    </option>
-                  `)}
-                </select>
-                <input
-                  type="text"
-                  class="print-history-search"
-                  placeholder="Search by filename..."
-                  .value=${this._searchQuery}
-                  @input=${(e: any) => { this._searchQuery = e.target.value; }}
-                />
-              </div>
-              <button class="print-history-btn secondary" @click=${this._clearCache}>
-                Clear Cache
-              </button>
-            </div>
-            ${this._error ? html`
-              <div class="print-history-error">${this._error}</div>
-            ` : nothing}
-            ${this._loading ? html`
-              <div class="print-history-loading">Loading files...</div>
-            ` : filteredFiles.length === 0 ? html`
-              <div class="print-history-empty">
-                <div class="print-history-empty-icon">📁</div>
-                <div>No cached files found</div>
-                <div class="print-history-empty-subtitle">
-                  Enable file cache in your Bambu Lab integration settings
-                </div>
-              </div>
-            ` : html`
-              <div class="print-history-grid">
-                ${filteredFiles.map(file => html`
-                  <div class="print-history-card">
-                      <div class="print-history-thumbnail">
-                        ${(() => {
-                          const cacheKey = file.thumbnail_path ?? "";
-                          const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
-                          if (thumbnailUrl) {
-                              return html`<img src="${thumbnailUrl}" 
-                                              alt="${file.filename}" 
-                                              @error=${(e) => e.target.style.display = 'none'}>`;
-                          } else {
-                              this._getThumbnailUrl(file); // Start loading
-                              return html`<div class="print-history-placeholder">
-                              ${this._getFileIcon(file.type)}
-                              </div>`;
-                          }
-                        })()}
-                    </div>
-                    <div class="print-history-info">
-                      <div class="print-history-name">${file.filename}</div>
-                      <div class="print-history-meta">
-                        ${file.size_human} • ${this._formatDate(file.modified)}
-                        ${file.printer_name ? html`<br><small>${file.printer_name}</small>` : nothing}
-                      </div>
-                      <button class="print-history-print-btn" @click=${() => this._showPrintDialog(file)}>
-                        <ha-icon icon="mdi:printer-3d"></ha-icon>
-                        Print Again
-                      </button>
-                    </div>
-                  </div>
-                `)}
-              </div>
-            `}
-            ${this._showPrintSettings ? html`
-              <div class="print-settings-overlay" @click=${this._hidePrintDialog}>
-                <div class="print-settings-popup" @click=${(e) => e.stopPropagation()}>
-                  <div class="print-settings-header">
-                    <div class="print-settings-title">Print Settings</div>
-                    <button class="print-settings-close" @click=${this._hidePrintDialog}>
-                      <ha-icon icon="mdi:close"></ha-icon>
-                    </button>
-                  </div>
-                  <div class="print-settings-content">
-                    <!-- Cover image for the selected file -->
-                    ${(() => {
-                      if (this._selectedFile) {
-                        const cacheKey = this._selectedFile?.thumbnail_path ?? "";
-                        const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
-                        if (thumbnailUrl) {
-                          return html`<div style="text-align:center;margin-bottom:16px;"><img src="${thumbnailUrl}" alt="${this._selectedFile.filename}" style="max-width:200px;max-height:200px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);" /></div>`;
-                        }
-                      }
-                      return nothing;
-                    })()}
-                    <div class="print-settings-file">
-                      <strong>File:</strong> ${this._selectedFile?.filename}
-                      ${this._selectedFile?.printer_name ? html`<br><small>Printer: ${this._selectedFile.printer_name}</small>` : nothing}
-                      ${(() => {
-                        // UX warning for incompatible or not-exact-match printer model
-                        if (this._selectedFile) {
-                          const fileModel = this._selectedFile.printer_model;
-                          const currentModel = this._getCurrentPrinterModel();
-                          const eqSet = ["P1P", "P1S", "X1C", "X1E"];
-                          const normFile = (fileModel || '').trim().toUpperCase();
-                          const normCurrent = (currentModel || '').trim().toUpperCase();
-                          if (fileModel && currentModel) {
-                            if (!this._areModelsCompatible(fileModel, currentModel)) {
-                              return html`<div style="color: var(--error-color, #f44336); margin-top: 8px; font-weight: bold;">This print is incompatible with the selected printer model (${fileModel} vs ${currentModel}).</div>`;
-                            } else if (
-                              eqSet.includes(normFile) && eqSet.includes(normCurrent) && normFile !== normCurrent
-                            ) {
-                              return html`<div style="color: #ff6f00; margin-top: 8px; font-weight: normal;">Warning: The file was created for a different printer model (${fileModel} vs ${currentModel}). Printing is allowed, but compatibility is not guaranteed.</div>`;
-                            }
-                          }
-                        }
-                        return nothing;
-                      })()}
-                    </div>
-                    
-                    <div class="print-settings-group">
-                      <label class="print-settings-label">
-                        <span>Plate Number:</span>
-                        <input type="number" 
-                               min="1" 
-                               max="4" 
-                               value=${this._printSettings.plate}
-                               @change=${(e) => this._updatePrintSetting('plate', parseInt(e.target.value))}>
-                      </label>
-                    </div>
-
-                    <div class="print-settings-group">
-                      <label class="print-settings-checkbox">
-                        <input type="checkbox" 
-                               ?checked=${this._printSettings.timelapse}
-                               @change=${(e) => this._updatePrintSetting('timelapse', e.target.checked)}>
-                        <span>Timelapse</span>
-                      </label>
-                    </div>
-
-                    <div class="print-settings-group">
-                      <label class="print-settings-checkbox">
-                        <input type="checkbox" 
-                               ?checked=${this._printSettings.bed_leveling}
-                               @change=${(e) => this._updatePrintSetting('bed_leveling', e.target.checked)}>
-                        <span>Bed Leveling</span>
-                      </label>
-                    </div>
-
-                    <div class="print-settings-group">
-                      <label class="print-settings-checkbox">
-                        <input type="checkbox" 
-                               ?checked=${this._printSettings.flow_cali}
-                               @change=${(e) => this._updatePrintSetting('flow_cali', e.target.checked)}>
-                        <span>Flow Calibration</span>
-                      </label>
-                    </div>
-
-                    <div class="print-settings-group">
-                      <label class="print-settings-checkbox">
-                        <input type="checkbox" 
-                               ?checked=${this._printSettings.use_ams}
-                               @change=${(e) => this._updatePrintSetting('use_ams', e.target.checked)}>
-                        <span>Use AMS</span>
-                      </label>
-                    </div>
-
-                    ${this._sliceInfoLoading ? html`<div>Loading filament info...</div>` : nothing}
-                    ${this._sliceInfoError ? html`<div style="color:red;">${this._sliceInfoError}</div>` : nothing}
-
-                    ${this._printSettings.use_ams && this._sliceInfo && this._sliceInfo.length > 0 ? html`
-                      <div class="print-settings-group">
-                        ${this.renderFilamentComboBoxes()}
-                      </div>
-                    ` : nothing}
-
-                    ${this._printSettings.use_ams
-                      ? nothing
-                      : html`
-                          <div class="print-settings-group">
-                            <strong>Available External Spool Filaments:</strong>
-                            <ul>
-                              ${this.getExternalSpoolFilaments().map(fil => html`
-                                <li>
-                                  External Spool ${fil.extIndex + 1}: 
-                                  <span style="display:inline-block;width:1em;height:1em;background:${fil.color};border-radius:50%;vertical-align:middle;margin-right:4px;"></span>
-                                  ${fil.type || ''} ${fil.name || ''} (${fil.filament_id ?? 'N/A'})
-                                </li>
-                              `)}
-                            </ul>
-                          </div>
-                        `
-                      }
-
-                  </div>
-
-                  <div class="print-settings-actions">
-                    <button class="print-settings-btn secondary" @click=${this._hidePrintDialog}>
-                      Cancel
-                    </button>
-                    <button class="print-settings-btn primary" 
-                            @click=${this._startPrint}
-                            ?disabled=${this._printLoading || this._uploadingFile || !this._isAmsMappingValid() || (() => {
-                              if (this._selectedFile) {
-                                const fileModel = this._selectedFile.printer_model;
-                                const currentModel = this._getCurrentPrinterModel();
-                                if (fileModel && currentModel && !this._areModelsCompatible(fileModel, currentModel)) {
-                                  return true;
-                                }
-                              }
-                              return false;
-                            })()}>
-                      ${this._uploadingFile ? `Uploading file... ${this._uploadProgress}%` : (this._printLoading ? 'Starting Print...' : 'Start Print')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ` : nothing}
+            ${renderPrintHistoryGrid}
           ` : html`
             <div class="print-history-controls">
               <div class="print-history-filters">
