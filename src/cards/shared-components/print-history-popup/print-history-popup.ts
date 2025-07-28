@@ -72,8 +72,10 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _timelapseError: string | null = null;
   @state() private _openTimelapseVideo: string | null = null;
   @state() private _selectedPrinter: string = "all";
-  @state() private _allFiles: FileCacheFile[] = []; // Store original unfiltered files
-  @state() private _allTimelapseFiles: FileCacheFile[] = []; // Store original unfiltered timelapse files
+  @state() private _allFiles: FileCacheFile[] = [];
+  @state() private _allFilesSizeBytes: number = 0;
+  @state() private _allTimelapseFiles: FileCacheFile[] = [];
+  @state() private _allTimelapseFilesSizeBytes: number = 0;
   @state() private _uploadingFile: boolean = false;
   @state() private _uploadProgress: number = 0;
 
@@ -135,10 +137,22 @@ export class PrintHistoryPopup extends LitElement {
     this.requestUpdate();
   }
 
+  #formatBytesRounded(bytes: number): string {
+    if (bytes === 0) return "None";
+  
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const value = Math.round(bytes / Math.pow(k, i));
+  
+    return `${value} ${sizes[i]}`;
+  }
+
   async _refreshFiles() {
     this._loading = true;
     this._error = null;
-    this._thumbnailUrls.clear(); // Clear thumbnail cache
+    this._thumbnailUrls.clear();
     this.requestUpdate();
 
     try {
@@ -162,6 +176,7 @@ export class PrintHistoryPopup extends LitElement {
       if (result && result.files) {
         // Store all files unfiltered
         this._allFiles = result.files;
+        this._allFilesSizeBytes = result.total_size_bytes;
         // Filter by selected printer if not "all"
         let filteredFiles = result.files;
         if (this._selectedPrinter !== "all") {
@@ -177,28 +192,6 @@ export class PrintHistoryPopup extends LitElement {
       this.requestUpdate();
     } finally {
       this._loading = false;
-      this.requestUpdate();
-    }
-  }
-
-  async _clearCache() {
-    if (!confirm('Are you sure you want to clear the file cache?')) {
-      return;
-    }
-
-    try {
-      console.log('[FileCachePopup] _clearCache() - calling service');
-      //await this._hass.callService('bambu_lab', 'clear_file_cache', {
-      //  entity_id: this.entity_id,
-      //  file_type: ''
-      //});
-      
-      console.log('[FileCachePopup] _clearCache() - service call successful, refreshing files');
-      // Refresh the file list
-      await this._refreshFiles();
-    } catch (error) {
-      console.error('[FileCachePopup] _clearCache() - error:', error);
-      this._error = error instanceof Error ? error.message : String(error);
       this.requestUpdate();
     }
   }
@@ -223,6 +216,7 @@ export class PrintHistoryPopup extends LitElement {
       if (result && result.videos) {
         // Store all timelapse files unfiltered
         this._allTimelapseFiles = result.videos;
+        this._allTimelapseFilesSizeBytes = result.total_size_bytes;
         // Filter by selected printer if not "all"
         let filteredFiles = result.videos;
         if (this._selectedPrinter !== "all") {
@@ -878,9 +872,9 @@ export class PrintHistoryPopup extends LitElement {
             @input=${(e: any) => { this._searchQuery = e.target.value; }}
           />
         </div>
-        <button class="print-history-btn secondary" @click=${this._clearCache}>
-          Clear Cache
-        </button>
+        <div>
+          Cache size: ${this.#formatBytesRounded(this._allFilesSizeBytes)}
+        </div>
       </div>
       ${this._error ? html`
         <div class="print-history-error">${this._error}</div>
@@ -1090,6 +1084,9 @@ export class PrintHistoryPopup extends LitElement {
               </option>
             `)}
           </select>
+        </div>
+        <div class="print-history-cache-size">
+          Cache size: ${this.#formatBytesRounded(this._allTimelapseFilesSizeBytes)}
         </div>
       </div>
       ${this._timelapseError ? html`<div class="print-history-error">${this._timelapseError}</div>` : nothing}

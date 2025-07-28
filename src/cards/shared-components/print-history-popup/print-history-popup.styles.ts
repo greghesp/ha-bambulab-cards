@@ -33,6 +33,7 @@ export default css`
   .print-history-header,
   .print-history-controls {
     flex-shrink: 0;
+    align-items: center;
   }
 
   .print-history-header {
