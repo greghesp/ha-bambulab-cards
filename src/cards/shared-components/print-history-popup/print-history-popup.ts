@@ -100,17 +100,11 @@ export class PrintHistoryPopup extends LitElement {
       this._unsubscribeUploadProgress = null;
     }
 
-    // Set up new subscription if hass is available
-    if (this._hass && this._hass.connection) {
-      const unsubscribe = await this._hass.connection.subscribeEvents(
-        (event) => this._onUploadProgress(event),
-        'bambu_upload_progress'
-      );
-      
-      // Verify the subscription was successful
-      this._unsubscribeUploadProgress = unsubscribe;
-      console.log('Upload progress subscription set up successfully');
-    }
+    // Set up new subscription
+    this._unsubscribeUploadProgress = await this._hass.connection.subscribeEvents(
+      (event) => this._onUploadProgress(event),
+      'bambu_upload_progress'
+    );
   }
 
   disconnectedCallback() {
