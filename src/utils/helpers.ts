@@ -298,7 +298,6 @@ export function isEntityStateUnknown(hass, entity: Entity): boolean {
 
 export function getImageUrl(hass, entity: Entity): string {
   if (isEntityUnavailable(hass, entity)) {
-    console.log("Image unavailable");
     return "";
   } else {
     const imageEntityId = entity.entity_id;

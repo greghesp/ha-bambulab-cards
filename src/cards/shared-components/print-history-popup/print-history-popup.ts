@@ -81,7 +81,6 @@ export class PrintHistoryPopup extends LitElement {
 
   // Add a private property to track the last logged AMS mapping
   private _lastLoggedAmsMapping: number[] = [];
-  private _lastLoggedAmsMappingValid: { arr: number[]; ids: number[]; valid: boolean } | null = null;
 
   private _unsubscribeUploadProgress: (() => void) | null = null;
 
@@ -257,24 +256,7 @@ export class PrintHistoryPopup extends LitElement {
   private _autoSelectAmsMapping() {
     const amsFilaments = this.getAvailableAMSFilaments();
     if (!this._sliceInfo) return;
-    const getGlobalAMSIndex = (fil: any) => {
-      const amsDevices = helpers.getAttachedDeviceIds(this._hass, this.device_id)
-        .filter(amsId => {
-          const device = this._hass.devices[amsId];
-          return device && device.model && device.model.toLowerCase().includes('ams');
-        })
-        .map(amsId => this._hass.devices[amsId]);
-      const amsModel = fil.amsId && fil.amsId in this._hass.devices ? this._hass.devices[fil.amsId].model.toLowerCase() : '';
-      if (amsModel.includes('ht')) {
-        const amsHTDevices = amsDevices.filter((d: any) => d.model.toLowerCase().includes('ht'));
-        const amsHTIndex = amsHTDevices.findIndex((d: any) => d.id === fil.amsId);
-        const regularAMSCount = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).length;
-        return regularAMSCount * 4 + amsHTIndex;
-      } else {
-        const amsIndex = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).findIndex((d: any) => d.id === fil.amsId);
-        return amsIndex * 4 + fil.trayIndex;
-      }
-    };
+
     this._selectedAmsFilament = this._sliceInfo.map(filament => {
       let bestIdx = 0;
       let bestScore = -1;
@@ -292,7 +274,7 @@ export class PrintHistoryPopup extends LitElement {
           bestIdx = i;
         }
       });
-      return amsFilaments[bestIdx] ? getGlobalAMSIndex(amsFilaments[bestIdx]) : null;
+      return amsFilaments[bestIdx] ? amsFilaments[bestIdx].globalIndex : null;
     });
   }
 
@@ -389,6 +371,10 @@ export class PrintHistoryPopup extends LitElement {
         this.requestUpdate();
         return;
       }
+
+      // Update the AMS mapping. Take the list and remove all the -1 entries.
+      this._printSettings.ams_mapping = this._getAmsMappingArray().join(",")
+
       // Now proceed to print
       await this._hass.callService(
         'bambu_lab',
@@ -478,6 +464,14 @@ export class PrintHistoryPopup extends LitElement {
     return formatted;
   }
 
+  // Returns a global index for an AMS tray
+  getGlobalAMSSlotIndex(amsId, trayIndex) {
+    if (amsId >= 128) {
+      return amsId;
+    }
+    return amsId * 4 + trayIndex;
+  }
+
   // Returns a sorted list of all available filaments from every AMS (by AMS index, then tray slot), ignoring empty slots
   getAvailableAMSFilaments() {
     if (!this._hass || !this.device_id) return [];
@@ -497,12 +491,13 @@ export class PrintHistoryPopup extends LitElement {
           const state = this._hass.states[entity.entity_id];
           if (state && !state.attributes.empty) {
             allFilaments.push({
-              amsIndex,
-              trayIndex,
-              amsId,
-              tray,
-              entity,
-              state,
+              amsIndex: amsIndex,
+              trayIndex: trayIndex,
+              globalIndex: this.getGlobalAMSSlotIndex(amsIndex, trayIndex),
+              amsId: amsId,
+              tray: tray,
+              entity: entity,
+              state: state,
               color: state.attributes.color,
               type: state.attributes.type,
               name: state.attributes.name,
@@ -592,19 +587,6 @@ export class PrintHistoryPopup extends LitElement {
       })
       .map(amsId => this._hass.devices[amsId]);
 
-    const getGlobalAMSIndex = (fil: any) => {
-      const amsModel = fil.amsId && fil.amsId in this._hass.devices ? this._hass.devices[fil.amsId].model.toLowerCase() : '';
-      if (amsModel.includes('ht')) {
-        const amsHTDevices = amsDevices.filter((d: any) => d.model.toLowerCase().includes('ht'));
-        const amsHTIndex = amsHTDevices.findIndex((d: any) => d.id === fil.amsId);
-        const regularAMSCount = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).length;
-        return regularAMSCount * 4 + amsHTIndex;
-      } else {
-        const amsIndex = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).findIndex((d: any) => d.id === fil.amsId);
-        return amsIndex * 4 + fil.trayIndex;
-      }
-    };
-
     // Ensure _selectedAmsFilament is initialized to global AMS indices
     if (this._selectedAmsFilament.length !== this._sliceInfo.length) {
       this._selectedAmsFilament = Array(this._sliceInfo.length).fill(null);
@@ -617,10 +599,8 @@ export class PrintHistoryPopup extends LitElement {
       // Find the selected AMS filament by global index
       let selectedGlobalIdx = this._selectedAmsFilament[idx];
       let selectedIdx = 0;
-      if (
-        selectedGlobalIdx === null ||
-        amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalIdx) === -1
-      ) {
+      if (selectedGlobalIdx === null ||
+          amsFilaments.findIndex(fil => fil.globalIndex === selectedGlobalIdx) === -1) {
         // Prefer id, then type, then color
         const scored = amsFilaments.map((amsFil, i) => {
           let score = 0;
@@ -638,13 +618,13 @@ export class PrintHistoryPopup extends LitElement {
         if (scored[0].score > 0) {
           selectedIdx = scored[0].i;
         }
-        selectedGlobalIdx = getGlobalAMSIndex(amsFilaments[selectedIdx]);
-        this._selectedAmsFilament[idx] = selectedGlobalIdx;
+        this._selectedAmsFilament[idx] = amsFilaments[selectedIdx].globalIndex;;
       } else {
         // Use the stored global index
-        const foundIdx = amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalIdx);
+        const foundIdx = amsFilaments.findIndex(fil => fil.globalIndex === selectedGlobalIdx);
         if (foundIdx !== -1) selectedIdx = foundIdx;
       }
+
       const selected = amsFilaments[selectedIdx];
       const { left, top, width, height } = this._dropdownPosition;
       const dropdownListStyle = `
@@ -661,11 +641,11 @@ export class PrintHistoryPopup extends LitElement {
         <div class="custom-dropdown-portal" style="position:fixed;z-index:3000;left:0;top:0;width:100vw;height:100vh;">
           <div class="custom-dropdown-list" style="${dropdownListStyle}">
             ${amsFilaments.map((amsFil, _) => html`
-              <div class="custom-dropdown-option${getGlobalAMSIndex(amsFil) === this._selectedAmsFilament[idx] ? ' selected' : ''}"
+              <div class="custom-dropdown-option${amsFil.globalIndex === this._selectedAmsFilament[idx] ? ' selected' : ''}"
                    @mousedown=${(e: Event) => {
                      e.stopPropagation();
                      const newSelected = [...this._selectedAmsFilament];
-                     newSelected[idx] = getGlobalAMSIndex(amsFil);
+                     newSelected[idx] = amsFil.globalIndex;
                      this._selectedAmsFilament = newSelected;
                      this._closeDropdown();
                    }}>
@@ -679,33 +659,13 @@ export class PrintHistoryPopup extends LitElement {
       `;
     }
 
-    // Compute the result array for the read-only text box
-    // The array length is the number of non-empty AMS filaments
-    const resultArray = Array(amsFilaments.length).fill(-1);
-    if (this._sliceInfo) {
-      this._sliceInfo.forEach((filament, idx) => {
-        const selectedGlobalAMSIndex = this._selectedAmsFilament[idx];
-        const foundIdx = amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalAMSIndex);
-        if (
-          foundIdx !== -1 &&
-          foundIdx < resultArray.length
-        ) {
-          resultArray[foundIdx] = Number(filament.id);
-        }
-      });
-    }
 
-    // Only log if the mapping changed
-    if (JSON.stringify(resultArray) !== JSON.stringify(this._lastLoggedAmsMapping)) {
-      console.log('AMS mapping array:', resultArray);
-      this._lastLoggedAmsMapping = [...resultArray];
-    }
     return html`
       ${this._sliceInfo.map((filament, idx) => {
         // Only use the stored global index
         let selectedGlobalIdx = this._selectedAmsFilament[idx];
         let selectedIdx = 0;
-        const foundIdx = amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalIdx);
+        const foundIdx = amsFilaments.findIndex(fil => fil.globalIndex === selectedGlobalIdx);
         if (foundIdx !== -1) selectedIdx = foundIdx;
         const selected = amsFilaments[selectedIdx];
         return html`
@@ -734,58 +694,67 @@ export class PrintHistoryPopup extends LitElement {
   }
 
   private _getAmsMappingArray() {
-    const amsFilaments = this.getAvailableAMSFilaments();
-    const amsDevices = helpers.getAttachedDeviceIds(this._hass, this.device_id)
-      .filter(amsId => {
-        const device = this._hass.devices[amsId];
-        return device && device.model && device.model.toLowerCase().includes('ams');
-      })
-      .map(amsId => this._hass.devices[amsId]);
-    const getGlobalAMSIndex = (fil: any) => {
-      const amsModel = this._hass.devices[fil.amsId].model.toLowerCase();
-      if (amsModel.includes('ht')) {
-        const amsHTDevices = amsDevices.filter((d: any) => d.model.toLowerCase().includes('ht'));
-        const amsHTIndex = amsHTDevices.findIndex((d: any) => d.id === fil.amsId);
-        const regularAMSCount = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).length;
-        return regularAMSCount * 4 + amsHTIndex;
-      } else {
-        const amsIndex = amsDevices.filter((d: any) => !d.model.toLowerCase().includes('ht')).findIndex((d: any) => d.id === fil.amsId);
-        return amsIndex * 4 + fil.trayIndex;
-      }
-    };
-    const resultArray = Array(amsFilaments.length).fill(-1);
+
+    // The mapping array is a 1-based array of entries matched to the filament id list in the slice_info.
+    // The filament id is a 1-base id of the set of filaments that were in the slicer when the slicing was done.
+    // It has absolutely no relationship to filaments in the printer AMSs. It might happen to match if you 
+    // religiously synchronize your printer filaments to the slicer (as overwrite) and every AMS slot is populated.
+    // 
+    // As an example, suppose I have a printer with an AMS and slots (0-base) 2 & 3 have filaments in them.
+    // When I synchronize to the slicer I get just two filaments with ids (1-based) of 1 & 2.
+    // Say I slice a print with the second filament (ams index = 0, slot = 3) then the slicer filament id will be 2.
+    //
+    // The ams mapping list maps each filament id (1-base) to the global AMS slot index. So in the above example,
+    // the global AMS slot index will be 3. If I had second AMS and was printing from it's slot 3 then the global
+    // index would be 4 + 3 = 7. I believe but have not yet confirmed that the global index for an AMS HT will just
+    // be it's id and the AMS HT ids start at 128.
+    //
+    // Unused filament ids just have -1 in their corresponding entry. So the ams mapping for that single AMS example
+    // above will be -1,3. Slicer filament id 1 doesn't exist so it gets -1. Slicer filament id 2 is mapped to AMS 0 
+    // slot 3 for global index of 3.
+
+    // So first we fill the way with -1 entries to match the max id seen of the slicer filament id list.
+    
+    // Determine the max id value in the _sliceInfo filament list
+    let maxId = 0;
+    if (this._sliceInfo && this._sliceInfo.length > 0) {
+      maxId = Math.max(...this._sliceInfo.map(filament => Number(filament.id) || 0));
+    }
+
+    // Pre-initialize the result array to have -1 for every entry in the slice info filament list up to the max id.
+    const resultArray = Array(maxId).fill(-1);
+
+    // Now we populate the in-use slicer filaments entries to the AMS global indexes.
     if (this._sliceInfo) {
       this._sliceInfo.forEach((filament, idx) => {
-        const selectedGlobalAMSIndex = this._selectedAmsFilament[idx];
-        const foundIdx = amsFilaments.findIndex(fil => getGlobalAMSIndex(fil) === selectedGlobalAMSIndex);
-        if (foundIdx !== -1 && foundIdx < resultArray.length) {
-          resultArray[foundIdx] = Number(filament.id);
-        }
+        resultArray[filament.id - 1] = this._selectedAmsFilament[idx];
       });
     }
+
     return resultArray;
   }
 
   private _isAmsMappingValid() {
-    const arr = this._getAmsMappingArray();
-    if (!this._sliceInfo || !arr.length) {
+    const ams_mapping = this._getAmsMappingArray();
+    if (!this._sliceInfo || !ams_mapping.length) {
       return false;
     }
-    // Each filament id from the slice info must be present in the AMS mapping array exactly once
+
+    // Each filament id from the slice info must have a global filament index value assigned to it.
+
+    // First get the list of ids
     const ids = this._sliceInfo.map(filament => Number(filament.id));
-    // Filter out -1 entries for duplicate check
-    const filteredArr = arr.filter(v => v !== -1);
-    const arrSet = new Set(filteredArr);
-    if (filteredArr.length !== arrSet.size) {
+
+    // Filter out -1 entries. 
+    const filteredMapping = ams_mapping.filter(v => v !== -1);
+
+    // If the remaining entry list isn't the same size as our id list, one of them isn't assigned.
+    if (filteredMapping.length !== ids.length) {
       return false;
     }
-    // Check that every id is present exactly once
-    const valid = ids.every(id => filteredArr.includes(id)) && filteredArr.length === ids.length;
-    const logObj = { arr, ids, valid };
-    if (!this._lastLoggedAmsMappingValid || JSON.stringify(this._lastLoggedAmsMappingValid) !== JSON.stringify(logObj)) {
-      this._lastLoggedAmsMappingValid = logObj;
-    }
-    return valid;
+
+    // Now check that for every id, there is a value that is not -1
+    return ids.every(id => ams_mapping[id-1] !== -1);
   }
 
   private _onUploadProgress = (event: any) => {
