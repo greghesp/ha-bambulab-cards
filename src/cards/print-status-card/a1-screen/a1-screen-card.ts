@@ -204,7 +204,8 @@ export class A1ScreenCard extends LitElement {
   }
 
   #formattedTemperatureState(key: string) {
-    return html`${Math.floor(this.#state(key))}&degC`;
+    const unit = this._hass.states[this._deviceEntities[key].entity_id].attributes.unit_of_measurement;
+    return html`${Math.floor(this.#state(key))}${unit}`;
   }
 
   #attribute(key: string, attribute: string) {
