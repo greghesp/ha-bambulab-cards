@@ -17,9 +17,9 @@ export default css`
   }
 
   .ha-bambulab-spool.ht {
-    width: calc(50% - 5px);
-    min-width: calc(50% - 5px);
-    max-width: calc(50% - 5px);
+    width: calc(100% - 5px);
+    min-width: calc(100% - 5px);
+    max-width: calc(100% - 5px);
     padding: 0px 2px;
   }
 
@@ -29,14 +29,6 @@ export default css`
     display: flex;
     flex-direction: column;
     padding: 5px 0px;
-  }
-
-  .v-extra-info {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-end;
-    column-gap: 10px;
-    padding: 2% 4%;
   }
 
   .v-wrapper {
@@ -71,49 +63,5 @@ export default css`
     width: 100%;
     gap: 5px;
     box-sizing: border-box;
-  }
-
-  .v-spool-holder {
-    border: 7px solid #808080;
-    background: linear-gradient(#959595, #626262, #959595);
-    border-radius: 0.6em;
-    width: 25%;
-    min-width: 25%;
-    max-width: 25%;
-    display: flex;
-    position: relative;
-    min-height: calc(
-      168px - calc(var(--spool-info-height) / 2) - var(--card-padding-top) - var(
-          --card-padding-bottom
-        )
-    );
-  }
-
-  .v-spool-info-container {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: space-evenly;
-  }
-
-  .v-spool-info-wrapper {
-    width: 20%;
-    margin: 7px;
-  }
-
-  .v-spool-info {
-    background: #444444;
-    padding: 0px 10px;
-    border-radius: 0.5em;
-    white-space: nowrap;
-    color: white;
-    font-size: small;
-    height: var(--spool-info-height);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-wrap: auto;
-    text-align: center;
-    line-height: 1em;
-    overflow: ellipsis;
   }
 `;

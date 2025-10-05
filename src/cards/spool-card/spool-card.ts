@@ -6,7 +6,8 @@ import { css, html, LitElement, nothing } from "lit";
 import { provide } from "@lit/context";
 import "../shared-components/spool/spool";
 import { styles } from "./spool-card.styles";
-import { entitiesContext, hassContext } from "../../utils/context";
+import { hassContext } from "../../utils/context";
+import { showInfoBarContext } from "../../utils/context";
 
 registerCustomCard({
   type: SPOOL_CARD_NAME,
@@ -16,6 +17,11 @@ registerCustomCard({
 
 @customElement(SPOOL_CARD_NAME)
 export class SpoolCard extends LitElement {
+
+  @provide({ context: showInfoBarContext })
+  @state()
+  private _showInfoBar: { [key: string]: any } = {};
+
   @state() private _config?;
   @property() public _spool;
   @property() public states;
@@ -30,10 +36,14 @@ export class SpoolCard extends LitElement {
   private _tray: Number = 1;
 
   public getLayoutOptions() {
+    var rows = this._showType ? 3 : 2;
+    if (this._showInfoBar) {
+      rows++;
+    }
     return {
-      grid_rows: this._showType ? 3 : 2,
+      grid_rows: rows,
       grid_columns: 1,
-      grid_min_rows: this._showType ? 3 : 2,
+      grid_min_rows: rows,
       grid_min_columns: 1,
     };
   }
@@ -58,6 +68,9 @@ export class SpoolCard extends LitElement {
     this._showType = config.show_type;
     this._spoolAnimReflection = (config.spool_anim_reflection == undefined) ? true : config.spool_anim_reflection;
     this._spoolAnimWiggle = (config.spool_anim_wiggle == undefined) ? true : config.spool_anim_wiggle;
+
+    this._showInfoBar["title"] = config.subtitle === "" ? nothing : config.subtitle;
+    this._showInfoBar["active"] = config.show_info_bar ? true : false;
   }
 
   set hass(hass) {
@@ -69,14 +82,21 @@ export class SpoolCard extends LitElement {
   render() {
     return html`
       <ha-card class="card">
-        <ha-bambulab-spool
-          .key="${this._spoolEntityId}"
-          .entity_id="${this._spoolEntityId}"
-          .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
-          .show_type=${this._showType}
-          .spoolAnimReflection=${this._spoolAnimReflection}
-          .spoolAnimWiggle=${this._spoolAnimWiggle}
-        ></ha-bambulab-spool>
+        <div class="v-wrapper">
+          <info-bar></info-bar>
+          <div class="v-ams-container">
+            <div class="v-spools-wrapper">
+              <ha-bambulab-spool
+                .key="${this._spoolEntityId}"
+                .entity_id="${this._spoolEntityId}"
+                .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
+                .show_type=${this._showType}
+                .spoolAnimReflection=${this._spoolAnimReflection}
+                .spoolAnimWiggle=${this._spoolAnimWiggle}
+              ></ha-bambulab-spool>
+            </div>
+          </div>
+        </div>
       </ha-card>
     `;
   }

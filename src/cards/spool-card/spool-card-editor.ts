@@ -19,12 +19,30 @@ export class SpoolCardEditor extends LitElement {
     this._config = config;
   }
 
-  private _schema = [
+  private _schema = memoizeOne((showInfoBar: boolean) => [
     {
       name: "spool",
       label: "Spool",
-      selector: { device: { filter: filterCombinations } },
+      selector: {
+        device: {
+          filter: filterCombinations
+        }
+     },
     },
+    { 
+      name: "show_info_bar",
+      label: "Show Info Bar",
+      selector: {
+        boolean: true
+      }
+    },
+    ...(showInfoBar ? [
+        {
+          name: "subtitle",
+          label: "Subtitle",
+          selector: { text: {} },
+        },
+      ] : ""),
     {
       name: "tray",
       label: "Tray",
@@ -47,15 +65,17 @@ export class SpoolCardEditor extends LitElement {
       selector: { boolean: true },
       default: true,
     },
-  ];
+  ]);
 
   render() {
+    const schema = this._schema(this._config?.show_info_bar);
+    
     return html`
       <div>
         <ha-form
           .hass=${this.hass}
           .data=${this._config}
-          .schema=${this._schema}
+          .schema=${schema}
           .computeLabel=${(s) => s.label}
           @value-changed=${this._valueChange}
         ></ha-form>

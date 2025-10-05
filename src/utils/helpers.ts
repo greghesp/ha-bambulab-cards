@@ -134,8 +134,9 @@ export function getLocalizedEntityState(hass, entity: Entity) {
 }
 
 export function getFormattedEntityState(hass, entity_id) {
-  let formattedString = hass.formatEntityState(hass.states[entity_id]);
-  return formattedString.replace(/\s+/g, ""); // Strip space before temperature symbol to save space.
+  const value = Math.floor(hass.states[entity_id].state);
+  const unit = hass.states[entity_id].attributes.unit_of_measurement;
+  return `${value}${unit}`;
 }
 
 export function getEntityState(hass, entity: Entity) {

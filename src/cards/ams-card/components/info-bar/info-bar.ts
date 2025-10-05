@@ -86,14 +86,14 @@ export class InfoBar extends LitElement {
                 >
               </div>`
             : nothing}
-          ${this._entities.temperature
+          ${this._entities?.temperature
             ? html`
                 <div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.temperature)}">
                   <span>
                     <ha-icon icon="mdi:thermometer" style="color: ${this.getTemperatureColor()}" />
                   </span>
                   <span>
-                    ${this.hass.formatEntityState(this.hass.states[this._entities.temperature.entity_id])}
+                    ${helpers.getFormattedEntityState(this.hass, this._entities.temperature.entity_id)}
                   </span>
                 </div>
               `

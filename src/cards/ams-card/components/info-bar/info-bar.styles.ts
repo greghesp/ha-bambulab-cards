@@ -19,7 +19,7 @@ export default css`
     display: flex;
     flex-wrap: nowrap;
     justify-content: flex-end;
-    column-gap: 10px;
+    column-gap: 5px;
     width: 50%;
   }
 
@@ -29,5 +29,12 @@ export default css`
     border-radius: 0.5em;
     color: white;
     font-size: smaller;
+    display: flex;
+    align-items: center;
+    gap: 0px;
+  }
+
+  .info ha-icon {
+    --mdc-icon-size: 16px;
   }
 `;

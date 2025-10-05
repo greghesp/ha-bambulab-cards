@@ -85,7 +85,7 @@ export class AMS_CARD extends LitElement {
 
     var columns = 4;
     if (this._style !== "graphic" && this._hass.devices[this._deviceId].model === "AMS HT") {
-      columns = 2;
+      columns = 1;
     }
 
     return {

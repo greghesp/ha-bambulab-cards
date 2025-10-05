@@ -20,28 +20,38 @@ export class AmsCardEditor extends LitElement {
   }
 
   private _schema = memoizeOne((showInfoBar: boolean, style: string) => [
-    { name: "show_info_bar", label: "Show Info Bar", selector: { boolean: true } },
-    ...(showInfoBar
-      ? [
-          {
-            name: "subtitle",
-            label: "Subtitle",
-            selector: { text: {} },
-          },
-          {
-            name: "custom_humidity",
-            label: "Custom Humidity Sensor",
-            selector: { entity: { domain: "sensor" }},
-          },
-          {
-            name: "custom_temperature",
-            label: "Custom Temperature Sensor",
-            selector: { entity: { domain: "sensor" } },
-          }
-        ]
-      : ""),
-      ...(style === "vector" ? [
-      { name: "show_type", label: "Show Filament Types", selector: { boolean: true } }, 
+    { 
+      name: "show_info_bar",
+      label: "Show Info Bar",
+      selector: {
+        boolean: true
+      }
+    },
+    ...(showInfoBar ? [
+        {
+          name: "subtitle",
+          label: "Subtitle",
+          selector: { text: {} },
+        },
+        {
+          name: "custom_humidity",
+          label: "Custom Humidity Sensor",
+          selector: { entity: { domain: "sensor" }},
+        },
+        {
+          name: "custom_temperature",
+          label: "Custom Temperature Sensor",
+          selector: { entity: { domain: "sensor" } },
+        }
+      ] : ""),
+    ...(style === "vector" ? [
+      {
+        name: "show_type",
+        label: "Show Filament Types",
+        selector: {
+          boolean: true
+        }
+      }, 
       {
         name: "spool_anim_reflection",
         label: "Active spool animation: Light Reflection",
@@ -54,11 +64,15 @@ export class AmsCardEditor extends LitElement {
         selector: { boolean: true },
         default: true,
       },
-      ] : ""),
-      {
+    ] : ""),
+    {
       name: "ams",
       label: "AMS",
-      selector: { device: { filter: filterCombinations } },
+      selector: {
+        device: {
+          filter: filterCombinations
+        }
+      },
     },
     {
       name: "style",
@@ -73,7 +87,6 @@ export class AmsCardEditor extends LitElement {
       },
     },
   ]); 
-
 
 
   render() {
