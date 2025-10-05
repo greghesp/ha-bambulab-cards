@@ -78,13 +78,21 @@ export class AMS_CARD extends LitElement {
   static styles = styles;
 
   public getLayoutOptions() {
+    var rows = (this._style === "graphic") ? 4 : 3;
+    if (this._showInfoBar) {
+      rows++;
+    }
+
+    var columns = 4;
+    if (this._style !== "graphic" && this._hass.devices[this._deviceId].model === "AMS HT") {
+      columns = 2;
+    }
+
     return {
-      grid_rows:
-        this._style === "graphic" ? (this._showInfoBar ? 5 : 4) : this._showInfoBar ? 4 : 3,
-      grid_columns: 4,
-      grid_min_rows:
-        this._style === "graphic" ? (this._showInfoBar ? 5 : 4) : this._showInfoBar ? 4 : 3,
-      grid_min_columns: 4,
+      grid_rows: rows,
+      grid_columns: columns,
+      grid_min_rows: rows,
+      grid_min_columns: columns,
     };
   }
 

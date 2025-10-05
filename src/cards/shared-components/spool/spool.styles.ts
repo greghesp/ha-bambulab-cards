@@ -164,7 +164,8 @@ export default css`
   }
 
   .ha-bambulab-spool-card-holder {
-    border: 7px solid #808080;
+    border: 7px solid;
+    border-color: #808080;
     background: linear-gradient(#959595, #626262, #959595);
     width: 100%;
     box-sizing: border-box;
@@ -173,6 +174,10 @@ export default css`
     position: relative;
     flex: 1;
     min-height: calc(112px - 7px);
+  }
+
+  .ha-bambulab-spool-card-holder.active {
+    border-color: var(--primary-color);
   }
 
   .ha-bambulab-spool-info-container {

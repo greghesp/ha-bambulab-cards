@@ -9,6 +9,20 @@ export default css`
     --spool-info-height: 36px;
   }
 
+  .ha-bambulab-spool {
+    width: calc(25% - 5px);
+    min-width: calc(25% - 5px);
+    max-width: calc(25% - 5px);
+    padding: 0px 2px;
+  }
+
+  .ha-bambulab-spool.ht {
+    width: calc(50% - 5px);
+    min-width: calc(50% - 5px);
+    max-width: calc(50% - 5px);
+    padding: 0px 2px;
+  }
+
   .ha-bambulab-vector-ams-card {
     align-items: center;
     height: 100%;

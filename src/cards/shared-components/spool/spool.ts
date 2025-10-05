@@ -51,15 +51,14 @@ export class Spool extends LitElement {
   }
 
   render() {
+    const isActive = this.hass.states[this.entity_id]?.attributes.active ||
+                     this.hass.states[this.entity_id]?.attributes.in_use
     return html`
       <ams-popup .entity_id=${this.entity_id} .developer_lan_mode=${this.developer_lan_mode}>
         <div class="ha-bambulab-spool-card-container">
           <div
-            class="ha-bambulab-spool-card-holder"
-            style="border-color: ${this.hass.states[this.entity_id]?.attributes.active ||
-            this.hass.states[this.entity_id]?.attributes.in_use
-              ? this.hass.states[this.entity_id]?.attributes.color
-              : "#808080"}"
+            class="ha-bambulab-spool-card-holder ${isActive ? "active" : ""}
+            style=""
           >
             <div class="ha-bambulab-spool-container">
               <div class="ha-bambulab-spool-side"></div>

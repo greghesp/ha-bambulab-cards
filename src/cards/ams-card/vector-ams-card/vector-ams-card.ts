@@ -18,6 +18,9 @@ export class VectorAmsCard extends LitElement {
   static styles = styles;
 
   render() {
+    const spoolCount = this._entities?.spools?.length ?? 4;
+    const classType = (spoolCount === 1) ? "ha-bambulab-spool ht" : "ha-bambulab-spool";
+
     return html`
       <ha-card class="ha-bambulab-vector-ams-card">
         <div class="v-wrapper">
@@ -27,8 +30,8 @@ export class VectorAmsCard extends LitElement {
               ${this._entities?.spools?.map(
                 (spool: { entity_id: string }) => html`
                   <ha-bambulab-spool
+                    class="${classType}"
                     .key="${spool.entity_id}"
-                    style="width: calc(25% - 5px); min-width: calc(25% - 5px); max-width: calc(25% - 5px); padding: 0px 2px"
                     .entity_id="${spool.entity_id}"
                     .show_type=${this.showType}
                     .spool_anim_reflection=${this.spoolAnimReflection}

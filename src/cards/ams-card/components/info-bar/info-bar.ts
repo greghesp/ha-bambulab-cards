@@ -67,10 +67,14 @@ export class InfoBar extends LitElement {
 
   render() {
     if (!this._infoBar.active) return nothing;
+
+    // If this is an AMS HT model, we need to hide the title (even if enabled) and give 100% width to the info slots
+    const isAmsHtModel = this._entities?.spools?.length === 1;
+
     return html`
       <div class="extra-info">
-        <div class="title">${this._infoBar.title}</div>
-        <div class="info-slots">
+        ${!isAmsHtModel ? html`<div class="title">${this._infoBar.title}</div>` : nothing}
+        <div class="info-slots" style="${isAmsHtModel ? 'width: 100%' : ''}">
           ${this._entities?.humidity
             ? html` <div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.humidity)}">
                 <span>
