@@ -32,7 +32,7 @@ export class GraphicAmsCard extends LitElement {
                         class="spool-badge"
                         style="border: ${this.hass.states[spool.entity_id]?.attributes.active ||
                         this.hass.states[spool.entity_id]?.attributes.in_use
-                          ? `2px solid ${this.hass.states[spool.entity_id]?.attributes.color}`
+                          ? `2px solid var(--primary-color)`
                           : `2px solid rgba(255, 255, 255, 0)`}"
                       >
                         <ha-icon
@@ -47,8 +47,9 @@ export class GraphicAmsCard extends LitElement {
                     <div class="spool-info">
                       <span
                         class="spool-type"
-                        style="border: ${this.hass.states[spool.entity_id]?.attributes.active
-                          ? `2px solid ${this.hass.states[spool.entity_id]?.attributes.color}`
+                        style="border: ${this.hass.states[spool.entity_id]?.attributes.active ||
+                        this.hass.states[spool.entity_id]?.attributes.in_use
+                          ? `2px solid var(--primary-color)`
                           : `2px solid rgba(255, 255, 255, 0)`};"
                         >${this.hass.states[spool.entity_id]?.attributes.type}</span
                       >
