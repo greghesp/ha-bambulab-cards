@@ -79,7 +79,7 @@ export class AMS_CARD extends LitElement {
 
   public getLayoutOptions() {
     var rows = (this._style === "graphic") ? 4 : 3;
-    if (this._showInfoBar) {
+    if (this._showInfoBar.active) {
       rows++;
     }
 
