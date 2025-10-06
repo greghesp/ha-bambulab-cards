@@ -38,7 +38,6 @@ export class SpoolCard extends LitElement {
   public getLayoutOptions() {
     var rows = this._showType ? 3 : 2;
     if (this._showInfoBar.active) {
-      console.log(this._showInfoBar)
       rows++;
     }
     return {
