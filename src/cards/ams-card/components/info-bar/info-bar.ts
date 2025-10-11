@@ -1,5 +1,5 @@
 import * as helpers from "../../../../utils/helpers"
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./info-bar.styles";
 import { consume } from "@lit/context";
@@ -17,6 +17,26 @@ export class InfoBar extends LitElement {
   private _entities;
 
   static styles = styles;
+
+  @state()
+  private _showIcons = true;
+
+  firstUpdated() {
+    this._checkWidth();
+    window.addEventListener("resize", this._checkWidth.bind(this));
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    window.removeEventListener("resize", this._checkWidth.bind(this));
+  }
+
+  private _checkWidth() {
+    const infoSlots = this.renderRoot.querySelector(".extra-info");
+    if (infoSlots) {
+      this._showIcons = infoSlots.clientWidth > 108;
+    }
+  }
 
   getHumidityColor() {
     switch (this.hass.states[this._entities.humidity.entity_id].state) {
@@ -76,27 +96,24 @@ export class InfoBar extends LitElement {
         ${!isAmsHtModel ? html`<div class="title">${this._infoBar.title}</div>` : nothing}
         <div class="info-slots" style="${isAmsHtModel ? 'width: 100%' : ''}">
           ${this._entities?.humidity
-            ? html` <div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.humidity)}">
-                <span>
-                  <ha-icon icon="mdi:water" style="color: ${this.getHumidityColor()}" />
-                </span>
+            ? html`<div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.humidity)}">
+                ${this._showIcons
+                  ? html`<span><ha-icon icon="mdi:water" style="color: ${this.getHumidityColor()}" /></span>`
+                  : nothing}
                 <span>
                   ${this.hass.formatEntityState(this.hass.states[this._entities.humidity.entity_id])}
-                </span
-                >
+                </span>
               </div>`
             : nothing}
           ${this._entities?.temperature
-            ? html`
-                <div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.temperature)}">
-                  <span>
-                    <ha-icon icon="mdi:thermometer" style="color: ${this.getTemperatureColor()}" />
-                  </span>
-                  <span>
-                    ${helpers.getFormattedEntityState(this.hass, this._entities.temperature.entity_id)}
-                  </span>
-                </div>
-              `
+            ? html`<div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.temperature)}">
+                ${this._showIcons
+                  ? html`<span><ha-icon icon="mdi:thermometer" style="color: ${this.getTemperatureColor()}" /></span>`
+                  : nothing}
+                <span>
+                  ${helpers.getFormattedEntityState(this.hass, this._entities.temperature.entity_id)}
+                </span>
+              </div>`
             : nothing}
         </div>
       </div>
