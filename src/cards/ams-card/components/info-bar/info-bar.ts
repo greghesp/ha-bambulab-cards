@@ -98,7 +98,9 @@ export class InfoBar extends LitElement {
           ${this._entities?.humidity
             ? html`<div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.humidity)}">
                 ${this._showIcons
-                  ? html`<span><ha-icon icon="mdi:water" style="color: ${this.getHumidityColor()}" /></span>`
+                  ? html`<span>
+                           <ha-icon icon="mdi:water" style="color: ${this.getHumidityColor()}" />
+                         </span>`
                   : nothing}
                 <span>
                   ${this.hass.formatEntityState(this.hass.states[this._entities.humidity.entity_id])}
@@ -108,7 +110,9 @@ export class InfoBar extends LitElement {
           ${this._entities?.temperature
             ? html`<div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.temperature)}">
                 ${this._showIcons
-                  ? html`<span><ha-icon icon="mdi:thermometer" style="color: ${this.getTemperatureColor()}" /></span>`
+                  ? html`<span>
+                           <ha-icon icon="mdi:thermometer" style="color: ${this.getTemperatureColor()}" />
+                         </span>`
                   : nothing}
                 <span>
                   ${helpers.getFormattedEntityState(this.hass, this._entities.temperature.entity_id)}
