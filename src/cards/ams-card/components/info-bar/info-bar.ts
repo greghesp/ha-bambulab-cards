@@ -21,14 +21,21 @@ export class InfoBar extends LitElement {
   @state()
   private _showIcons = true;
 
+  private _resizeObserver?: ResizeObserver;
+
   firstUpdated() {
+    const infoSlots = this.renderRoot.querySelector(".extra-info")!;
+    this._resizeObserver = new ResizeObserver(() => this._checkWidth());
+    this._resizeObserver.observe(infoSlots);
     this._checkWidth();
-    window.addEventListener("resize", this._checkWidth.bind(this));
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    window.removeEventListener("resize", this._checkWidth.bind(this));
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+      this._resizeObserver = undefined;
+    }
   }
 
   private _checkWidth() {
