@@ -131,3 +131,4 @@ export class InfoBar extends LitElement {
     `;
   }
 }
+
