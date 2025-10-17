@@ -234,3 +234,4 @@ export class AMS_CARD extends LitElement {
     }
   }
 }
+
