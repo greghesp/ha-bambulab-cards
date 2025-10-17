@@ -124,4 +124,3 @@ export class SpoolCard extends LitElement {
     }
   }
 }
-
