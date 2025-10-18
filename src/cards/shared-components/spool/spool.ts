@@ -54,8 +54,6 @@ export class Spool extends LitElement {
   }
 
   updated(changedProps: Map<string, any>) {
-    // When the entity_id changes (parent swapped the entity for this component),
-    // recalculate heights and layers because render may rewrite DOM without reconnecting.
     if (changedProps.has("entity_id")) {
       this.calculateHeights();
       this.updateLayers();
@@ -121,7 +119,6 @@ export class Spool extends LitElement {
   updateLayers() {
     // Query the #string-roll element inside this component's shadow DOM
     const stringRoll = (this.renderRoot as ShadowRoot).getElementById("v-string-roll");
-    // This can also return v-solid-roll elements as the UI changes.
     if (!stringRoll) return;
 
     // Clear previous layers
