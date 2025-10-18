@@ -50,6 +50,18 @@ export default css`
     box-sizing: border-box;
   }
 
+  .v-solid-roll {
+    position: relative;
+    width: 100%; /* Width of the roll */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #3d3d3d;
+    flex-grow: 1;
+    box-sizing: border-box;
+  }
+
   .v-string-layer {
     position: absolute;
     width: 2px; /* Thickness of each vertical string line */
