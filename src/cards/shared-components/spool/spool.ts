@@ -1,5 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
-import { html, LitElement, nothing, PropertyPart } from "lit";
+import { html, LitElement, nothing } from "lit";
 import styles from "./spool.styles";
 import { hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
