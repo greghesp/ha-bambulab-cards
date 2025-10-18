@@ -128,7 +128,6 @@ export class Spool extends LitElement {
     const previousLayers = this.renderRoot.querySelectorAll(".v-string-layer");
     previousLayers.forEach((layer) => layer.remove());
 
-    console.log("Color:", this.hass.states[this.entity_id]?.attributes.color);
     if (this.emptySpool) return; // No layers for solid spool
 
     const stringWidth = 2; // matches .string-layer width in CSS
