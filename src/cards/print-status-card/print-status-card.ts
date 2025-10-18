@@ -177,18 +177,19 @@ export class PrintStatusCard extends EntityProvider {
   };
 
   private P2SEntityUX: { [key: string]: EntityUX | undefined } = {
-    power:          { x: 95, y: 5.5, width: 20,  height: 0 },
-    print_progress: { x: 23, y: 4,   width: 25,  height: 0 },
-    remaining_time: { x: 59, y: 5,   width: 100, height: 0 },
-    chamber_light:  { x: 13, y: 21,  width: 20,  height: 0 },
-    chamber_fan_speed: { x: 86, y: 21,  width: 70,  height: 0, click_target: "chamber_fan" },
-    nozzle_temp:    { x: 50, y: 33,  width: 25,  height: 0, click_target: "target_nozzle_temperature" },
-    chamber_temp:   { x: 86, y: 32,  width: 20,  height: 0 },
-    humidity:       { x: 86, y: 42,  width: 20,  height: 0 },
-    aux_fan_speed:  { x: 13, y: 60,  width: 70,  height: 0, click_target: "aux_fan" },
-    cover_image:    { x: 50, y: 60,  width: 50,  height: 50 },
-    bed_temp:       { x: 50, y: 88,  width: 25,  height: 0, click_target: "target_bed_temperature" },
-    stage:          { x: 50, y: 95,  width: 300, height: 0 },
+    power:             { x: 95.5, y: 10, width: 20,  height: 0 },
+    print_progress:    { x: 29,   y: 6,  width: 25,  height: 0 },
+    remaining_time:    { x: 29,   y: 11, width: 100, height: 0 },
+    chamber_light:     { x: 13,   y: 24, width: 20,  height: 0 },
+    chamber_fan_speed: { x: 86,   y: 24, width: 70,  height: 0, click_target: "chamber_fan" },
+    nozzle_temp:       { x: 50,   y: 31, width: 25,  height: 0, click_target: "target_nozzle_temperature" },
+    chamber_temp:      { x: 86,   y: 33, width: 20,  height: 0 },
+    humidity:          { x: 86,   y: 42, width: 20,  height: 0 },
+    aux_fan_speed:     { x: 13,   y: 60, width: 70,  height: 0, click_target: "aux_fan" },
+    cover_image:       { x: 50,   y: 60, width: 50,  height: 50 },
+    bed_temp:          { x: 50,   y: 88, width: 25,  height: 0, click_target: "target_bed_temperature" },
+    stage:             { x: 50,   y: 95, width: 300, height: 0 },
+    door_open:         { x: 86,   y: 60, width: 20,  height: 0 },
   };
 
   private X1CEntityUX: { [key: string]: EntityUX | undefined } = {
