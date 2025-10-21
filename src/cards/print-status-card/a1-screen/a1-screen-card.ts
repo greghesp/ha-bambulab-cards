@@ -227,8 +227,6 @@ export class A1ScreenCard extends LitElement {
         console.warn(`Unknown duration unit: ${unit}`);
     }
 
-    console.log('Formatting time for seconds:', seconds);
-    console.log(this._hass.states[this._deviceEntities[key].entity_id]);
     const locale = this._hass.locale?.language ?? navigator.language;
     const fmt = new (Intl as any).DurationFormat(locale, { style: "narrow" });
     return fmt.format({
