@@ -203,6 +203,42 @@ export class A1ScreenCard extends LitElement {
     return helpers.getFormattedEntityState(this._hass, this._deviceEntities[key].entity_id);
   }
 
+  #formattedTime(key: string) {
+    const stateObj = this._hass.states[this._deviceEntities[key].entity_id]
+    const value = Number(stateObj.state);
+    const unit = stateObj.attributes.unit_of_measurement;
+
+    let seconds = value;
+
+    switch (unit) {
+      case "s":
+        seconds = value;
+        break;
+      case "min":
+        seconds = value * 60;
+        break;
+      case "h":
+        seconds = value * 3600;
+        break;
+      case "d":
+        seconds = value * 86400;
+        break;
+      default:
+        console.warn(`Unknown duration unit: ${unit}`);
+    }
+
+    console.log('Formatting time for seconds:', seconds);
+    console.log(this._hass.states[this._deviceEntities[key].entity_id]);
+    const locale = this._hass.locale?.language ?? navigator.language;
+    const fmt = new (Intl as any).DurationFormat(locale, { style: "narrow" });
+    return fmt.format({
+      days: Math.floor(seconds / 86400),
+      hours: Math.floor((seconds % 86400) / 3600),
+      minutes: Math.floor((seconds % 3600) / 60),
+      seconds: Math.floor(seconds % 60),
+    });
+  }
+
   #formattedTemperatureState(key: string) {
     const unit = this._hass.states[this._deviceEntities[key].entity_id].attributes.unit_of_measurement;
     return html`${Math.floor(this.#state(key))}${unit}`;
@@ -224,7 +260,7 @@ export class A1ScreenCard extends LitElement {
 
   #getRemainingTime() {
     if (this._hass.states[this._deviceEntities["stage"].entity_id].state == "printing") {
-      return `${this.#formattedState('remaining_time')} remaining`;
+      return `${this.#formattedTime('remaining_time')} remaining`;
     } else {
       return nothing;
     }
