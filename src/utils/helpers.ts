@@ -116,7 +116,10 @@ export function getAllBambuDeviceEntities(hass): { [key: string]: Entity } {
 }
 
 export function isEntityUnavailable(hass, entity: Entity): boolean {
-  return hass.states[entity?.entity_id]?.state == "unavailable";
+  if (!entity.entity_id) {
+    return true;
+  }
+  return hass.states[entity.entity_id].state == "unavailable";
 }
 
 export function getLocalizedEntityState(hass, entity: Entity) {

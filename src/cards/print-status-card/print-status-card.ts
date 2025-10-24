@@ -574,12 +574,10 @@ export class PrintStatusCard extends EntityProvider {
   }
 
   private _handleCoverImageError() {
-    console.log("_handleCoverImageError");
     this.coverImageElement!.style.display = "none";
   }
 
   private _handleCoverImageLoad() {
-    console.log("_handleCoverImageLoad");
     this.coverImageElement!.style.display = "block";
   }
 }
