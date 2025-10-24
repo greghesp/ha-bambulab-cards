@@ -24,6 +24,7 @@ const ENTITIES: string[] = [
   "ftp", // Node red does not have
   "humidity",
   "image|p1p_camera",
+  "mqtt_connection_mode",
   "mqtt_encryption",
   "nozzle_temp",
   "pause",

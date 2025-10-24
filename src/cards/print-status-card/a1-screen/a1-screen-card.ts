@@ -61,6 +61,8 @@ export class A1ScreenCard extends LitElement {
   @query('print-history-popup')
   private fileCachePopup!: HTMLElement;
 
+  @query("#cover-image") coverImageElement: HTMLImageElement | undefined;
+
   @state() private confirmation: ConfirmationState = {
     show: false,
     action: null,
@@ -295,8 +297,16 @@ export class A1ScreenCard extends LitElement {
   }
   
   #isBambuBlockingWrites() {
-    return this._hass.states[this._deviceEntities.mqtt_encryption.entity_id].state == "on" &&
-           this._hass.states[this._deviceEntities.developer_lan_mode.entity_id].state == "off";
+    // Check if mqtt encryption is present and enabled.
+    if (this._hass.states[this._deviceEntities.mqtt_encryption.entity_id].state == "on" &&
+        this._hass.states[this._deviceEntities.developer_lan_mode.entity_id].state == "off") {
+        return true;
+    }
+
+    // TODO - Check if the printer is in hybrid mode and a printer model/version that blocks
+    // writes via local mqtt.
+
+    return false;
   }
 
   #getPrintStatusText() {
@@ -491,8 +501,13 @@ export class A1ScreenCard extends LitElement {
                         </button>
                       `
                     : html`
-                        <img src="${this.processedImage || this.coverImage}" alt="Cover Image" />
-                      `}
+                        <img
+                            id="cover-image"
+                            src="${this.processedImage || this.coverImage}" 
+                            @error="${this._handleCoverImageError}"
+                            @load="${this._handleCoverImageLoad}"
+                            alt="Cover Image" />
+                        `}
                 </div>
                 <div class="ha-bambulab-ssc-status-info">
                   <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
@@ -1074,5 +1089,13 @@ export class A1ScreenCard extends LitElement {
         </button>
       </div>
     `
+  }
+
+  private _handleCoverImageError() {
+    this.coverImageElement!.style.display = "none";
+  }
+
+  private _handleCoverImageLoad() {
+    this.coverImageElement!.style.display = "block";
   }
 }
