@@ -183,10 +183,6 @@ export class SkipObjects extends LitElement {
   }
 
   #initializeCanvas() {
-    if (!this._deviceEntities["ftp"]) {
-      return;
-    }
-
     const confirmationPrompt = this.shadowRoot?.querySelector("confirmation-prompt");
     if (!confirmationPrompt) {
       return;

@@ -501,12 +501,15 @@ export class A1ScreenCard extends LitElement {
                         </button>
                       `
                     : html`
-                        <img
-                            id="cover-image"
-                            src="${this.processedImage || this.coverImage}" 
-                            @error="${this._handleCoverImageError}"
-                            @load="${this._handleCoverImageLoad}"
-                            alt="Cover Image" />
+                        <div class="cover-image-wrapper">
+                          <img
+                              id="cover-image"
+                              src="${this.processedImage || this.coverImage}" 
+                              @error="${this._handleCoverImageError}"
+                              @load="${this._handleCoverImageLoad}"
+                              alt="Cover Image" />
+                          ${this.#renderModelDownloadOverlay()}
+                        </div>
                         `}
                 </div>
                 <div class="ha-bambulab-ssc-status-info">
@@ -1098,4 +1101,27 @@ export class A1ScreenCard extends LitElement {
   private _handleCoverImageLoad() {
     this.coverImageElement!.style.display = "block";
   }
+
+  #renderModelDownloadOverlay() {
+    const key = 'model_download_percentage';
+    const entityRef = this._deviceEntities?.[key];
+    if (!entityRef) return nothing;
+
+    const stateObj = this._hass.states[entityRef.entity_id];
+    if (!stateObj) return nothing;
+
+    const value = Number(stateObj.state);
+    if (Number.isNaN(value)) return nothing;
+
+    if (value >= 100) return nothing;
+
+    // Overlay styled to be centered and above the cover image
+    return html`
+      <div class="model-download-overlay">
+        <div class="model-download-text">
+          ${Math.round(value)}%
+        </div>
+      </div>
+     `;
+   }
 }
