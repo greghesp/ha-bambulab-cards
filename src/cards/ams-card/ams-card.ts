@@ -30,22 +30,6 @@ const ENTITYLIST: string[] = [
   "tray_4",
 ];
 
-interface Sensor {
-  entity_id: string;
-  device_id: string;
-  labels: any[];
-  translation_key: string;
-  platform: string;
-  name: string;
-}
-
-interface Result {
-  humidity: Sensor;
-  temperature: Sensor | null;
-  spools: Sensor[];
-  type: (typeof AMS_MODELS)[number] | null;
-}
-
 @customElement(AMS_CARD_NAME)
 export class AMS_CARD extends LitElement {
   // private property
@@ -84,7 +68,7 @@ export class AMS_CARD extends LitElement {
     }
 
     var columns = 4;
-    if (this._style !== "graphic" && this._hass.devices[this._deviceId].model === "AMS HT") {
+    if (this._hass.devices[this._deviceId].model === "AMS HT") {
       columns = 1;
     }
 
@@ -206,31 +190,5 @@ export class AMS_CARD extends LitElement {
       style: "vector",
       ams: "MOCK",
     };
-  }
-
-  private async getEntity(entity_id) {
-    return await this._hass.callWS({
-      type: "config/entity_registry/get",
-      entity_id: entity_id,
-    });
-  }
-
-  private async getDeviceModel() {
-    if (!this._deviceId) return;
-
-    try {
-      interface Device {
-        id: string;
-        model?: string;
-      }
-
-      const deviceInfo = Object.values(this._hass.devices as Record<string, Device>).find(
-        (device: Device) => device.id === this._deviceId
-      );
-      return deviceInfo?.model;
-    } catch (error) {
-      console.error("Error fetching device info:", error);
-      return null;
-    }
   }
 }

@@ -3,6 +3,8 @@ import { customElement, property } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./graphic-ams-card.styles";
 import AMSImage from "../../../images/ams.png";
+import AMS2Image from "../../../images/ams2.png";
+import AMSHTImage from "../../../images/amsht.png";
 import "../components/info-bar/info-bar";
 import "../../shared-components/ams-popup/ams-popup";
 import { entitiesContext, hassContext } from "../../../utils/context";
@@ -16,17 +18,26 @@ export class GraphicAmsCard extends LitElement {
   private _entities;
 
   static styles = styles;
-
+  
   render() {
+    var image = AMSImage;
+    var isHt = "";
+    if (this._entities.type === "AMS 2 PRO") {
+      image = AMS2Image;
+    } else if (this._entities.type === "AMS HT") {
+      image = AMSHTImage;
+      isHt = "ht"
+    }
+
     return html` <ha-card class="card">
       <div class="v-wrapper">
         <info-bar></info-bar>
         <div class="ams-container">
-          <img src=${AMSImage} alt="" />
+          <img src=${image} alt="" />
             ${this._entities?.spools.map(
               (spool, i) => html`
                 <ams-popup .entity_id=${spool.entity_id}>
-                  <div class="spool slot-${i + 1}">
+                  <div class="spool slot-${i + 1}${isHt}">
                     <div class="spool-info">
                       <span
                         class="spool-badge"

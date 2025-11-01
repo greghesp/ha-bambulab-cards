@@ -79,6 +79,10 @@ export default css`
     z-index: 2;
   }
 
+  .slot-1ht {
+    left: 44%;
+  }
+
   .slot-1 {
     left: 15%;
   }
