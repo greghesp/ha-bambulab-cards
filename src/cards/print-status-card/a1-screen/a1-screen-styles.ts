@@ -730,4 +730,44 @@ export default css`
   .mirrored {
     transform: scaleX(-1);
   }
+
+  /* Model download overlay styles */
+  .cover-image-wrapper {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .model-download-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .model-download-text {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  /* Ensure cover image fits its container without clipping */
+  .cover-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
 `;
