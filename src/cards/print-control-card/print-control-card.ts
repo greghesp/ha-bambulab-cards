@@ -22,7 +22,6 @@ registerCustomCard({
 });
 
 const ENTITYLIST: string[] = [
-  "ftp", // Node red does not have
   "pause",
   "pick_image", // Node red does not have
   "printable_objects",
@@ -176,10 +175,6 @@ export class PrintControlCard extends LitElement {
   }
 
   #initializeCanvas() {
-    if (!this.#entityList["ftp"]) {
-      return;
-    }
-
     const canvas = this.shadowRoot!.getElementById("canvas") as HTMLCanvasElement;
 
     if (this.#visibleContext == null) {
@@ -360,21 +355,19 @@ export class PrintControlCard extends LitElement {
       this.#colorizeCanvas();
     }
 
-    if (this.#entityList["ftp"]) {
-      if (changedProperties.has("_states")) {
-        let newState = this._hass.states[this.#entityList["pick_image"].entity_id].state;
-        if (newState !== this.#pickImageState) {
-          this.#pickImageState = newState;
-          this.#initializeCanvas();
-          this.#populateCheckboxList();
-        }
+    if (changedProperties.has("_states")) {
+      let newState = this._hass.states[this.#entityList["pick_image"].entity_id].state;
+      if (newState !== this.#pickImageState) {
+        this.#pickImageState = newState;
+        this.#initializeCanvas();
+        this.#populateCheckboxList();
+      }
 
-        newState = this._hass.states[this.#entityList["skipped_objects"].entity_id].state;
-        if (newState !== this.#skippedObjectsState) {
-          this.#skippedObjectsState = newState;
-          this.#initializeCanvas();
-          this.#populateCheckboxList();
-        }
+      newState = this._hass.states[this.#entityList["skipped_objects"].entity_id].state;
+      if (newState !== this.#skippedObjectsState) {
+        this.#skippedObjectsState = newState;
+        this.#initializeCanvas();
+        this.#populateCheckboxList();
       }
     }
   }
@@ -610,10 +603,6 @@ export class PrintControlCard extends LitElement {
 
   // Function to populate the list of checkboxes
   #populateCheckboxList() {
-    if (!this.#entityList["ftp"]) {
-      return;
-    }
-
     // Populate the viewmodel
     const list = this._getPrintableObjects();
     if (list == undefined) {

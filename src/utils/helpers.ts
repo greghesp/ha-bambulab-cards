@@ -259,41 +259,30 @@ export function clickButton(hass: any, entity: Entity) {
 }
 
 export function isSkipButtonEnabled(hass, entities) {
-  if (!entities["ftp"]) {
+  const printableObjects = getEntityAttribute(
+    hass,
+    entities["printable_objects"].entity_id,
+    "objects"
+  );
+
+  const countOfPrintableObjects = Object.keys(printableObjects).length;
+
+  const pickImageState = hass.states[entities["pick_image"].entity_id].state;
+  if (
+    pickImageState == undefined ||
+    countOfPrintableObjects < 2 ||
+    countOfPrintableObjects > 64
+  ) {
     return false;
   }
 
-  const ftpState = hass.states[entities["ftp"].entity_id].state;
-
-  // Only show the Skip button when the integration is configured to enable model download off the printer.
-  if (ftpState == "on") {
-    const printableObjects = getEntityAttribute(
-      hass,
-      entities["printable_objects"].entity_id,
-      "objects"
-    );
-
-    const countOfPrintableObjects = Object.keys(printableObjects).length;
-
-    const pickImageState = hass.states[entities["pick_image"].entity_id].state;
-    if (
-      pickImageState == undefined ||
-      countOfPrintableObjects < 2 ||
-      countOfPrintableObjects > 64
-    ) {
-      return false;
-    }
-
-    if (
-      isEntityUnavailable(hass, entities["stop"]) ||
-      isEntityStateUnknown(hass, entities["pick_image"])
-    ) {
-      return false;
-    }
-    return true;
-  } else {
+  if (
+    isEntityUnavailable(hass, entities["stop"]) ||
+    isEntityStateUnknown(hass, entities["pick_image"])
+  ) {
     return false;
   }
+  return true;
 }
 
 export function isEntityStateUnknown(hass, entity: Entity): boolean {

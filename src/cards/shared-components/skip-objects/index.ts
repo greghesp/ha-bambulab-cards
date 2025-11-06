@@ -53,27 +53,25 @@ export class SkipObjects extends LitElement {
   updated(changedProperties) {
     super.updated(changedProperties);
 
-    if (this._deviceEntities["ftp"]) {
-      if (changedProperties.has("_hass")) {
-        let newState = this._hass.states[this._deviceEntities["pick_image"].entity_id].state;
-        if (newState !== this.#pickImageState) {
-          this.#pickImageState = newState;
-          this.#initializeCanvas();
-          this.#populateCheckboxList();
-        }
-
-        newState = this._hass.states[this._deviceEntities["skipped_objects"].entity_id].state;
-        if (newState !== this.#skippedObjectsState) {
-          this.#skippedObjectsState = newState;
-          this.#initializeCanvas();
-          this.#populateCheckboxList();
-        }
+    if (changedProperties.has("_hass")) {
+      let newState = this._hass.states[this._deviceEntities["pick_image"].entity_id].state;
+      if (newState !== this.#pickImageState) {
+        this.#pickImageState = newState;
+        this.#initializeCanvas();
+        this.#populateCheckboxList();
       }
 
-      if (changedProperties.has("hoveredObject") || changedProperties.has("printableObjects")) {
-        this.#colorizeCanvas();
-      }      
+      newState = this._hass.states[this._deviceEntities["skipped_objects"].entity_id].state;
+      if (newState !== this.#skippedObjectsState) {
+        this.#skippedObjectsState = newState;
+        this.#initializeCanvas();
+        this.#populateCheckboxList();
+      }
     }
+
+    if (changedProperties.has("hoveredObject") || changedProperties.has("printableObjects")) {
+      this.#colorizeCanvas();
+    }      
   }
 
   #handleContentReady() {
@@ -81,10 +79,6 @@ export class SkipObjects extends LitElement {
   }
 
   #populateCheckboxList() {
-    if (!this._deviceEntities["ftp"]) {
-      return;
-    }
-
     // Populate the viewmodel
     const list = helpers.getEntityAttribute(
       this._hass,
