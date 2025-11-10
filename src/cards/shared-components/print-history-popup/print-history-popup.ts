@@ -79,9 +79,6 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _uploadingFile: boolean = false;
   @state() private _uploadProgress: number = 0;
 
-  // Add a private property to track the last logged AMS mapping
-  private _lastLoggedAmsMapping: number[] = [];
-
   private _unsubscribeUploadProgress: (() => void) | null = null;
 
   static styles = styles;
@@ -307,6 +304,11 @@ export class PrintHistoryPopup extends LitElement {
         }
         return attrs;
       });
+
+      // Find the plate index
+      const metadata = xml.querySelector("plate > metadata[key='index']")!;
+      this._printSettings.plate = parseInt(metadata.getAttribute("value")!, 10);
+
       this._autoSelectAmsMapping();
     } catch (error) {
       this._sliceInfoError = error instanceof Error ? error.message : String(error);
