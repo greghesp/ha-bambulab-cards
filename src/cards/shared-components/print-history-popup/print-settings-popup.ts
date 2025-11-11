@@ -60,6 +60,7 @@ export class PrintSettingsPopup extends LitElement {
   @state() private _uploadProgress: number = 0;
   @state() private _dropdownOpen: number | null = null;
   @state() private _dropdownPosition: {left: number, top: number, width: number, height: number} | null = null;
+  @state() private _amsAvailable: boolean = true;
 
   static styles = styles;
 
@@ -78,11 +79,8 @@ export class PrintSettingsPopup extends LitElement {
   
   updated(changedProps: Map<string, any>) {
     if (changedProps.has('selected_file')) {
-      const file = this.selected_file;
-      if (file) {
-        this._loadSliceInfo();
-        this.requestUpdate();
-      }
+      this._loadSliceInfo();
+      this.requestUpdate();
     }
   }
 
@@ -193,7 +191,9 @@ export class PrintSettingsPopup extends LitElement {
   // Helper to auto-select AMS mapping based on scoring (id > type > color)
   private _autoSelectAmsMapping() {
     const amsFilaments = this.getAvailableAMSFilaments();
-    if (!this._sliceInfo) {
+    if (amsFilaments.length == 0) {
+      this._printSettings.use_ams = false;
+      this._amsAvailable = false;
       return;
     }
 
@@ -291,7 +291,7 @@ export class PrintSettingsPopup extends LitElement {
     this._sliceInfoError = null;
     this._sliceInfoLoading = true;
     // Use the original file path and replace .3mf extension with .slice_info.config
-    const configPath = this.selected_file.path.slice(0, -4) + '.slice_info.config';
+    const configPath = this.selected_file!.path.slice(0, -4) + '.slice_info.config';
     const url = `/api/bambu_lab/file_cache/${configPath}`;
     try {
       const response = await fetch(url, {
@@ -455,6 +455,10 @@ export class PrintSettingsPopup extends LitElement {
 
   renderFilamentComboBoxes() {
     const amsFilaments = this.getAvailableAMSFilaments();
+    if (amsFilaments.length == 0)
+    {
+      return nothing;
+    }
     const amsDevices = helpers.getAttachedDeviceIds(this.hass, this.device_id)
       .filter(amsId => {
         const device = this.hass.devices[amsId];
@@ -671,6 +675,7 @@ export class PrintSettingsPopup extends LitElement {
               <label class="print-settings-checkbox">
                 <input type="checkbox" 
                       ?checked=${this._printSettings.use_ams}
+                      ?disabled=${!this._amsAvailable}
                       @change=${(e) => this._updatePrintSetting('use_ams', e.target.checked)}>
                 <span>Use AMS</span>
               </label>
@@ -688,7 +693,6 @@ export class PrintSettingsPopup extends LitElement {
               ? nothing
               : html`
                   <div class="print-settings-group">
-                    <strong>Available External Spool Filaments:</strong>
                     <ul>
                       ${this.getExternalSpoolFilaments().map(fil => html`
                         <li>
