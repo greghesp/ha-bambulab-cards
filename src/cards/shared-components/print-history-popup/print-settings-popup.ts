@@ -68,7 +68,6 @@ export class PrintSettingsPopup extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._setupUploadProgressSubscription();
-    console.log(this.selected_file);
   }
 
   disconnectedCallback() {

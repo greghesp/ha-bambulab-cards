@@ -24,7 +24,6 @@ interface FileCacheFile {
 export class PrintHistoryPopup extends LitElement {
   @property() public device_serial: string = "";
   @property() public device_id: string = "";
-  @property() public max_files: number = 100;
 
   @consume({ context: hassContext, subscribe: true })
   @state() public _hass;
@@ -138,7 +137,7 @@ export class PrintHistoryPopup extends LitElement {
             file.printer_serial === this._selectedPrinter
           );
         }
-        this._files = filteredFiles.slice(0, this.max_files);
+        this._files = filteredFiles;
       }
     } catch (error) {
       console.error('[FileCachePopup] _refreshFiles() - error:', error);
