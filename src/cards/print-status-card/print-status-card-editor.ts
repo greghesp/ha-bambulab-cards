@@ -1,5 +1,5 @@
 import { PRINT_STATUS_CARD_EDITOR_NAME } from "./const";
-import { INTEGRATION_DOMAIN, MANUFACTURER, PRINTER_MODELS } from "../../const";
+import { MANUFACTURER, PRINTER_MODELS } from "../../const";
 import { customElement, state } from "lit/decorators.js";
 import { LitElement, html } from "lit";
 
@@ -8,50 +8,6 @@ const filterCombinations = PRINTER_MODELS.map((model) => ({
   model: model,
 }));
 
-const NEW_SCHEMA = [
-  {
-    name: "printer",
-    label: "Printer",
-    selector: { device: { filter: filterCombinations } },
-  },
-  {
-    name: "custom_humidity",
-    label: "Custom humidity sensor",
-    selector: { entity: { domain: "sensor" } },
-  },
-  {
-    name: "custom_temperature",
-    label: "Custom temperature Sensor",
-    selector: { entity: { domain: "sensor" } },
-  },
-  {
-    name: "custom_power",
-    label: "Power switch",
-    selector: { entity: { domain: "switch" } },
-  },
-  {
-    name: "custom_light",
-    label: "Custom light",
-    selector: { entity: { domain: "light" } },
-  },
-  {
-    name: "custom_camera",
-    label: "Custom camera",
-    selector: { entity: { domain: "camera" } },
-  },
-  {
-    name: "style",
-    label: "Card Style",
-    selector: {
-      select: {
-        options: [
-          { label: "Simple", value: "simple" },
-          { label: "Graphic", value: "graphic" },
-        ],
-      },
-    },
-  },
-];
 
 @customElement(PRINT_STATUS_CARD_EDITOR_NAME)
 export class PrintControlCardEditor extends LitElement {
@@ -60,6 +16,66 @@ export class PrintControlCardEditor extends LitElement {
 
   public setConfig(config): void {
     this._config = config;
+  }
+
+    // This method dynamically builds the schema based on current config
+  _buildSchema() {
+    const schema = [
+      {
+        name: "style",
+        label: "Card Style",
+        selector: {
+          select: {
+            options: [
+              { label: "Simple", value: "simple" },
+              { label: "Graphic", value: "graphic" },
+            ],
+          },
+        },
+      },
+      {
+        name: "printer",
+        label: "Printer",
+        selector: { device: { filter: filterCombinations } },
+      },
+      {
+        name: "custom_humidity",
+        label: "Custom humidity sensor",
+        selector: { entity: { domain: "sensor" } },
+      },
+      {
+        name: "custom_temperature",
+        label: "Custom temperature Sensor",
+        selector: { entity: { domain: "sensor" } },
+      },
+      {
+        name: "custom_light",
+        label: "Custom light",
+        selector: { entity: { domain: "light" } },
+      },
+      {
+        name: "custom_power",
+        label: "Power switch",
+        selector: { entity: { domain: "switch" } },
+      },
+    ];
+
+    // ✅ Conditionally add checkbox
+    if (this._config?.style === "simple") {
+      schema.push({
+        name: "show_camera_by_default",
+        label: "Show camera by default",
+        selector: { boolean: {} } as any,
+      });
+
+      schema.push({
+        name: "custom_camera",
+        label: "Custom camera",
+        selector: { entity: { domain: "camera" } },
+      });
+    }
+
+    return schema;
   }
 
   _handleValueChanged(ev) {
@@ -72,16 +88,15 @@ export class PrintControlCardEditor extends LitElement {
   }
 
   render() {
+    const schema = this._buildSchema();
     return html`
-      <div>
-        <ha-form
-          .hass=${this.hass}
-          .data=${this._config}
-          .schema=${NEW_SCHEMA}
-          .computeLabel=${(schema) => schema.label}
-          @value-changed=${this._handleValueChanged}
-        ></ha-form>
-      </div>
+      <ha-form
+        .hass=${this.hass}
+        .data=${this._config}
+        .schema=${schema}
+        .computeLabel=${(s) => s.label}
+        @value-changed=${this._handleValueChanged}
+      ></ha-form>
     `;
   }
 }

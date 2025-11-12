@@ -1,11 +1,10 @@
 import * as helpers from "../../utils/helpers";
 
-import { customElement, state, property, query } from "lit/decorators.js";
-import { html, LitElement, nothing, PropertyValues } from "lit";
-import { provide, consume } from "@lit/context";
+import { customElement, state, query } from "lit/decorators.js";
+import { html, PropertyValues } from "lit";
+import { provide } from "@lit/context";
 import styles from "./card.styles";
 
-import { INTEGRATION_DOMAIN, MANUFACTURER, PRINTER_MODELS } from "../../const";
 import { PRINT_STATUS_CARD_EDITOR_NAME, PRINT_STATUS_CARD_NAME } from "./const";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { entitiesContext, hassContext } from "../../utils/context";
@@ -221,6 +220,8 @@ export class PrintStatusCard extends EntityProvider {
     X1E: this.X1CEntityUX,
   };
 
+  private _default_to_camera: boolean = false
+
   constructor() {
     super();
     this._model = "";
@@ -280,6 +281,7 @@ export class PrintStatusCard extends EntityProvider {
 
     this._style = config.style;
     this._device_id = config.printer;
+    this._default_to_camera = config.show_camera_by_default
     this._customEntities = {
       chamber_temp: config.custom_temperature,
       humidity: config.custom_humidity,
@@ -333,6 +335,7 @@ export class PrintStatusCard extends EntityProvider {
       return html`
         <a1-screen-card
           .coverImage=${this._coverImageUrl}
+          .showVideoFeed=${this._default_to_camera}
           _device_id=${this._device_id}
         ></a1-screen-card>
       `;
