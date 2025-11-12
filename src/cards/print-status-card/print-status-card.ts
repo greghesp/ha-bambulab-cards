@@ -281,7 +281,7 @@ export class PrintStatusCard extends EntityProvider {
 
     this._style = config.style;
     this._device_id = config.printer;
-    this._default_to_camera = config.show_camera_by_default
+    this._default_to_camera = config.show_camera_by_default ?? false
     this._customEntities = {
       chamber_temp: config.custom_temperature,
       humidity: config.custom_humidity,
