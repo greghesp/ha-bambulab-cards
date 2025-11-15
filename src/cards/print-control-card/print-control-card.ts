@@ -1,11 +1,10 @@
 import * as helpers from "../../utils/helpers";
 
-import { customElement, state, property } from "lit/decorators.js";
-import { html, LitElement, nothing, PropertyValues } from "lit";
+import { customElement, state } from "lit/decorators.js";
+import { html, LitElement } from "lit";
 import styles from "./card.styles";
 
-import { INTEGRATION_DOMAIN, MANUFACTURER } from "../../const";
-import { PRINTER_MODELS } from "./const";
+import { MANUFACTURER, PRINTER_MODELS } from "../../const";
 import { registerCustomCard } from "../../utils/custom-cards";
 import {
   PRINT_CONTROL_CARD_EDITOR_NAME,
