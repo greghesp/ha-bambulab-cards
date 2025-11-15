@@ -265,6 +265,7 @@ export class PrintStatusCard extends EntityProvider {
   static getStubConfig() {
     return {
       printer: "MOCK",
+      style: "simple"
     };
   }
 
