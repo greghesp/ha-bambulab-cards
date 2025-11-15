@@ -383,6 +383,11 @@ export class A1ScreenCard extends LitElement {
 
   #toggleVideoFeed() {
     this.showVideoFeed = !this.showVideoFeed;
+    this.dispatchEvent(new CustomEvent("video-toggled", {
+      detail: { value: this.showVideoFeed },
+      bubbles: true,
+      composed: true
+    }));
   }
 
   #toggleVideoMaximized() {
