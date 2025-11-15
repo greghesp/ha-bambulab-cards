@@ -18,7 +18,7 @@ export class PrintControlCardEditor extends LitElement {
     this._config = config;
   }
 
-    // This method dynamically builds the schema based on current config
+  // This method dynamically builds the schema based on current config
   _buildSchema() {
     const schema = [
       {
@@ -62,12 +62,6 @@ export class PrintControlCardEditor extends LitElement {
 
     // ✅ Conditionally add checkbox
     if (this._config?.style === "simple") {
-      schema.push({
-        name: "show_camera_by_default",
-        label: "Show camera by default",
-        selector: { boolean: {} } as any,
-      });
-
       schema.push({
         name: "custom_camera",
         label: "Custom camera",

@@ -69,6 +69,19 @@ const _offImages: { [key: string]: any } = {
   X1E: X1E_OFF_IMAGE,
 };
 
+function hash32(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16);
+}
+
+function hashConfig(config: any): string {
+    return hash32(JSON.stringify(config));
+}
+
 @customElement(PRINT_STATUS_CARD_NAME)
 export class PrintStatusCard extends EntityProvider {
   static styles = styles;
@@ -79,6 +92,7 @@ export class PrintStatusCard extends EntityProvider {
 
   private _entityUX: { [key: string]: EntityUX } | undefined;
   private _model: string;
+  private _storageKey: string = "";
 
   private resizeObserver: ResizeObserver;
 
@@ -251,6 +265,7 @@ export class PrintStatusCard extends EntityProvider {
   static getStubConfig() {
     return {
       printer: "MOCK",
+      style: "simple"
     };
   }
 
@@ -279,9 +294,10 @@ export class PrintStatusCard extends EntityProvider {
       throw new Error("You need to select a Printer");
     }
 
+    this._storageKey = `${PRINT_STATUS_CARD_NAME}-${hashConfig(config)}`;
+    this._loadState()
     this._style = config.style;
     this._device_id = config.printer;
-    this._default_to_camera = config.show_camera_by_default ?? false
     this._customEntities = {
       chamber_temp: config.custom_temperature,
       humidity: config.custom_humidity,
@@ -289,6 +305,26 @@ export class PrintStatusCard extends EntityProvider {
       chamber_light: config.custom_light,
       camera: config.custom_camera
     };
+  }
+
+  _loadState() {
+    const raw = localStorage.getItem(this._storageKey);
+    if (!raw) return;
+
+    try {
+      const state = JSON.parse(raw);
+      this._default_to_camera = state.show_video ?? false;
+    } catch (err) {
+      console.warn("Failed to load card state:", err);
+    }
+  }
+
+  _saveState() {
+    const state = {
+      show_video: this._default_to_camera
+    };
+
+    localStorage.setItem(this._storageKey, JSON.stringify(state));
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -337,6 +373,7 @@ export class PrintStatusCard extends EntityProvider {
           .coverImage=${this._coverImageUrl}
           .showVideoFeed=${this._default_to_camera}
           _device_id=${this._device_id}
+          @video-toggled=${this._onVideoToggled}
         ></a1-screen-card>
       `;
     } else {
@@ -353,6 +390,11 @@ export class PrintStatusCard extends EntityProvider {
         </ha-card>
       `;
     }
+  }
+
+  private _onVideoToggled(ev) {
+    this._default_to_camera = ev.detail.value;
+    this._saveState();
   }
 
   private _getPrinterImage() {
