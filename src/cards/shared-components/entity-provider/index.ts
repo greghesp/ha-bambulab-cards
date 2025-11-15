@@ -22,6 +22,7 @@ const ENTITIES: string[] = [
   "developer_lan_mode",
   "door_open",
   "humidity",
+  "hybrid_mode_blocks_control",
   "image|p1p_camera",
   "mqtt_connection_mode",
   "mqtt_encryption",

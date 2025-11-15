@@ -15,7 +15,7 @@ export class Spool extends LitElement {
   @property({ type: Boolean }) public spool_anim_wiggle: boolean = true;
   @property({ type: String })  public entity_id!: string;
   @property({ type: Number })  private remainHeight = 95;
-  @property({ type: Boolean }) public developer_lan_mode: boolean = true;
+  @property({ type: Boolean }) public controlBlocked: boolean = true;
   @property() private resizeObserver: ResizeObserver | null = null;
   @property({ type: Boolean }) private emptySpool: boolean = false;
 
@@ -64,7 +64,7 @@ export class Spool extends LitElement {
     const isActive = this.hass.states[this.entity_id]?.attributes.active ||
                      this.hass.states[this.entity_id]?.attributes.in_use
     return html`
-      <ams-popup .entity_id=${this.entity_id} .developer_lan_mode=${this.developer_lan_mode}>
+      <ams-popup .entity_id=${this.entity_id} .controlBlocked=${this.controlBlocked}>
         <div class="ha-bambulab-spool-card-container">
           <div
             class="ha-bambulab-spool-card-holder ${isActive ? "active" : ""}

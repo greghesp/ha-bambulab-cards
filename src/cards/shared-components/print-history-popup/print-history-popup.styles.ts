@@ -256,10 +256,17 @@ export default css`
     justify-content: center;
   }
 
-  .print-history-print-btn:hover {
+  .print-history-print-btn:hover:not(:disabled) {
     background: var(--primary-color-dark, #0288d1);
   }
 
+  .print-history-print-btn:disabled {
+    background: var(--disabled-background-color, #999);
+    color: var(--disabled-text-color, #ccc);
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.6;
+  }
   .print-history-print-btn ha-icon {
     --mdc-icon-size: 16px;
   }
