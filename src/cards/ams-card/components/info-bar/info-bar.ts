@@ -24,10 +24,12 @@ export class InfoBar extends LitElement {
   private _resizeObserver?: ResizeObserver;
 
   firstUpdated() {
-    const infoSlots = this.renderRoot.querySelector(".extra-info")!;
+    const infoSlots = this.renderRoot.querySelector(".extra-info");
     this._resizeObserver = new ResizeObserver(() => this._checkWidth());
-    this._resizeObserver.observe(infoSlots);
-    this._checkWidth();
+    if (infoSlots) {
+      this._resizeObserver.observe(infoSlots);
+      this._checkWidth();
+    }
   }
 
   disconnectedCallback() {

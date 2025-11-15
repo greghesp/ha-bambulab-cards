@@ -65,8 +65,10 @@ export class AMSPopup extends LitElement {
   }
 
   firstUpdated() {
-    this.is_bambu_lab = this.hass.entities[this.entity_id].platform == "bambu_lab";
-    this.color = this.hass.states[this.entity_id].attributes.color.substring(0, 7);
+    if (this.entity_id) {
+      this.is_bambu_lab = this.hass.entities[this.entity_id].platform == "bambu_lab";
+      this.color = this.hass.states[this.entity_id].attributes.color.substring(0, 7);
+    }
   }
 
   #closeDialog() {
