@@ -24,6 +24,7 @@ interface FileCacheFile {
 export class PrintHistoryPopup extends LitElement {
   @property() public device_serial: string = "";
   @property() public device_id: string = "";
+  @property({ type: Boolean }) public controlBlocked: boolean = true;
 
   @consume({ context: hassContext, subscribe: true })
   @state() public _hass;
@@ -382,7 +383,10 @@ export class PrintHistoryPopup extends LitElement {
                   ${file.size_human} • ${this._formatDate(file.modified)}
                   ${file.printer_name ? html`<br><small>${file.printer_name}</small>` : nothing}
                 </div>
-                <button class="print-history-print-btn" @click=${() => this.#showPrintDialog(file)}>
+                <button
+                    class="print-history-print-btn"
+                    @click=${() => this.#showPrintDialog(file)}
+                    ?disabled=${this.controlBlocked}>
                   <ha-icon icon="mdi:printer-3d"></ha-icon>
                   Print Again
                 </button>

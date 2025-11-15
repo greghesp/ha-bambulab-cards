@@ -297,16 +297,7 @@ export class A1ScreenCard extends LitElement {
   }
   
   #isBambuBlockingWrites() {
-    // Check if mqtt encryption is present and enabled.
-    if (this._hass.states[this._deviceEntities.mqtt_encryption.entity_id].state == "on" &&
-        this._hass.states[this._deviceEntities.developer_lan_mode.entity_id].state == "off") {
-        return true;
-    }
-
-    // TODO - Check if the printer is in hybrid mode and a printer model/version that blocks
-    // writes via local mqtt.
-
-    return false;
+    return helpers.isControlBlockedByBambu(this._hass, this._deviceEntities)
   }
 
   #getPrintStatusText() {
@@ -444,6 +435,7 @@ export class A1ScreenCard extends LitElement {
         .device_id=${this._device_id}
         .device_serial=${this.#getDeviceSerial()}
         .file_type=${"3mf"}
+        .controlBlocked=${this.#isBambuBlockingWrites()}
       ></print-history-popup>
     `;
   }
@@ -752,7 +744,7 @@ export class A1ScreenCard extends LitElement {
               .show_type=${true}
               .spool_anim_reflection=${false}
               .spool_anim_wiggle=${false}
-              .developer_lan_mode=${!this.#isBambuBlockingWrites()}
+              .controlBlocked=${!this.#isBambuBlockingWrites()}
             ></ha-bambulab-spool>
           `
         )}

@@ -327,3 +327,17 @@ export function getAttachedDeviceIds(hass, device_id): string[] {
   
   return devices;
 }
+
+export function isControlBlockedByBambu(hass, deviceEntities) {
+    // Check if mqtt encryption is present and enabled.
+    if (hass.states[deviceEntities.mqtt_encryption.entity_id].state == "on" &&
+        hass.states[deviceEntities.developer_lan_mode.entity_id].state == "off") {
+        return true;
+    }
+
+    if (hass.states[deviceEntities.hybrid_mode_blocks_control.entity_id].state == "on") {
+      return true;
+    }
+
+    return false;
+  }
