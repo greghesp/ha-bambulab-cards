@@ -15,10 +15,7 @@ export class PrintControlCardEditor extends LitElement {
   @state() private hass: any;
 
   public setConfig(config): void {
-    this._config = {
-      style: "simple", // default
-      ...config,       // override with user config
-    };
+    this._config = config;
   }
 
   // This method dynamically builds the schema based on current config
