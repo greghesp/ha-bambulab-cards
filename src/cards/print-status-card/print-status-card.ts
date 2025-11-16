@@ -582,7 +582,7 @@ export class PrintStatusCard extends EntityProvider {
 
         case "remaining_time":
           return html` <div id="${key}" class="entity" style="${style}">
-            ${helpers.getFormattedEntityState(this._hass, this._deviceEntities['remaining_time'].entity_id)}
+            ${helpers.getFormattedTime(this._hass, this._deviceEntities['remaining_time'].entity_id)}
           </div>`;
 
         case "door_open":
