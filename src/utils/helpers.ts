@@ -377,3 +377,15 @@ export function getFormattedTime(hass, entity_id) {
       seconds: Math.floor(seconds % 60),
     });
 }
+
+// Helper to check if two models are compatible (P1P, P1S, X1C, X1E are equivalent)
+export function areModelsCompatible(modelA: string, modelB: string): boolean {
+    const eqSet = ["P2S", "P1P", "P1S", "X1C", "X1E"];
+    // TO BE DETERMINED:
+    // Is H2C compatible with H2D?
+    // Is P2S really compatible given it has a different filament cutter?
+    const normA = modelA.trim().toUpperCase();
+    const normB = modelB.trim().toUpperCase();
+    if (eqSet.includes(normA) && eqSet.includes(normB)) return true;
+    return normA === normB;
+}

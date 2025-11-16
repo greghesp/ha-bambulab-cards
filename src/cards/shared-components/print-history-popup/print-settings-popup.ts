@@ -578,17 +578,6 @@ export class PrintSettingsPopup extends LitElement {
     return device?.model || null;
   }
 
-  // Helper to check if two models are compatible (P1P, P1S, X1C, X1E are equivalent)
-  private _areModelsCompatible(modelA: string | null, modelB: string | null): boolean {
-    if (!modelA || !modelB) return false;
-    const eqSet = ["P1P", "P1S", "X1C", "X1E"];
-    const normA = modelA.trim().toUpperCase();
-    const normB = modelB.trim().toUpperCase();
-    if (eqSet.includes(normA) && eqSet.includes(normB)) return true;
-    return normA === normB;
-  }
-
-
   render() {
     return html`
       <div class="print-settings-overlay" @click=${this._hidePrintDialog}>
@@ -620,7 +609,7 @@ export class PrintSettingsPopup extends LitElement {
                   const normFile = (fileModel || '').trim().toUpperCase();
                   const normCurrent = (currentModel || '').trim().toUpperCase();
                   if (fileModel && currentModel) {
-                    if (!this._areModelsCompatible(fileModel, currentModel)) {
+                    if (!helpers.areModelsCompatible(fileModel, currentModel)) {
                       return html`<div style="color: var(--error-color, #f44336); margin-top: 8px; font-weight: bold;">This print is incompatible with the selected printer model (${fileModel} vs ${currentModel}).</div>`;
                     } else if (
                       eqSet.includes(normFile) && eqSet.includes(normCurrent) && normFile !== normCurrent
@@ -718,7 +707,7 @@ export class PrintSettingsPopup extends LitElement {
                       if (this.selected_file) {
                         const fileModel = this.selected_file.printer_model;
                         const currentModel = this._getCurrentPrinterModel();
-                        if (fileModel && currentModel && !this._areModelsCompatible(fileModel, currentModel)) {
+                        if (fileModel && currentModel && !helpers.areModelsCompatible(fileModel, currentModel)) {
                           return true;
                         }
                       }
