@@ -20,6 +20,11 @@ interface FileCacheFile {
   printer_model: string;
 }
 
+interface PrinterOption {
+  serial: string;
+  name: string;
+}
+
 @customElement("print-history-popup")
 export class PrintHistoryPopup extends LitElement {
   @property() public device_serial: string = "";
@@ -40,13 +45,19 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _timelapseLoading: boolean = false;
   @state() private _timelapseError: string | null = null;
   @state() private _openTimelapseVideo: string | null = null;
-  @state() private _selectedPrinter: string = "all";
+  @state() private _selectedPrinter: string = "compatible";
   @state() private _allFiles: FileCacheFile[] = [];
   @state() private _allFilesSizeBytes: number = 0;
   @state() private _allTimelapseFiles: FileCacheFile[] = [];
   @state() private _allTimelapseFilesSizeBytes: number = 0;
 
+  private _allPrinters = new Set<string>();
+  private _compatiblePrinters = new Set<string>();
+  private _printerOptions: PrinterOption[] = [];
+
   @query('print-settings-popup') private _overlay!: PrintSettingsPopup;
+
+  private _model: string = "";
 
   private _thumbnailUrls = new Map<string, string | null>();
   private _thumbnailLoading: Map<string, Promise<string | null>> = new Map();
@@ -57,6 +68,7 @@ export class PrintHistoryPopup extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    this.#initializeModel();
     this._updateContent();
   }
 
@@ -72,7 +84,7 @@ export class PrintHistoryPopup extends LitElement {
   }
 
   show() {
-    this._selectedPrinter = "all";
+    this._selectedPrinter = "compatible";
     this.#changeTab(0);
     this._show = true;
     document.body.style.overflow = 'hidden';
@@ -90,6 +102,15 @@ export class PrintHistoryPopup extends LitElement {
     }
 
     this.requestUpdate();
+  }
+
+  #initializeModel() {
+    if (!this._model) {
+      this._model = this._hass.devices[this.device_id!]?.model?.toUpperCase() || "";
+      if (this._model == "A1 MINI") {
+        this._model = "A1MINI";
+      }
+    }
   }
 
   #formatBytesRounded(bytes: number): string {
@@ -133,7 +154,13 @@ export class PrintHistoryPopup extends LitElement {
         this._allFilesSizeBytes = result.total_size_bytes;
         // Filter by selected printer if not "all"
         let filteredFiles = result.files;
-        if (this._selectedPrinter !== "all") {
+        if (this._selectedPrinter === "all") {
+          // Leave all entries in the list.
+        } else if (this._selectedPrinter === "compatible") {
+          filteredFiles = result.files.filter((file: FileCacheFile) =>
+            helpers.areModelsCompatible(this._model, file.printer_model)
+          );
+        } else {
           filteredFiles = result.files.filter((file: FileCacheFile) =>
             file.printer_serial === this._selectedPrinter
           );
@@ -143,11 +170,33 @@ export class PrintHistoryPopup extends LitElement {
     } catch (error) {
       console.error('[FileCachePopup] _refreshFiles() - error:', error);
       this._error = error instanceof Error ? error.message : String(error);
-      this.requestUpdate();
-    } finally {
-      this._loading = false;
-      this.requestUpdate();
     }
+    
+    // Get unique printers for filter dropdown from all unfiltered data
+    this._allPrinters = new Set<string>();
+    this._compatiblePrinters = new Set<string>();
+    this._allFiles.forEach(file => {
+      this._allPrinters.add(file.printer_serial);
+      if (helpers.areModelsCompatible(this._model, file.printer_model)) {
+        this._compatiblePrinters.add(file.printer_serial)
+      }
+    });
+    this._allTimelapseFiles.forEach(file => {
+      this._allPrinters.add(file.printer_serial);
+      if (helpers.areModelsCompatible(this._model, file.printer_model)) {
+        this._compatiblePrinters.add(file.printer_serial)
+      }
+    });
+
+    this._printerOptions = Array.from(this._allPrinters).map(serial => ({
+      serial,
+      name: this._allFiles.find(f => f.printer_serial === serial)?.printer_name ||
+            this._allTimelapseFiles.find(f => f.printer_serial === serial)?.printer_name ||
+            serial
+    }));
+
+    this._loading = false;
+    this.requestUpdate();
   }
 
   async _refreshTimelapseFiles() {
@@ -288,21 +337,6 @@ export class PrintHistoryPopup extends LitElement {
       return nothing;
     }
 
-    // Get unique printers for filter dropdown from all unfiltered data
-    const allPrinters = new Set<string>();
-    this._allFiles.forEach(file => {
-      if (file.printer_serial) allPrinters.add(file.printer_serial);
-    });
-    this._allTimelapseFiles.forEach(file => {
-      if (file.printer_serial) allPrinters.add(file.printer_serial);
-    });
-    const printerOptions = Array.from(allPrinters).map(serial => ({
-      serial,
-      name: this._allFiles.find(f => f.printer_serial === serial)?.printer_name ||
-            this._allTimelapseFiles.find(f => f.printer_serial === serial)?.printer_name ||
-            serial
-    }));
-
     // Tab bar
     const tabLabels = ["Print History", "Timelapse Videos"];
     const renderTabs = html`
@@ -325,8 +359,9 @@ export class PrintHistoryPopup extends LitElement {
       <div class="print-history-controls">
         <div class="print-history-filters">
           <select class="printer-filter" @change=${(e) => { this._selectedPrinter = e.target.value; this._refreshFiles(); }}>
-            <option value="all">All Printers</option>
-            ${printerOptions.map(printer => html`
+            <option value="all" ?selected=${this._selectedPrinter === "all"}>All Prints</option>
+            <option value="compatible" ?selected=${this._selectedPrinter === "compatible"}>Compatible Prints</option>
+            ${this._printerOptions.map(printer => html`
               <option value="${printer.serial}" ?selected=${this._selectedPrinter === printer.serial}>
                 ${printer.name}
               </option>
@@ -402,7 +437,7 @@ export class PrintHistoryPopup extends LitElement {
         <div class="print-history-filters">
           <select class="printer-filter" @change=${(e) => { this._selectedPrinter = e.target.value; this._refreshTimelapseFiles(); }}>
             <option value="all">All Printers</option>
-            ${printerOptions.map(printer => html`
+            ${this._printerOptions.map(printer => html`
               <option value="${printer.serial}" ?selected=${this._selectedPrinter === printer.serial}>
                 ${printer.name}
               </option>
