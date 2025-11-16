@@ -359,8 +359,8 @@ export class PrintHistoryPopup extends LitElement {
       <div class="print-history-controls">
         <div class="print-history-filters">
           <select class="printer-filter" @change=${(e) => { this._selectedPrinter = e.target.value; this._refreshFiles(); }}>
-            <option value="compatible">Compatible Prints</option>
             <option value="all">All Prints</option>
+            <option value="compatible">Compatible Prints</option>
             ${this._printerOptions.map(printer => html`
               <option value="${printer.serial}" ?selected=${this._selectedPrinter === printer.serial}>
                 ${printer.name}
