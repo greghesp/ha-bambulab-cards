@@ -380,7 +380,6 @@ export function getFormattedTime(hass, entity_id) {
       });
     } else if (hours != 0) {
       return fmt.format({
-        days: days,
         hours: hours,
         minutes: minutes,
       });
