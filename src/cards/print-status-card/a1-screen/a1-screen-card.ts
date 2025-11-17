@@ -224,9 +224,20 @@ export class A1ScreenCard extends LitElement {
     return `${percentage}%`;
   }
 
+  #getPrintStatusText() {
+    if (this._hass.states[this._deviceEntities["print_status"].entity_id].state == "running") {
+      const current_layer =
+        this._hass.states[this._deviceEntities["current_layer"].entity_id].state;
+      const total_layers = this._hass.states[this._deviceEntities["total_layers"].entity_id].state;
+      return `${current_layer}/${total_layers}`;
+    } else {
+      return helpers.getLocalizedEntityState(this._hass, this._deviceEntities["stage"]);
+    }
+  }
+
   #getRemainingTime() {
     if (this._hass.states[this._deviceEntities["stage"].entity_id].state == "printing") {
-      return `${helpers.getFormattedTime(this._hass, this._deviceEntities['remaining_time'].entity_id)} remaining`;
+      return `-${helpers.getFormattedTime(this._hass, this._deviceEntities['remaining_time'].entity_id)}`;
     } else {
       return nothing;
     }
@@ -264,17 +275,6 @@ export class A1ScreenCard extends LitElement {
   
   #isBambuBlockingWrites() {
     return helpers.isControlBlockedByBambu(this._hass, this._deviceEntities)
-  }
-
-  #getPrintStatusText() {
-    if (this._hass.states[this._deviceEntities["print_status"].entity_id].state == "running") {
-      const current_layer =
-        this._hass.states[this._deviceEntities["current_layer"].entity_id].state;
-      const total_layers = this._hass.states[this._deviceEntities["total_layers"].entity_id].state;
-      return `${current_layer}/${total_layers}`;
-    } else {
-      return helpers.getLocalizedEntityState(this._hass, this._deviceEntities["stage"]);
-    }
   }
 
   #showConfirmation(action: Exclude<ConfirmationState["action"], null>) {
@@ -475,7 +475,6 @@ export class A1ScreenCard extends LitElement {
                         `}
                 </div>
                 <div class="ha-bambulab-ssc-status-info">
-                  <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
                   <div class="ha-bambulab-ssc-progress-container">
                     <div class="ha-bambulab-ssc-progress-bar">
                       <div
@@ -483,7 +482,10 @@ export class A1ScreenCard extends LitElement {
                         style="width: ${this.#calculateProgress()}"
                       ></div>
                     </div>
-                    <div class="ha-bambulab-ssc-progress-text">${this.#getPrintStatusText()}</div>
+                    <div class="ha-bambulab-ssc-status-bar">
+                      <div class="ha-bambulab-ssc-status-text">${this.#getPrintStatusText()}</div>
+                      <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
+                    </div>
                   </div>
                 </div>
               </div>

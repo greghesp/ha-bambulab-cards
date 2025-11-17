@@ -346,36 +346,50 @@ export function isControlBlockedByBambu(hass, deviceEntities) {
 
 export function getFormattedTime(hass, entity_id) {
     const stateObj = hass.states[entity_id]
-    const value = Number(stateObj.state);
     const unit = stateObj.attributes.unit_of_measurement;
-
-    let seconds = value;
+    let value = Number(stateObj.state);
 
     switch (unit) {
       case "s":
-        seconds = value;
+        value = value;
         break;
       case "min":
-        seconds = value * 60;
+        value = value * 60;
         break;
       case "h":
-        seconds = value * 3600;
+        value = value * 3600;
         break;
       case "d":
-        seconds = value * 86400;
+        value = value * 86400;
         break;
       default:
         console.warn(`Unknown duration unit: ${unit}`);
     }
 
+    const days = Math.floor(value / 86400);
+    const hours = Math.floor((value % 86400) / 3600);
+    const minutes = Math.floor((value % 3600) / 60);
+    const seconds = Math.floor(value % 60);
+
     const locale = hass.locale?.language ?? navigator.language;
     const fmt = new (Intl as any).DurationFormat(locale, { style: "narrow" });
-    return fmt.format({
-      days: Math.floor(seconds / 86400),
-      hours: Math.floor((seconds % 86400) / 3600),
-      minutes: Math.floor((seconds % 3600) / 60),
-      seconds: Math.floor(seconds % 60),
-    });
+    if (days != 0) {
+      return fmt.format({
+        days: days,
+        hours: hours,
+      });
+    } else if (hours != 0) {
+      return fmt.format({
+        days: days,
+        hours: hours,
+        minutes: minutes,
+      });
+    } else {
+      return fmt.format({
+        minutes: minutes,
+        seconds: seconds,
+      });
+    }
 }
 
 // Helper to check if two models are compatible (P1P, P1S, X1C, X1E are equivalent)

@@ -104,13 +104,6 @@ export default css`
     object-fit: contain;
   }
 
-  .ha-bambulab-ssc-status-time {
-    color: var(--text-secondary);
-    font-size: 0.9em;
-    margin-bottom: 8px;
-    text-align: left;
-  }
-
   .condensed-mode .ha-bambulab-ssc-status-time,
   .condensed-mode .ha-bambulab-ssc-progress-container {
     flex: 0 0 auto;
@@ -132,13 +125,29 @@ export default css`
     height: 100%;
     background: var(--accent-color);
     border-radius: 2px;
+    margin-top: 8px;
     transition: width 0.3s ease;
   }
 
-  .ha-bambulab-ssc-progress-text {
+  .ha-bambulab-ssc-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 0;
+  }
+
+  .ha-bambulab-ssc-status-text {
     color: var(--text-secondary);
     font-size: 0.9em;
     text-align: left;
+    min-width: 0;
+  }
+
+  .ha-bambulab-ssc-status-time {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    text-align: right;
+    min-width: 0;
   }
 
   .ha-bambulab-ssc-control-buttons {
