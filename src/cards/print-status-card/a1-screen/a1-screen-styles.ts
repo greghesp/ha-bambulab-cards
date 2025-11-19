@@ -21,95 +21,57 @@ export default css`
 
   .ha-bambulab-ssc-screen-container {
     display: flex;
-    height: 100%;
     width: 100%;
+    height: 100%;
     padding: 20px;
     box-sizing: border-box;
     gap: 12px;
     overflow: hidden;
   }
 
-  .ha-bambulab-ssc-status-and-controls {
+  .ha-bambulab-ssc-left-column {
     display: flex;
-    height: 100%;
-    width: 100%;
-    gap: 12px;
-    overflow: hidden;
-  }
-
-  .condensed-mode .ha-bambulab-ssc-status-and-controls {
     flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
     align-items: stretch;
     gap: 4px;
   }
 
-  .ha-bambulab-ssc-status-content {
+  .ha-bambulab-ssc-preview-and-status {
     display: flex;
     flex-direction: column;
-    flex: 1 1 0%;
-    min-width: 0;
-    min-height: 0;
-  }
-
-  .condensed-mode .ha-bambulab-ssc-status-content {
-    display: flex;
-    flex-direction: column;
+    flex: 1 1 auto;
     justify-content: flex-start;
-    height: 100%;
     width: auto;
     min-width: 0;
     min-height: 0;
     flex: 1 1 auto;
   }
 
-  .ha-bambulab-controls-content {
+  .ha-bambulab-ssc-preview {
     display: flex;
-    flex: 1;
-    flex-direction: row;
-    gap: 12px;
+    flex: 1 1 auto;
     align-items: center;
     justify-content: center;
-  }
-
-  .ha-bambulab-ssc-status-icon {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    min-width: 0;
     min-height: 0;
     overflow: hidden;
     position: relative;
   }
 
-  .condensed-mode .ha-bambulab-ssc-status-icon {
-    flex: 1 1 auto;
-    min-height: 0;
+  .ha-bambulab-ssc-preview ha-camera-stream {
     display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .ha-bambulab-ssc-status-icon img {
     width: auto;
     height: auto;
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;
-  }
-
-  .ha-bambulab-ssc-status-icon video {
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-
-  .condensed-mode .ha-bambulab-ssc-status-time,
-  .condensed-mode .ha-bambulab-ssc-progress-container {
-    flex: 0 0 auto;
   }
 
   .ha-bambulab-ssc-progress-container {
+    flex: 0 0 auto;
     width: 100%;
   }
 
@@ -144,6 +106,7 @@ export default css`
   }
 
   .ha-bambulab-ssc-status-time {
+    flex: 0 0 auto;
     color: var(--text-secondary);
     font-size: 0.9em;
     text-align: right;
@@ -152,13 +115,23 @@ export default css`
 
   .ha-bambulab-ssc-control-buttons {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex: 0 0 auto; 
     justify-content: flex-start;
-    gap: 8px;
-    max-width: 70px;
+    max-width: none;
     width: 100%;
-    flex: none;
-    height: 100%;
+    height: auto;
+    margin-top: 0px;
+    gap: clamp(1px, 1vw, 4px);
+  }
+
+  .ha-bambulab-ssc-controls-page {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
   }
 
   .ha-bambulab-ssc-extra-controls {
@@ -169,37 +142,23 @@ export default css`
     width: 100%;
   }
 
-  .condensed-mode .ha-bambulab-ssc-control-buttons {
-    flex-direction: row;
-    width: 100%;
-    max-width: none;
-    height: auto;
-    flex: 0 0 auto; 
-    margin-top: 0px;
-    gap: clamp(1px, 1vw, 4px);
-  }
-
-  .condensed-mode .ha-bambulab-ssc-control-buttons .ha-bambulab-ssc-control-button {
-    min-height: 48px;
-    height: 48px;
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
   .ha-bambulab-ssc-control-button {
+    display: flex;
+    flex: 1 1 auto;
     width: 100%;
-    padding: 0;
+    height: 48px;
+    min-width: 0;
+    max-height: none;
+    min-height: 48px;
+    padding: 4px;
     background: var(--control-background);
     border: none;
     border-radius: 4px;
     color: var(--text-primary);
     cursor: pointer;
-    display: flex;
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s ease;
-    flex: 1 1 0%;
-    max-height: none;
   }
 
   .ha-bambulab-ssc-control-button.on {
@@ -217,10 +176,6 @@ export default css`
     pointer-events: none;
   }
 
-  .condensed-mode .ha-bambulab-ssc-control-button {
-    padding: 4px;
-  }
-
   .ha-bambulab-ssc-control-button:hover {
     background: rgba(255, 255, 255, 0.2);
   }
@@ -236,18 +191,20 @@ export default css`
   .ha-bambulab-ssc-sensors {
     display: flex;
     flex-direction: column;
+    flex: none;
+    max-width: 70px;
+    min-width: 0;
+    width: 70px;
+    height: 100%;
+    margin-top: 0;
     justify-content: flex-start;
     align-items: stretch;
-    max-width: 70px;
-    width: 70px;
     background: var(--control-background);
     border-radius: 4px;
     color: var(--text-primary);
     padding: 8px;
     box-sizing: border-box;
     cursor: pointer;
-    flex: none;
-    height: 100%;
   }
 
   .sensor {
@@ -263,6 +220,11 @@ export default css`
 
   .sensor:last-child {
     border-bottom: none;
+  }
+
+  .invisible-placeholder {
+    opacity: 0;
+    pointer-events: none !important;
   }
 
   .sensor-target-value {
@@ -632,25 +594,11 @@ export default css`
     --mdc-icon-size: 22px;
   }
 
-  .invisible-placeholder {
-    visibility: hidden !important;
-    pointer-events: none !important;
-  }
-
   .ams-divider {
     border-top: 1px solid var(--divider-color);
     width: 100%;
     margin: 0 0 0 0;
     height: 0;
-  }
-
-  .condensed-mode .ha-bambulab-ssc-sensors {
-    width: 70px;
-    max-width: 70px;
-    min-width: 0;
-    height: 100%;
-    flex: none;
-    margin-top: 0;
   }
 
   .video-maximize-btn {
@@ -680,7 +628,7 @@ export default css`
       drop-shadow(0 0 0.5px #000);
   }
 
-  .video-maximized .ha-bambulab-ssc-status-content,
+  .video-maximized .ha-bambulab-ssc-preview-and-status,
   .video-maximized .ha-bambulab-ssc-control-buttons,
   .video-maximized .ha-bambulab-ssc-sensors {
     display: none !important;
@@ -711,23 +659,15 @@ export default css`
   }
 
   .video-maximized .video-maximized-container img {
+    display: block;
     width: 100%;
     height: 100%;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
     background: black;
     margin: 0;
     padding: 0;
-    display: block;
-  }
-
-  .video-maximized .video-maximized-container iframe {
-    max-width: 100%;
-    max-height: 100%;
-    width: 100%;
-    height: 100%;
-    display: block;
-    background: black;
-    border: none;
   }
 
   .mirrored {
@@ -765,12 +705,21 @@ export default css`
 
   /* Ensure cover image fits its container without clipping */
   .cover-image-wrapper img {
+    display: block;
     width: 100%;
     height: 100%;
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
+  }
+
+  .image_camera {
     display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
   }
 
 `;

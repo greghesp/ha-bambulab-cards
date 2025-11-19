@@ -49,6 +49,7 @@ export class A1ScreenCard extends LitElement {
   @state() private showExtraControls = false;
   @state() private showVideoFeed = false;
   @state() private videoMaximized = false;
+  @state() private videoAspectRatio?: number;
   
   @consume({ context: hassContext, subscribe: true })
   @state()
@@ -174,18 +175,6 @@ export class A1ScreenCard extends LitElement {
 
   observeCardHeight() {
     const card = this.shadowRoot!.querySelector("ha-card")!;
-    const resizeObserver = new ResizeObserver(() => {
-      this.updateCondensedMode(card);
-    });
-    resizeObserver.observe(card);
-  }
-
-  updateCondensedMode(card) {
-    if (card.offsetWidth < 400) {
-      card.classList.add("condensed-mode");
-    } else {
-      card.classList.remove("condensed-mode");
-    }
   }
 
   #clickEntity(key: string, force: boolean = false) {
@@ -422,6 +411,36 @@ export class A1ScreenCard extends LitElement {
     this.page = Page.Ams
   }
 
+  #updateVideoAspectRatio() {
+    if (!this.showVideoFeed) return;
+
+    const stream = this.shadowRoot?.querySelector("ha-camera-stream") as HTMLElement | null;
+    if (!stream) return;
+
+    const img = stream.shadowRoot?.querySelector("img");
+    if (img instanceof HTMLImageElement) {
+      if (img.complete && img.naturalHeight > 0) {
+        this.videoAspectRatio = img.naturalWidth / img.naturalHeight;
+      } else {
+        img.addEventListener("load", () => {
+          this.videoAspectRatio = img.naturalWidth / img.naturalHeight;
+        }, { once: true });
+      }
+    }
+
+    const webRtcPlayer = stream.shadowRoot?.querySelector("ha-web-rtc-player");
+    const video = webRtcPlayer?.shadowRoot?.querySelector("video");
+    if (video) {
+      if (video.readyState >= 1) {
+        this.videoAspectRatio = video.videoWidth / video.videoHeight;
+      } else {
+        video.addEventListener("loadedmetadata", () => {
+          this.videoAspectRatio = video.videoWidth / video.videoHeight;
+        }, { once: true });
+      }
+    }
+  }
+
   #renderFrontPage() {
 
     let videoHtml: any = nothing
@@ -429,17 +448,21 @@ export class A1ScreenCard extends LitElement {
       videoHtml = html`
         <ha-camera-stream
           .hass=${this._hass}
-          .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}>
+          .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}
+          style=${this.videoAspectRatio ? `aspect-ratio: ${this.videoAspectRatio};` : ''}>
         </ha-camera-stream>
       `
     } else if (this._deviceEntities['p1p_camera'] && !helpers.isEntityUnavailable(this._hass, this._deviceEntities['p1p_camera'])) {
       videoHtml = html`
-        <img src="${helpers.getImageUrl(this._hass, this._deviceEntities['p1p_camera'])}"/>
+        <img class="image_camera" src="${helpers.getImageUrl(this._hass, this._deviceEntities['p1p_camera'])}"/>
       `
     }
-    
+
+    // Check if the video aspect ratio has changed in order to react and re-render.
+    this.#updateVideoAspectRatio();
+
     return html`
-      <div class="ha-bambulab-ssc-status-and-controls${this.videoMaximized ? ' video-maximized' : ''}">
+      <div class="ha-bambulab-ssc-left-column${this.videoMaximized ? ' video-maximized' : ''}">
         ${this.videoMaximized
           ? html`
               <div class="video-maximized-container">
@@ -450,8 +473,8 @@ export class A1ScreenCard extends LitElement {
               </div>
             `
           : html`
-              <div class="ha-bambulab-ssc-status-content">
-                <div class="ha-bambulab-ssc-status-icon" style="position: relative;">
+              <div class="ha-bambulab-ssc-preview-and-status">
+                <div class="ha-bambulab-ssc-preview">
                   <button class="video-toggle-button" @click="${this.#toggleVideoFeed}" title="${this.showVideoFeed ? 'Return to cover image' : 'Show video feed'}">
                     <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
                   </button>
@@ -474,7 +497,7 @@ export class A1ScreenCard extends LitElement {
                         </div>
                         `}
                 </div>
-                <div class="ha-bambulab-ssc-status-info">
+                <div class="ha-bambulab-ssc-status">
                   <div class="ha-bambulab-ssc-progress-container">
                     <div class="ha-bambulab-ssc-progress-bar">
                       <div
@@ -499,9 +522,6 @@ export class A1ScreenCard extends LitElement {
   #renderMainControlsColumn() {
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
-        <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleExtraControls}">
-          <ha-icon icon="mdi:swap-horizontal"></ha-icon>
-        </button>
         <button class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}" 
           @click="${() => helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}">
           <ha-icon icon="mdi:lightbulb"></ha-icon>
@@ -528,6 +548,9 @@ export class A1ScreenCard extends LitElement {
           @click="${() => this.#showConfirmation("stop")}">
           <ha-icon icon="mdi:stop"></ha-icon>
         </button>
+        <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleExtraControls}">
+          <ha-icon icon="mdi:swap-horizontal"></ha-icon>
+        </button>
       </div>
     `
   }
@@ -536,9 +559,6 @@ export class A1ScreenCard extends LitElement {
     const hasPower = !!this._deviceEntities["power"]?.entity_id;
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
-        <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleExtraControls}">
-          <ha-icon icon="mdi:swap-horizontal"></ha-icon>
-        </button>
         <button class="ha-bambulab-ssc-control-button" ?disabled="${this.#isControlsPageDisabled()}" @click="${this.#showControlsPage}" title="Show control page">
           <ha-icon icon="mdi:camera-control"></ha-icon>
         </button>
@@ -559,11 +579,19 @@ export class A1ScreenCard extends LitElement {
         ` : html`
           <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
         `}
+        <button class="ha-bambulab-ssc-control-button" @click="${this.#toggleExtraControls}">
+          <ha-icon icon="mdi:swap-horizontal"></ha-icon>
+        </button>
       </div>
     `;
   }
 
   #renderMainSensorColumn() {
+    var count = 0;
+    if (!this._deviceEntities["aux_fan_speed"]) {
+      count = 1;
+    }
+    const placeholders = Array.from({ length: count });
     return html`
       <div class="ha-bambulab-ssc-sensors">
         <div class="sensor" @click="${() => this.#clickEntity("target_nozzle_temperature")}">
@@ -594,7 +622,16 @@ export class A1ScreenCard extends LitElement {
             </div>
             <span class="sensor-value">${this.#state("aux_fan_speed")}%</span>
           </div>
-        ` : html`<div class="sensor invisible-placeholder" aria-hidden="true"></div>`}
+        ` : nothing}
+        ${placeholders.map(() => html`
+          <div class="sensor invisible-placeholder" aria-hidden="true">
+            <div class="twoicons">
+              <ha-icon icon="mdi:printer-3d"></ha-icon>
+              <ha-icon icon="mdi:fan"></ha-icon>
+            </div>
+            <span class="sensor-value">&nbsp</span>
+          </div>
+        `)}        
         <div class="ams-divider"></div>
         <div class="ams" @click="${this.#showAmsPage}">
           ${this.#renderAMSSvg(this._selectedAmsIndex, false)}
@@ -610,10 +647,7 @@ export class A1ScreenCard extends LitElement {
     if (this._deviceEntities["humidity"]) count++;
     if (this._deviceEntities["chamber_fan"]) count++;
     count++; // cooling fan always present
-    // Main sensor column: nozzle, bed, speed, aux fan (optional)
-    let mainCount = 3; // nozzle, bed, speed always present
-    if (this._deviceEntities["aux_fan_speed"]) mainCount++;
-    const placeholders = Array.from({ length: mainCount - count });
+    const placeholders = Array.from({ length: 4 - count });
     return html`
       <div class="ha-bambulab-ssc-sensors">
         ${this._deviceEntities["chamber_temp"] ? html`
@@ -659,7 +693,13 @@ export class A1ScreenCard extends LitElement {
           <span class="sensor-value">${this.#state("cooling_fan_speed") ?? '--'}%</span>
         </div>
         ${placeholders.map(() => html`
-          <div class="sensor invisible-placeholder" aria-hidden="true"></div>
+          <div class="sensor invisible-placeholder" aria-hidden="true">
+            <div class="twoicons">
+              <ha-icon icon="mdi:printer-3d"></ha-icon>
+              <ha-icon icon="mdi:fan"></ha-icon>
+            </div>
+            <span class="sensor-value">&nbsp</span>
+          </div>
         `)}
         <div class="ams-divider"></div>
         <div class="ams" @click="${this.#showAmsPage}">
@@ -675,7 +715,7 @@ export class A1ScreenCard extends LitElement {
         <ha-icon icon="mdi:close"></ha-icon>
       </button>
       <div class="controls-page-container">
-        <div class="ha-bambulab-controls-content">
+        <div class="ha-bambulab-ssc-controls-page">
           ${this.#renderMoveAxis()}
           ${this.#renderBedMoveControls()}
           ${this.#renderExtruderControls()}
