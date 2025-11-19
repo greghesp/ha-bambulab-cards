@@ -327,7 +327,7 @@ export class A1ScreenCard extends LitElement {
     this.showExtraControls = !this.showExtraControls;
   }
 
-  async #toggleVideoFeed() {
+  #toggleVideoFeed() {
     this.showVideoFeed = !this.showVideoFeed;
     this.dispatchEvent(new CustomEvent("video-toggled", {
       detail: { value: this.showVideoFeed },
@@ -587,6 +587,11 @@ export class A1ScreenCard extends LitElement {
   }
 
   #renderMainSensorColumn() {
+    var count = 0;
+    if (!this._deviceEntities["aux_fan_speed"]) {
+      count = 1;
+    }
+    const placeholders = Array.from({ length: count });
     return html`
       <div class="ha-bambulab-ssc-sensors">
         <div class="sensor" @click="${() => this.#clickEntity("target_nozzle_temperature")}">
@@ -617,7 +622,16 @@ export class A1ScreenCard extends LitElement {
             </div>
             <span class="sensor-value">${this.#state("aux_fan_speed")}%</span>
           </div>
-        ` : html`<div class="sensor invisible-placeholder" aria-hidden="true"></div>`}
+        ` : nothing}
+        ${placeholders.map(() => html`
+          <div class="sensor invisible-placeholder" aria-hidden="true">
+            <div class="twoicons">
+              <ha-icon icon="mdi:printer-3d"></ha-icon>
+              <ha-icon icon="mdi:fan"></ha-icon>
+            </div>
+            <span class="sensor-value">&nbsp</span>
+          </div>
+        `)}        
         <div class="ams-divider"></div>
         <div class="ams" @click="${this.#showAmsPage}">
           ${this.#renderAMSSvg(this._selectedAmsIndex, false)}
@@ -633,10 +647,7 @@ export class A1ScreenCard extends LitElement {
     if (this._deviceEntities["humidity"]) count++;
     if (this._deviceEntities["chamber_fan"]) count++;
     count++; // cooling fan always present
-    // Main sensor column: nozzle, bed, speed, aux fan (optional)
-    let mainCount = 3; // nozzle, bed, speed always present
-    if (this._deviceEntities["aux_fan_speed"]) mainCount++;
-    const placeholders = Array.from({ length: mainCount - count });
+    const placeholders = Array.from({ length: 4 - count });
     return html`
       <div class="ha-bambulab-ssc-sensors">
         ${this._deviceEntities["chamber_temp"] ? html`
@@ -682,7 +693,13 @@ export class A1ScreenCard extends LitElement {
           <span class="sensor-value">${this.#state("cooling_fan_speed") ?? '--'}%</span>
         </div>
         ${placeholders.map(() => html`
-          <div class="sensor invisible-placeholder" aria-hidden="true"></div>
+          <div class="sensor invisible-placeholder" aria-hidden="true">
+            <div class="twoicons">
+              <ha-icon icon="mdi:printer-3d"></ha-icon>
+              <ha-icon icon="mdi:fan"></ha-icon>
+            </div>
+            <span class="sensor-value">&nbsp</span>
+          </div>
         `)}
         <div class="ams-divider"></div>
         <div class="ams" @click="${this.#showAmsPage}">

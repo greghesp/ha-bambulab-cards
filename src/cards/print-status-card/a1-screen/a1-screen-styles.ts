@@ -222,6 +222,11 @@ export default css`
     border-bottom: none;
   }
 
+  .invisible-placeholder {
+    opacity: 0;
+    pointer-events: none !important;
+  }
+
   .sensor-target-value {
     font-size: 14px;
     color: var(--text-secondary);
@@ -587,11 +592,6 @@ export default css`
 
   .video-toggle-button ha-icon {
     --mdc-icon-size: 22px;
-  }
-
-  .invisible-placeholder {
-    visibility: hidden !important;
-    pointer-events: none !important;
   }
 
   .ams-divider {
