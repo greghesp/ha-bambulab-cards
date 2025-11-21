@@ -429,13 +429,20 @@ export class A1ScreenCard extends LitElement {
     }
 
     const webRtcPlayer = stream.shadowRoot?.querySelector("ha-web-rtc-player");
-    const video = webRtcPlayer?.shadowRoot?.querySelector("video");
+    var video = webRtcPlayer?.shadowRoot?.querySelector("video");
+    if (!video) {
+      const hlsPlayer = stream.shadowRoot?.querySelector("ha-hls-player");
+      video = hlsPlayer?.shadowRoot?.querySelector("video");
+    }
+
     if (video) {
       if (video.readyState >= 1) {
         this.videoAspectRatio = video.videoWidth / video.videoHeight;
       } else {
         video.addEventListener("loadedmetadata", () => {
-          this.videoAspectRatio = video.videoWidth / video.videoHeight;
+          if (video) {
+            this.videoAspectRatio = video.videoWidth / video.videoHeight;
+          }
         }, { once: true });
       }
     }
