@@ -13,6 +13,8 @@ import A1_ON_IMAGE from "../../images/A1_on.png";
 import A1_OFF_IMAGE from "../../images/A1_off.png";
 import A1MINI_ON_IMAGE from "../../images/A1Mini_on.png";
 import A1MINI_OFF_IMAGE from "../../images/A1Mini_off.png";
+import H2C_ON_IMAGE from "../../images/H2C_on.png";
+import H2C_OFF_IMAGE from "../../images/H2C_off.png";
 import H2D_ON_IMAGE from "../../images/H2D_on.png";
 import H2D_OFF_IMAGE from "../../images/H2D_off.png";
 import H2S_ON_IMAGE from "../../images/H2S_on.png";
@@ -48,6 +50,7 @@ interface EntityUX {
 const _onImages: { [key: string]: any } = {
   A1: A1_ON_IMAGE,
   A1MINI: A1MINI_ON_IMAGE,
+  H2C: H2C_ON_IMAGE,
   H2D: H2D_ON_IMAGE,
   H2S: H2S_ON_IMAGE,
   P1P: P1P_ON_IMAGE,
@@ -60,6 +63,7 @@ const _onImages: { [key: string]: any } = {
 const _offImages: { [key: string]: any } = {
   A1: A1_OFF_IMAGE,
   A1MINI: A1MINI_OFF_IMAGE,
+  H2C: H2C_OFF_IMAGE,
   H2D: H2D_OFF_IMAGE,
   H2S: H2S_OFF_IMAGE,
   P1P: P1P_OFF_IMAGE,
@@ -129,6 +133,22 @@ export class PrintStatusCard extends EntityProvider {
   };
 
   private H2SEntityUX: { [key: string]: EntityUX | undefined } = {
+    power:          { x: 95.5, y: 10, width: 20,  height: 0 },
+    print_progress: { x: 29,   y: 4,  width: 25,  height: 0 },
+    remaining_time: { x: 29,   y: 9,  width: 100, height: 0 },
+    chamber_light:  { x: 13,   y: 24, width: 20,  height: 0 },
+    chamber_fan_speed: { x: 86,   y: 24, width: 70,  height: 0, click_target: "chamber_fan" },
+    nozzle_temp:    { x: 50,   y: 31, width: 25,  height: 0, click_target: "target_nozzle_temperature" },
+    chamber_temp:   { x: 86,   y: 33, width: 20,  height: 0 },
+    humidity:       { x: 86,   y: 42, width: 20,  height: 0 },
+    aux_fan_speed:  { x: 13,   y: 60, width: 70,  height: 0, click_target: "aux_fan" },
+    cover_image:    { x: 50,   y: 60, width: 50,  height: 50 },
+    bed_temp:       { x: 50,   y: 88, width: 25,  height: 0, click_target: "target_bed_temperature" },
+    stage:          { x: 50,   y: 94, width: 300, height: 0 },
+    door_open:      { x: 86,   y: 60, width: 20,  height: 0 },
+  };
+
+  private H2CEntityUX: { [key: string]: EntityUX | undefined } = {
     power:          { x: 95.5, y: 10, width: 20,  height: 0 },
     print_progress: { x: 29,   y: 4,  width: 25,  height: 0 },
     remaining_time: { x: 29,   y: 9,  width: 100, height: 0 },
@@ -224,6 +244,7 @@ export class PrintStatusCard extends EntityProvider {
   private EntityUX: { [key: string]: any } = {
     A1: this.A1EntityUX,
     A1MINI: this.A1MiniEntityUX,
+    H2C: this.H2CEntityUX,
     H2D: this.H2DEntityUX,
     H2S: this.H2SEntityUX,
     P1P: this.P1PEntityUX,
