@@ -17,6 +17,8 @@ import H2C_ON_IMAGE from "../../images/H2C_on.png";
 import H2C_OFF_IMAGE from "../../images/H2C_off.png";
 import H2D_ON_IMAGE from "../../images/H2D_on.png";
 import H2D_OFF_IMAGE from "../../images/H2D_off.png";
+import H2DPRO_ON_IMAGE from "../../images/H2DPRO_on.png";
+import H2DPRO_OFF_IMAGE from "../../images/H2DPRO_off.png";
 import H2S_ON_IMAGE from "../../images/H2S_on.png";
 import H2S_OFF_IMAGE from "../../images/H2S_off.png";
 import P1P_ON_IMAGE from "../../images/P1P_on.png";
@@ -52,6 +54,7 @@ const _onImages: { [key: string]: any } = {
   A1MINI: A1MINI_ON_IMAGE,
   H2C: H2C_ON_IMAGE,
   H2D: H2D_ON_IMAGE,
+  H2DPRO: H2DPRO_ON_IMAGE,
   H2S: H2S_ON_IMAGE,
   P1P: P1P_ON_IMAGE,
   P1S: P1S_ON_IMAGE,
@@ -65,6 +68,7 @@ const _offImages: { [key: string]: any } = {
   A1MINI: A1MINI_OFF_IMAGE,
   H2C: H2C_OFF_IMAGE,
   H2D: H2D_OFF_IMAGE,
+  H2DPRO: H2DPRO_OFF_IMAGE,
   H2S: H2S_OFF_IMAGE,
   P1P: P1P_OFF_IMAGE,
   P1S: P1S_OFF_IMAGE,
@@ -246,6 +250,7 @@ export class PrintStatusCard extends EntityProvider {
     A1MINI: this.A1MiniEntityUX,
     H2C: this.H2CEntityUX,
     H2D: this.H2DEntityUX,
+    H2PRO: this.H2DEntityUX,
     H2S: this.H2SEntityUX,
     P1P: this.P1PEntityUX,
     P1S: this.P1SEntityUX,
