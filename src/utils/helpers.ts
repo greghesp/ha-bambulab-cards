@@ -208,6 +208,19 @@ export async function setFilament(
     });
 }
 
+export async function handleRFIDRefresh(hass, target_id) {
+  hass
+    .callService("bambu_lab", "read_rfid", { entity_id: [target_id] })
+    .then(() => {
+      console.log("ams_read_rfid service called successfully");
+      return true;
+    })
+    .catch((error) => {
+      console.error("Error calling ams_read_rfid service:", error);
+      return false;
+    });
+}
+
 export async function loadFilament(hass, target_id) {
   //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
   hass

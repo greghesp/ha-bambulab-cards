@@ -103,7 +103,12 @@ export default css`
   }
 
   .action-button {
+    display: flex;
     flex: 1;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    border-radius: 0;
     --mdc-theme-primary: white;
     --mdc-theme-on-primary: white;
     --mdc-button-fill-color: transparent;
@@ -111,8 +116,6 @@ export default css`
     --mdc-button-disabled-fill-color: rgba(255, 255, 255, 0.12);
     --mdc-button-disabled-ink-color: rgba(255, 255, 255, 0.38);
     --mdc-button-outline-color: white;
-    margin: 0;
-    border-radius: 0;
   }
 
   .action-button:first-child {

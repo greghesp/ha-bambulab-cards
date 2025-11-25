@@ -7,6 +7,7 @@ import {
   getContrastingTextColor,
   getFilamentData,
   setFilament,
+  handleRFIDRefresh,
   loadFilament,
   unloadFilament,
 } from "../../../utils/helpers";
@@ -93,8 +94,8 @@ export class AMSPopup extends LitElement {
         const [key, filament] = Object.entries(this.filamentData).find(
           ([_, filament]) => filament.filament_type === event.target.value
         ) || ["", this.selectedFilament];
-        this.selectedFilament = filament;
         this.tray_info_idx = key;
+        this.selectedFilament = filament;
       }
     }
   }
@@ -129,16 +130,12 @@ export class AMSPopup extends LitElement {
   }
 
   #isSetEnabled() {
-    return (
-      this.color.toUpperCase() !=
-        this.hass.states[this.entity_id].attributes.color.substring(0, 7).toUpperCase() ||
-      this.selectedFilament.nozzle_temperature_range_low !=
-        this.hass.states[this.entity_id].attributes.nozzle_temp_min ||
-      this.selectedFilament.nozzle_temperature_range_high !=
-        this.hass.states[this.entity_id].attributes.nozzle_temp_max ||
-      this.selectedFilament.filament_type != this.hass.states[this.entity_id].attributes.type ||
-      this.tray_info_idx != this.hass.states[this.entity_id].attributes.filament_id
-    );
+    const colorMatches = this.color.toUpperCase() == this.hass.states[this.entity_id].attributes.color.substring(0, 7).toUpperCase();
+    const minTempMatches = this.selectedFilament.nozzle_temperature_range_low == this.hass.states[this.entity_id].attributes.nozzle_temp_min;
+    const maxTempMatches = this.selectedFilament.nozzle_temperature_range_high == this.hass.states[this.entity_id].attributes.nozzle_temp_max;
+    const typeMatches = this.selectedFilament.filament_type == this.hass.states[this.entity_id].attributes.type;
+    const idMatches = this.tray_info_idx == this.hass.states[this.entity_id].attributes.filament_id;
+    return !(colorMatches && minTempMatches && maxTempMatches && typeMatches && idMatches);
   }
 
   #isLoadButtonEnabled() {
@@ -188,6 +185,11 @@ export class AMSPopup extends LitElement {
       this.filamentData[this.tray_info_idx] = customFilament;
     }
     this.selectedFilament = this.filamentData[this.tray_info_idx];
+    // Override the defaults with the actual values from the tray entity as they don't always match.
+    // This is a reference so we update the values in the global filament list so that if we switch
+    // filaments away and back we'll still perfectly match.
+    this.selectedFilament.nozzle_temperature_range_low = this.hass.states[this.entity_id].attributes.nozzle_temp_min;
+    this.selectedFilament.nozzle_temperature_range_high = this.hass.states[this.entity_id].attributes.nozzle_temp_max;
   }
 
   #handleColorChange(event: InputEvent) {
@@ -197,6 +199,10 @@ export class AMSPopup extends LitElement {
 
   @property({ type: String })
   private _loadState: "idle" | "loading" | "unloading" | "success" | "error" = "idle";
+
+  async #handleRefresh() {
+    await handleRFIDRefresh(this.hass, this.entity_id);
+  }
 
   async #handleLoad() {
     this._loadState = "loading";
@@ -352,6 +358,14 @@ export class AMSPopup extends LitElement {
     // The user had not adjusted the filament settings so we need to show the load and unload buttons
     return html`
       <div class="action-buttons">
+        <mwc-button
+          id="refresh"
+          class="action-button"
+          @click=${this.#handleRefresh}
+          ?disabled=${!this.#isLoadButtonEnabled()}
+        >
+          <ha-icon icon="mdi:refresh"></ha-icon>
+        </mwc-button>
         <mwc-button
           id="load"
           class="action-button"
