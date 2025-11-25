@@ -208,7 +208,7 @@ export async function setFilament(
     });
 }
 
-export async function handleRFIDRefresh(hass, target_id) {
+export async function refreshRFID(hass, target_id) {
   hass
     .callService("bambu_lab", "read_rfid", { entity_id: [target_id] })
     .then(() => {

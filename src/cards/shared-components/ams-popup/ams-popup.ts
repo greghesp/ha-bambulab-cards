@@ -7,7 +7,7 @@ import {
   getContrastingTextColor,
   getFilamentData,
   setFilament,
-  handleRFIDRefresh,
+  refreshRFID,
   loadFilament,
   unloadFilament,
 } from "../../../utils/helpers";
@@ -201,7 +201,7 @@ export class AMSPopup extends LitElement {
   private _loadState: "idle" | "loading" | "unloading" | "success" | "error" = "idle";
 
   async #handleRefresh() {
-    await handleRFIDRefresh(this.hass, this.entity_id);
+    await refreshRFID(this.hass, this.entity_id);
   }
 
   async #handleLoad() {
