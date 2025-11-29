@@ -388,7 +388,7 @@ export class PrintSettingsPopup extends LitElement {
         'bambu_lab',
         'print_project_file', 
         {
-          device_id: [ this.device_id ],
+          device_id: this.device_id,
           filepath, // relative path for print command
           ...this._printSettings
         }
