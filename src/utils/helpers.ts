@@ -236,12 +236,11 @@ export async function loadFilament(hass, target_id) {
 
 export async function unloadFilament(hass, target_id) {
   //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
-  const deviceId = hass.entities[target_id].device_id;
-  const parentDeviceId = hass.devices[deviceId].via_device_id;
+  const device_id = hass.entities[target_id].device_id;
 
   hass
     .callService("bambu_lab", "unload_filament", {
-      entity_id: target_id
+      device_id: device_id
     })
     .then(() => {
       console.log("Unload filament service called successfully");
