@@ -399,7 +399,7 @@ export class SkipObjects extends LitElement {
       .filter((key) => this.printableObjects.get(key)!.to_skip)
       .map((key) => key)
       .join(",");
-    const data = { device_id: [this._device_id], objects: list };
+    const data = { device_id: this._device_id, objects: list };
     this._hass
       .callService("bambu_lab", "skip_objects", data)
       .then(() => {

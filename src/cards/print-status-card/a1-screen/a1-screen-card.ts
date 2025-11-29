@@ -882,7 +882,7 @@ export class A1ScreenCard extends LitElement {
   }
 
   #moveAxis(axis: MoveAxis, distance: Number) {
-    const data = { device_id: [this._device_id], axis: '', distance: distance }
+    const data = { device_id: this._device_id, axis: '', distance: distance }
     if (axis == MoveAxis.X) {
       data.axis = 'X'
     } else if (axis == MoveAxis.Y) {
@@ -1074,7 +1074,7 @@ export class A1ScreenCard extends LitElement {
     const callResult = await this._hass.callService(
       "bambu_lab",
       "extrude_retract",
-      { device_id: [this._device_id], type: action },
+      { device_id: this._device_id, type: action },
       undefined,
       true,
       true);

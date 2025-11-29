@@ -167,11 +167,8 @@ export function showEntityMoreInfo(obj: HTMLElement, entity: Entity) {
 }
 
 export async function getFilamentData(hass, target_id) {
-  return hass.callService(
-    "bambu_lab",
-    "get_filament_data",
-    {
-      entity_id: [target_id],
+  return hass.callService( "bambu_lab", "get_filament_data", {
+      entity_id: target_id
     },
     undefined,
     true,
@@ -191,7 +188,7 @@ export async function setFilament(
   //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
   hass
     .callService("bambu_lab", "set_filament", {
-      entity_id: [target_id],
+      entity_id: target_id,
       tray_info_idx: tray_info_idx,
       tray_type: tray_type,
       tray_color: color.substring(1),
@@ -210,7 +207,7 @@ export async function setFilament(
 
 export async function refreshRFID(hass, target_id) {
   hass
-    .callService("bambu_lab", "read_rfid", { entity_id: [target_id] })
+    .callService("bambu_lab", "read_rfid", { entity_id: target_id })
     .then(() => {
       console.log("ams_read_rfid service called successfully");
       return true;
@@ -224,7 +221,9 @@ export async function refreshRFID(hass, target_id) {
 export async function loadFilament(hass, target_id) {
   //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
   hass
-    .callService("bambu_lab", "load_filament", { entity_id: [target_id] })
+    .callService("bambu_lab", "load_filament", {
+        entity_id: target_id
+    })
     .then(() => {
       console.log("Load filament service called successfully");
       return true;
@@ -237,11 +236,12 @@ export async function loadFilament(hass, target_id) {
 
 export async function unloadFilament(hass, target_id) {
   //github.com/home-assistant/frontend/blob/dev/src/types.ts#L251
-  const deviceId = hass.entities[target_id].device_id;
-  const parentDeviceId = hass.devices[deviceId].via_device_id;
+  const device_id = hass.entities[target_id].device_id;
 
   hass
-    .callService("bambu_lab", "unload_filament", { device_id: [parentDeviceId] })
+    .callService("bambu_lab", "unload_filament", {
+      device_id: device_id
+    })
     .then(() => {
       console.log("Unload filament service called successfully");
       return true;
