@@ -207,9 +207,7 @@ export class A1ScreenCard extends LitElement {
     if (this._hass.states[this._deviceEntities["stage"].entity_id].state != "printing") {
       return "0%";
     }
-    const currentLayer = helpers.getEntityState(this._hass, this._deviceEntities["current_layer"]);
-    const totalLayers = helpers.getEntityState(this._hass, this._deviceEntities["total_layers"]);
-    const percentage = Math.round((currentLayer / totalLayers) * 100);
+    const percentage = helpers.getEntityState(this._hass, this._deviceEntities["print_progress"]);
     return `${percentage}%`;
   }
 
