@@ -79,24 +79,40 @@ export default css`
     z-index: 2;
   }
 
-  .slot-1ht {
+  .slot-1-ht {
     left: 44%;
   }
 
-  .slot-1 {
-    left: 15%;
+  .slot-1-ams {
+    left: 14%;
   }
 
-  .slot-2 {
-    left: 32.5%;
+  .slot-2-ams {
+    left: 33.3%;
   }
 
-  .slot-3 {
+  .slot-3-ams {
     left: 52.7%;
   }
 
-  .slot-4 {
-    left: 72%;
+  .slot-4-ams {
+    left: 72.5%;
+  }
+
+  .slot-1-ams2pro {
+    left: 14%;
+  }
+
+  .slot-2-ams2pro {
+    left: 33.3%;
+  }
+
+  .slot-3-ams2pro {
+    left: 52.4%;
+  }
+
+  .slot-4-ams2pro {
+    left: 71.5%;
   }
 
   .ams-container .spool-type {

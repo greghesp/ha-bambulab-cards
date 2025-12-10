@@ -21,12 +21,13 @@ export class GraphicAmsCard extends LitElement {
   
   render() {
     var image = AMSImage;
-    var isHt = "";
+    var model = "ams";
     if (this._entities.type === "AMS 2 PRO") {
       image = AMS2Image;
+      model = "ams2pro"
     } else if (this._entities.type === "AMS HT") {
       image = AMSHTImage;
-      isHt = "ht"
+      model = "ht"
     }
 
     return html` <ha-card class="card">
@@ -37,7 +38,7 @@ export class GraphicAmsCard extends LitElement {
             ${this._entities?.spools.map(
               (spool, i) => html`
                 <ams-popup .entity_id=${spool.entity_id}>
-                  <div class="spool slot-${i + 1}${isHt}">
+                  <div class="spool slot-${i + 1}-${model}">
                     <div class="spool-info">
                       <span
                         class="spool-badge"
