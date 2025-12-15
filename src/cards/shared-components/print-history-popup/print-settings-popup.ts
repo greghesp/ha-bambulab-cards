@@ -372,12 +372,17 @@ export class PrintSettingsPopup extends LitElement {
       this._uploadingFile = false;
       this._uploadProgress = 0;
       this.requestUpdate();
-      const ensureRespText = await ensureResp.text();
-      console.log('ensure_cache_file response:', ensureResp.status, ensureRespText);
+
+      const ensureRespJson = await ensureResp.json();
+      console.log('ensure_cache_file response:', ensureResp.status, ensureRespJson);
       if (!ensureResp.ok) {
-        this._error = `Failed to upload file: ${ensureRespText}`;
+        const detail = ensureRespJson?.detail ?? JSON.stringify(ensureRespJson);
+        this._error = `Failed to upload file: ${detail}`;
         this.requestUpdate();
         return;
+      } else if (ensureRespJson.status === 'use_legacy_path') {
+        filepath = ensureRespJson.detail;
+        console.log("Using legacy filepath for print command:", filepath);
       }
 
       // Update the AMS mapping. Take the list and remove all the -1 entries.
