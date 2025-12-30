@@ -607,7 +607,7 @@ export default css`
     position: absolute;
     bottom: 0px;
     right: 0px;
-    z-index: 1;
+    z-index: 2;
     background: none;
     border: none;
     box-shadow: none;
@@ -617,7 +617,6 @@ export default css`
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 2001;
   }
 
   .video-minimize-btn {
@@ -653,7 +652,6 @@ export default css`
     align-items: center;
     justify-content: center;
     background: black;
-    z-index: 1000;
     overflow: hidden;
   }
 

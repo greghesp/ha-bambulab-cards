@@ -179,7 +179,7 @@ export class A1ScreenCard extends LitElement {
   }
 
   #clickEntity(key: string, force: boolean = false) {
-    if (!force && this.#isBambuBlockingWrites()) return;
+    if (!force && this.#isMqttEncryptionEnabled()) return;
     helpers.showEntityMoreInfo(this, this._deviceEntities[key]);
   }
 
@@ -205,7 +205,8 @@ export class A1ScreenCard extends LitElement {
   }
 
   #calculateProgress() {
-    if (this._hass.states[this._deviceEntities["stage"].entity_id].state != "printing") {
+    if (this._hass.states[this._deviceEntities["stage"].entity_id].state != "printing" &&
+        this._hass.states[this._deviceEntities["stage"].entity_id].state != "changing_filament") {
       return "0%";
     }
     const percentage = helpers.getEntityState(this._hass, this._deviceEntities["print_progress"]);
@@ -224,17 +225,18 @@ export class A1ScreenCard extends LitElement {
   }
 
   #getRemainingTime() {
-    if (this._hass.states[this._deviceEntities["stage"].entity_id].state == "printing") {
-      return `-${helpers.getFormattedTime(this._hass, this._deviceEntities['remaining_time'].entity_id)}`;
-    } else {
+    if (this._hass.states[this._deviceEntities["stage"].entity_id].state != "printing" &&
+        this._hass.states[this._deviceEntities["stage"].entity_id].state != "changing_filament") {
       return nothing;
+    } else {
+      return `-${helpers.getFormattedTime(this._hass, this._deviceEntities['remaining_time'].entity_id)}`;
     }
   }
 
   #isPauseResumeDisabled(): boolean {
     const pauseDisabled = helpers.isEntityUnavailable(this._hass, this._deviceEntities["pause"]);
     const resumeDisabled = helpers.isEntityUnavailable(this._hass, this._deviceEntities["resume"]);
-    return this.#isBambuBlockingWrites() || (pauseDisabled && resumeDisabled);
+    return (pauseDisabled && resumeDisabled);
   }
 
   #getPauseResumeIcon(): string {
@@ -247,22 +249,24 @@ export class A1ScreenCard extends LitElement {
   }
 
   #isStopButtonDisabled() {
-    return this.#isBambuBlockingWrites() || helpers.isEntityUnavailable(this._hass, this._deviceEntities["stop"]);
+    return helpers.isEntityUnavailable(this._hass, this._deviceEntities["stop"]);
   }
 
   #isSkipObjectsButtonDisabled() {
-    return this.#isBambuBlockingWrites() ||
-           this.#isStopButtonDisabled() ||
-           helpers.isEntityUnavailable(this._hass, this._deviceEntities["printable_objects"]) ||
+    return helpers.isEntityUnavailable(this._hass, this._deviceEntities["printable_objects"]) ||
            this._hass.states[this._deviceEntities.printable_objects.entity_id].state <= 1;
   }
 
   #isControlsPageDisabled() {
-    return this.#isBambuBlockingWrites();
+    return this.#isMqttEncryptionEnabled();
   }
   
-  #isBambuBlockingWrites() {
-    return helpers.isControlBlockedByBambu(this._hass, this._deviceEntities)
+  #isMqttEncryptionEnabled() {
+    return helpers.isMqttEncryptionEnabled(this._hass, this._deviceEntities)
+  }
+
+  #isHybridMqttConnection() {
+    return helpers.isHybridMqttConnection(this._hass, this._deviceEntities)
   }
 
   #showConfirmation(action: Exclude<ConfirmationState["action"], null>) {
@@ -400,7 +404,7 @@ export class A1ScreenCard extends LitElement {
         .device_id=${this._device_id}
         .device_serial=${this.#getDeviceSerial()}
         .file_type=${"3mf"}
-        .controlBlocked=${this.#isBambuBlockingWrites()}
+        .controlBlocked=${this.#isMqttEncryptionEnabled() || this.#isHybridMqttConnection()}
       ></print-history-popup>
     `;
   }
@@ -772,7 +776,7 @@ export class A1ScreenCard extends LitElement {
               .show_type=${true}
               .spool_anim_reflection=${false}
               .spool_anim_wiggle=${false}
-              .controlBlocked=${!this.#isBambuBlockingWrites()}
+              .controlBlocked=${!this.#isMqttEncryptionEnabled()}
             ></ha-bambulab-spool>
           `
         )}
