@@ -603,7 +603,7 @@ export default css`
 
   .video-maximize-btn,
   .video-minimize-btn,
-  .video-maximize-btn-all {
+  .video-maximizefull-btn {
     position: absolute;
     bottom: 0px;
     right: 0px;
@@ -626,7 +626,7 @@ export default css`
 
   .video-maximize-btn ha-icon,
   .video-minimize-btn ha-icon,
-  .video-maximize-btn-all ha-icon {
+  .video-maximizefull-btn ha-icon {
     --mdc-icon-size: 28px;
     color: var(--text-primary);
     background: none;

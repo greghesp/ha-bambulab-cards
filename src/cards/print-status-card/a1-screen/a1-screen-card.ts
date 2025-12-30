@@ -511,7 +511,7 @@ export class A1ScreenCard extends LitElement {
               <button class="video-minimize-btn" @click="${this.#minimizeVideo}" title="Restore video">
                 <ha-icon icon="mdi:arrow-collapse" class="mirrored"></ha-icon>
               </button>
-              <button class="video-maximize-btn-all" @click="${this.#toggleMaximizeVideoFully}" title="Maximize video">
+              <button class="video-maximizefull-btn" @click="${this.#toggleMaximizeVideoFully}" title="Maximize video">
                 <ha-icon icon="${this.videoFullyMaximized ? 'mdi:arrow-collapse-all' : 'mdi:arrow-expand-all'}"></ha-icon>
               </button>
             `}
