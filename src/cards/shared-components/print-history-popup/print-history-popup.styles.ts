@@ -184,6 +184,8 @@ export default css`
   }
 
   .print-history-card {
+    display: flex;
+    flex-direction: column;
     border: 1px solid var(--divider-color, #e0e0e0);
     border-radius: var(--ha-card-border-radius, 8px);
     overflow: hidden;
@@ -218,7 +220,16 @@ export default css`
     opacity: 0.6;
   }
 
+  .print-history-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
   .print-history-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     padding: 12px;
     background: var(--ha-card-background, var(--card-background-color, white));
   }
@@ -239,7 +250,7 @@ export default css`
   }
 
   .print-history-print-btn {
-    margin-top: 8px;
+    margin-top: auto;
     padding: 6px 12px;
     border: none;
     border-radius: 4px;

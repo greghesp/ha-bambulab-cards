@@ -49,6 +49,7 @@ export class A1ScreenCard extends LitElement {
   @state() private showExtraControls = false;
   @state() private showVideoFeed = false;
   @state() private videoMaximized = false;
+  @state() private videoFullyMaximized = false;
   @state() private videoAspectRatio?: number;
   
   @consume({ context: hassContext, subscribe: true })
@@ -334,8 +335,19 @@ export class A1ScreenCard extends LitElement {
     }));
   }
 
-  #toggleVideoMaximized() {
-    this.videoMaximized = !this.videoMaximized;
+  #maximizeVideo() {
+    this.videoMaximized = true;
+    this.videoFullyMaximized = false;
+  }
+
+  #toggleMaximizeVideoFully() {
+    this.videoMaximized = true;
+    this.videoFullyMaximized = !this.videoFullyMaximized;
+  }
+
+  #minimizeVideo() {
+    this.videoMaximized = false;
+    this.videoFullyMaximized = false;
   }
 
   #openDevicePage() {
@@ -467,60 +479,63 @@ export class A1ScreenCard extends LitElement {
     this.#updateVideoAspectRatio();
 
     return html`
-      <div class="ha-bambulab-ssc-left-column${this.videoMaximized ? ' video-maximized' : ''}">
-        ${this.videoMaximized
-          ? html`
-              <div class="video-maximized-container">
-                ${videoHtml}
-                <button class="video-maximize-btn" @click="${this.#toggleVideoMaximized}" title="Restore video">
-                  <ha-icon icon="mdi:arrow-collapse" class="mirrored"></ha-icon>
-                </button>
-              </div>
-            `
-          : html`
-              <div class="ha-bambulab-ssc-preview-and-status">
-                <div class="ha-bambulab-ssc-preview">
-                  <button class="video-toggle-button" @click="${this.#toggleVideoFeed}" title="${this.showVideoFeed ? 'Return to cover image' : 'Show video feed'}">
-                    <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
-                  </button>
-                  ${this.showVideoFeed
-                    ? html `
-                        ${videoHtml}
-                        <button class="video-maximize-btn" @click="${this.#toggleVideoMaximized}" title="Maximize video">
-                          <ha-icon icon="mdi:arrow-expand" class="mirrored"></ha-icon>
-                        </button>
-                      `
-                    : html`
-                        <div class="cover-image-wrapper">
-                          <img
-                              id="cover-image"
-                              src="${this.processedImage || this.coverImage}" 
-                              @error="${this._handleCoverImageError}"
-                              @load="${this._handleCoverImageLoad}"
-                              alt="Cover Image" />
-                          ${this.#renderModelDownloadOverlay()}
-                        </div>
-                        `}
-                </div>
-                <div class="ha-bambulab-ssc-status">
-                  <div class="ha-bambulab-ssc-progress-container">
-                    <div class="ha-bambulab-ssc-progress-bar">
-                      <div
-                        class="ha-bambulab-ssc-progress"
-                        style="width: ${this.#calculateProgress()}"
-                      ></div>
-                    </div>
-                    <div class="ha-bambulab-ssc-status-bar">
-                      <div class="ha-bambulab-ssc-status-text">${this.#getPrintStatusText()}</div>
-                      <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              ${this.showExtraControls ? this.#renderExtraControlsColumn() : this.#renderMainControlsColumn()}
+      <div class="ha-bambulab-ssc-left-column${this.videoMaximized ? ' video-maximized' : ''}${this.videoFullyMaximized ? ' fullscreen' : ''}">
+        <div class="ha-bambulab-ssc-preview-and-status">
+          <div class="ha-bambulab-ssc-preview">
+            ${this.videoMaximized ? nothing : html`
+            <button class="video-toggle-button" @click="${this.#toggleVideoFeed}" title="${this.showVideoFeed ? 'Return to cover image' : 'Show video feed'}">
+              <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
+            </button>
             `}
+            ${this.showVideoFeed
+              ? html `
+                  ${videoHtml}
+                  ${this.videoMaximized ? nothing : html`
+                  <button class="video-maximize-btn" @click="${this.#maximizeVideo}" title="Maximize video">
+                    <ha-icon icon="mdi:arrow-expand" class="mirrored"></ha-icon>
+                  </button>
+                  `}
+                `
+              : html`
+                  <div class="cover-image-wrapper">
+                    <img
+                        id="cover-image"
+                        src="${this.processedImage || this.coverImage}" 
+                        @error="${this._handleCoverImageError}"
+                        @load="${this._handleCoverImageLoad}"
+                        alt="Cover Image" />
+                    ${this.#renderModelDownloadOverlay()}
+                  </div>
+                  `}
+            ${!this.videoMaximized ? nothing : html`
+              <button class="video-minimize-btn" @click="${this.#minimizeVideo}" title="Restore video">
+                <ha-icon icon="mdi:arrow-collapse" class="mirrored"></ha-icon>
+              </button>
+              <button class="video-maximizefull-btn" @click="${this.#toggleMaximizeVideoFully}" title="Maximize video">
+                <ha-icon icon="${this.videoFullyMaximized ? 'mdi:arrow-collapse-all' : 'mdi:arrow-expand-all'}"></ha-icon>
+              </button>
+            `}
+          </div>
+          ${this.videoMaximized ? nothing : html`
+          <div class="ha-bambulab-ssc-status">
+            <div class="ha-bambulab-ssc-progress-container">
+              <div class="ha-bambulab-ssc-progress-bar">
+                <div
+                  class="ha-bambulab-ssc-progress"
+                  style="width: ${this.#calculateProgress()}"
+                ></div>
+              </div>
+              <div class="ha-bambulab-ssc-status-bar">
+                <div class="ha-bambulab-ssc-status-text">${this.#getPrintStatusText()}</div>
+                <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
+              </div>
+            </div>
+          </div>
+          `}
+        </div>
+        ${this.videoMaximized ? nothing : this.showExtraControls ? this.#renderExtraControlsColumn() : this.#renderMainControlsColumn()}
       </div>
-      ${this.showExtraControls ? this.#renderExtraSensorColumn() : this.#renderMainSensorColumn()}
+      ${this.videoMaximized ? nothing : this.showExtraControls ? this.#renderExtraSensorColumn() : this.#renderMainSensorColumn()}
     `;
   }
 
