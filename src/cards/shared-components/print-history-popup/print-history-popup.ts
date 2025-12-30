@@ -84,7 +84,7 @@ export class PrintHistoryPopup extends LitElement {
   }
 
   show() {
-    this._selectedPrinter = "compatible";
+    this._selectedPrinter = this.device_serial;
     this.#changeTab(0);
     this._show = true;
     document.body.style.overflow = 'hidden';
@@ -222,7 +222,7 @@ export class PrintHistoryPopup extends LitElement {
         this._allTimelapseFilesSizeBytes = result.total_size_bytes;
         // Filter by selected printer if not "all"
         let filteredFiles = result.videos;
-        if (this._selectedPrinter !== "all") {
+        if ((this._selectedPrinter !== "all") && (this._selectedPrinter !== "compatible")) {
           filteredFiles = result.videos.filter((file: FileCacheFile) =>
             file.printer_serial === this._selectedPrinter
           );
@@ -413,11 +413,14 @@ export class PrintHistoryPopup extends LitElement {
                   })()}
               </div>
               <div class="print-history-info">
-                <div class="print-history-name">${file.filename}</div>
-                <div class="print-history-meta">
-                  ${file.size_human} • ${this._formatDate(file.modified)}
-                  ${file.printer_name ? html`<br><small>${file.printer_name}</small>` : nothing}
+                <div class="print-history-content">
+                  <div class="print-history-name">${file.filename}</div>
+                  <div class="print-history-meta">
+                    ${file.size_human} • ${this._formatDate(file.modified)}
+                    ${file.printer_name ? html`<br><small>${file.printer_name}</small>` : nothing}
+                  </div>
                 </div>
+                
                 <button
                     class="print-history-print-btn"
                     @click=${() => this.#showPrintDialog(file)}

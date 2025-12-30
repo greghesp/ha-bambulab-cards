@@ -573,9 +573,8 @@ export default css`
     position: absolute;
     top: 1px;
     left: 1px;
-    background: var(--control-background);
+    background: none;
     border: none;
-    border-radius: 50%;
     color: var(--text-primary);
     cursor: pointer;
     padding: 6px;
@@ -586,12 +585,13 @@ export default css`
     transition: background 0.2s;
   }
 
-  .video-toggle-button:hover {
-    background: rgba(255,255,255,0.2);
-  }
-
   .video-toggle-button ha-icon {
     --mdc-icon-size: 22px;
+    filter:
+      drop-shadow(0 0 0.5px #000)
+      drop-shadow(0 0 0.5px #000)
+      drop-shadow(0 0 0.5px #000)
+      drop-shadow(0 0 0.5px #000);
   }
 
   .ams-divider {
@@ -601,7 +601,9 @@ export default css`
     height: 0;
   }
 
-  .video-maximize-btn {
+  .video-maximize-btn,
+  .video-minimize-btn,
+  .video-maximize-btn-all {
     position: absolute;
     bottom: 0px;
     right: 0px;
@@ -609,15 +611,22 @@ export default css`
     background: none;
     border: none;
     box-shadow: none;
-    padding: 0;
+    padding: 2px;
     margin: 0;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 2001;
   }
 
-  .video-maximize-btn ha-icon {
+  .video-minimize-btn {
+    right: 28px;
+  }
+
+  .video-maximize-btn ha-icon,
+  .video-minimize-btn ha-icon,
+  .video-maximize-btn-all ha-icon {
     --mdc-icon-size: 28px;
     color: var(--text-primary);
     background: none;
@@ -628,13 +637,13 @@ export default css`
       drop-shadow(0 0 0.5px #000);
   }
 
-  .video-maximized .ha-bambulab-ssc-preview-and-status,
-  .video-maximized .ha-bambulab-ssc-control-buttons,
-  .video-maximized .ha-bambulab-ssc-sensors {
-    display: none !important;
+  .fullscreen {
+    position: fixed !important;
+    inset: 0;  
+    z-index: 2000 !important;
   }
 
-  .video-maximized .video-maximized-container {
+  .ha-bambulab-ssc-left-column.video-maximized {
     position: absolute;
     top: 0;
     left: 0;
@@ -648,7 +657,7 @@ export default css`
     overflow: hidden;
   }
 
-  .video-maximized .video-maximized-container video {
+  .ha-bambulab-ssc-left-column.video-maximized video {
     max-width: 100%;
     max-height: 100%;
     width: auto !important;
@@ -658,7 +667,7 @@ export default css`
     background: black;
   }
 
-  .video-maximized .video-maximized-container img {
+  .ha-bambulab-ssc-left-column.video-maximized img {
     display: block;
     width: 100%;
     height: 100%;
