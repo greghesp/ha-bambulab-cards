@@ -253,6 +253,9 @@ export class A1ScreenCard extends LitElement {
   }
 
   #isSkipObjectsButtonDisabled() {
+    if (this.#isMqttEncryptionEnabled()) {
+      return true;
+    }
     return helpers.isEntityUnavailable(this._hass, this._deviceEntities["printable_objects"]) ||
            this._hass.states[this._deviceEntities.printable_objects.entity_id].state <= 1;
   }
