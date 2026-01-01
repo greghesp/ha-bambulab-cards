@@ -892,6 +892,9 @@ export class A1ScreenCard extends LitElement {
     });
 
     // Add external spools at the end
+    externalSpools.sort((a, b) =>
+      a.spools[0].localeCompare(b.spools[0])
+    );
     this._amsList.push(...externalSpools);
     
     // Set selected AMS to the active one, or default to first if none are active
