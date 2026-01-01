@@ -870,6 +870,7 @@ export class A1ScreenCard extends LitElement {
 
       if (device.model === "External Spool") {
         if (entities["external_spool"]?.entity_id) {
+          console.log(`Found external spool with id: ${entities["external_spool"].entity_id} for device ${ams_device_id}`);
           spools.push(entities["external_spool"].entity_id);
           externalSpools.push({
             device_id: ams_device_id,
@@ -892,6 +893,9 @@ export class A1ScreenCard extends LitElement {
     });
 
     // Add external spools at the end
+    externalSpools.sort((a, b) =>
+      a.spools[0].localeCompare(b.spools[0])
+    );
     this._amsList.push(...externalSpools);
     
     // Set selected AMS to the active one, or default to first if none are active
