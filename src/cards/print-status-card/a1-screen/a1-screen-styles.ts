@@ -623,6 +623,15 @@ export default css`
     right: 28px;
   }
 
+  .video-wrapper {
+    position: relative;
+    display: flex;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
   .video-maximize-btn ha-icon,
   .video-minimize-btn ha-icon,
   .video-maximizefull-btn ha-icon {
