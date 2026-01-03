@@ -453,10 +453,10 @@ export class A1ScreenCard extends LitElement {
     }
 
     if (video) {
-      if (video.readyState >= 1) {
+      if  (video.videoWidth > 0 && video.videoHeight > 0) {
         this.videoAspectRatio = video.videoWidth / video.videoHeight;
       } else {
-        video.addEventListener("loadedmetadata", () => {
+        video.addEventListener("resize", () => {
           if (video) {
             this.videoAspectRatio = video.videoWidth / video.videoHeight;
           }
@@ -496,12 +496,22 @@ export class A1ScreenCard extends LitElement {
             `}
             ${this.showVideoFeed
               ? html `
+                <div class="video-wrapper">
                   ${videoHtml}
-                  ${this.videoMaximized ? nothing : html`
-                  <button class="video-maximize-btn" @click="${this.#maximizeVideo}" title="Maximize video">
-                    <ha-icon icon="mdi:arrow-expand" class="mirrored"></ha-icon>
-                  </button>
-                  `}
+                  ${this.videoMaximized ? 
+                  html`
+                    <button class="video-minimize-btn" @click="${this.#minimizeVideo}" title="Restore video">
+                      <ha-icon icon="mdi:arrow-collapse" class="mirrored"></ha-icon>
+                    </button>
+                    <button class="video-maximizefull-btn" @click="${this.#toggleMaximizeVideoFully}" title="Maximize video">
+                      <ha-icon icon="${this.videoFullyMaximized ? 'mdi:arrow-collapse-all' : 'mdi:arrow-expand-all'}"></ha-icon>
+                    </button>`
+                  : html`
+                    <button class="video-maximize-btn" @click="${this.#maximizeVideo}" title="Maximize video">
+                      <ha-icon icon="mdi:arrow-expand" class="mirrored"></ha-icon>
+                    </button>`
+                  }
+                  </div>
                 `
               : html`
                   <div class="cover-image-wrapper">
@@ -514,14 +524,6 @@ export class A1ScreenCard extends LitElement {
                     ${this.#renderModelDownloadOverlay()}
                   </div>
                   `}
-            ${!this.videoMaximized ? nothing : html`
-              <button class="video-minimize-btn" @click="${this.#minimizeVideo}" title="Restore video">
-                <ha-icon icon="mdi:arrow-collapse" class="mirrored"></ha-icon>
-              </button>
-              <button class="video-maximizefull-btn" @click="${this.#toggleMaximizeVideoFully}" title="Maximize video">
-                <ha-icon icon="${this.videoFullyMaximized ? 'mdi:arrow-collapse-all' : 'mdi:arrow-expand-all'}"></ha-icon>
-              </button>
-            `}
           </div>
           ${this.videoMaximized ? nothing : html`
           <div class="ha-bambulab-ssc-status">
