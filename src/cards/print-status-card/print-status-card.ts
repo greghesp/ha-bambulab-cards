@@ -310,12 +310,7 @@ export class PrintStatusCard extends EntityProvider {
       };
     }
     if (this._style == "minimal") {
-      return {
-        grid_rows: 1,
-        grid_min_rows: 1,
-        grid_columns: 4,
-        grid_min_columns: 4,
-      };
+      return {};
     }
     return {};
   }
