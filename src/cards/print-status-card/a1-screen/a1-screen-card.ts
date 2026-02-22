@@ -326,14 +326,32 @@ export class A1ScreenCard extends LitElement {
   }
 
   #getPrintStatusText() {
-    if (this._hass.states[this._deviceEntities["print_status"].entity_id].state == "running") {
-      const current_layer =
-        this._hass.states[this._deviceEntities["current_layer"].entity_id].state;
-      const total_layers = this._hass.states[this._deviceEntities["total_layers"].entity_id].state;
-      return `${current_layer}/${total_layers}`;
-    } else {
-      return helpers.getLocalizedEntityState(this._hass, this._deviceEntities["stage"]);
+    const printStatusRef = this._deviceEntities?.["print_status"];
+    const stageRef = this._deviceEntities?.["stage"];
+
+    if (!printStatusRef || helpers.isEntityUnavailable(this._hass, printStatusRef)) {
+      return stageRef ? helpers.getLocalizedEntityState(this._hass, stageRef) : "";
     }
+
+    const printStatusState = this._hass.states[printStatusRef.entity_id]?.state;
+
+    if (printStatusState === "running") {
+      const currentLayerRef = this._deviceEntities?.["current_layer"];
+      const totalLayersRef = this._deviceEntities?.["total_layers"];
+
+      const currentLayer = currentLayerRef ? this._hass.states[currentLayerRef.entity_id]?.state : "";
+      const totalLayers = totalLayersRef ? this._hass.states[totalLayersRef.entity_id]?.state : "";
+
+      if (currentLayer !== "" && totalLayers !== "") {
+        return `${currentLayer}/${totalLayers}`;
+      }
+    }
+
+    if (printStatusState === "pause" || printStatusState === "paused" || printStatusState === "pausing") {
+      return helpers.getLocalizedEntityState(this._hass, printStatusRef);
+    }
+
+    return stageRef ? helpers.getLocalizedEntityState(this._hass, stageRef) : "";
   }
 
   #getRemainingTime() {
