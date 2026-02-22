@@ -73,6 +73,8 @@ export class A1ScreenCard extends LitElement {
 
   @query("#cover-image") coverImageElement: HTMLImageElement | undefined;
 
+  @state() private simpleCoverImageFailed = false;
+
   @state() private confirmation: ConfirmationState = {
     show: false,
     action: null,
@@ -183,6 +185,10 @@ export class A1ScreenCard extends LitElement {
 
     if (changedProperties.has("coverImage") || changedProperties.has("processedImage")) {
       this.minimalCoverImageFailed = false;
+    }
+
+    if (changedProperties.has("coverImage") || changedProperties.has("processedImage")) {
+      this.simpleCoverImageFailed = false;
     }
 
     if (changedProperties.has("showCameraFeed")) {
@@ -649,6 +655,9 @@ export class A1ScreenCard extends LitElement {
 
   #renderFrontPage() {
 
+    const coverSrc = this.processedImage || this.coverImage || "";
+    const showCoverImage = !!coverSrc && !this.simpleCoverImageFailed;
+
     let videoHtml: any = nothing
     if (this._deviceEntities['camera'] && !helpers.isEntityUnavailable(this._hass, this._deviceEntities['camera'])) {
       videoHtml = html`
@@ -697,12 +706,20 @@ export class A1ScreenCard extends LitElement {
                 `
               : html`
                   <div class="cover-image-wrapper">
-                    <img
-                        id="cover-image"
-                        src="${this.processedImage || this.coverImage}"
-                        @error="${this._handleCoverImageError}"
-                        @load="${this._handleCoverImageLoad}"
-                        alt="Cover Image" />
+                    ${showCoverImage
+                      ? html`
+                          <img
+                            id="cover-image"
+                            src="${coverSrc}"
+                            @error="${this._handleCoverImageError}"
+                            @load="${this._handleCoverImageLoad}"
+                            alt="Cover Image" />
+                        `
+                      : html`
+                          <div class="cover-image-fallback" aria-label="No cover image">
+                            <ha-icon icon="mdi:image-outline"></ha-icon>
+                          </div>
+                        `}
                     ${this.#renderModelDownloadOverlay()}
                   </div>
                   `}
@@ -1313,11 +1330,17 @@ export class A1ScreenCard extends LitElement {
   }
 
   private _handleCoverImageError() {
-    this.coverImageElement!.style.display = "none";
+    this.simpleCoverImageFailed = true;
+    if (this.coverImageElement) {
+      this.coverImageElement.style.display = "none";
+    }
   }
 
   private _handleCoverImageLoad() {
-    this.coverImageElement!.style.display = "block";
+    this.simpleCoverImageFailed = false;
+    if (this.coverImageElement) {
+      this.coverImageElement.style.display = "block";
+    }
   }
 
   #renderModelDownloadOverlay() {

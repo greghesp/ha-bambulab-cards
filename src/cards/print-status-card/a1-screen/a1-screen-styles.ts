@@ -848,6 +848,20 @@ export default css`
     max-height: 100%;
   }
 
+  .cover-image-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    background: black;
+  }
+
+  .cover-image-fallback ha-icon {
+    --mdc-icon-size: 48px;
+  }
+
   .model-download-overlay {
     position: absolute;
     inset: 0;
