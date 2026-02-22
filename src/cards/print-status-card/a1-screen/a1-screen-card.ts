@@ -45,13 +45,21 @@ interface AMS {
 export class A1ScreenCard extends LitElement {
   @property() public coverImage;
   @property() public _device_id;
+  @property({ type: Boolean }) public minimal = false;
+  @property({ type: Boolean }) public showPrinterName = false;
+  @property({ type: Boolean }) public showCover = false;
+  @property({ type: Boolean }) public showCameraFeed = false;
+  @property() public showCoverPosition: "left" | "right" = "left";
+  @property() public showCameraPosition: "left" | "right" = "right";
   @state() private processedImage: string | null = null;
+  @state() private minimalCoverImageFailed = false;
+  @state() private minimalCameraImageFailed = false;
   @state() private showExtraControls = false;
   @state() private showVideoFeed = false;
   @state() private videoMaximized = false;
   @state() private videoFullyMaximized = false;
   @state() private videoAspectRatio?: number;
-  
+
   @consume({ context: hassContext, subscribe: true })
   @state()
   public _hass;
@@ -172,6 +180,104 @@ export class A1ScreenCard extends LitElement {
         this.processedImage = processedImage;
       });
     }
+
+    if (changedProperties.has("coverImage") || changedProperties.has("processedImage")) {
+      this.minimalCoverImageFailed = false;
+    }
+
+    if (changedProperties.has("showCameraFeed")) {
+      this.minimalCameraImageFailed = false;
+    }
+  }
+
+  private _handleMinimalCoverImageError() {
+    this.minimalCoverImageFailed = true;
+  }
+
+  private _handleMinimalCoverImageLoad() {
+    this.minimalCoverImageFailed = false;
+  }
+
+  private _handleMinimalCameraImageError() {
+    this.minimalCameraImageFailed = true;
+  }
+
+  private _handleMinimalCameraImageLoad() {
+    this.minimalCameraImageFailed = false;
+  }
+
+  #renderMinimalCameraTile() {
+    if (!this.showCameraFeed) return nothing;
+
+    const cameraRef = this._deviceEntities?.["camera"];
+    if (cameraRef && !helpers.isEntityUnavailable(this._hass, cameraRef)) {
+      const streamUrl = helpers.getCameraStreamUrl(this._hass, cameraRef);
+      if (streamUrl && !this.minimalCameraImageFailed) {
+        return html`
+          <div class="ha-bambulab-ssc-minimal-camera">
+            <img
+              class="ha-bambulab-ssc-minimal-camera-image"
+              src="${streamUrl}"
+              @error="${this._handleMinimalCameraImageError}"
+              @load="${this._handleMinimalCameraImageLoad}"
+              alt="Camera"
+            />
+          </div>
+        `;
+      }
+    }
+
+    const p1pCameraRef = this._deviceEntities?.["p1p_camera"];
+    if (p1pCameraRef && !helpers.isEntityUnavailable(this._hass, p1pCameraRef)) {
+      const src = helpers.getImageUrl(this._hass, p1pCameraRef);
+      if (src && !this.minimalCameraImageFailed) {
+        return html`
+          <div class="ha-bambulab-ssc-minimal-camera">
+            <img
+              class="ha-bambulab-ssc-minimal-camera-image"
+              src="${src}"
+              @error="${this._handleMinimalCameraImageError}"
+              @load="${this._handleMinimalCameraImageLoad}"
+              alt="Camera"
+            />
+          </div>
+        `;
+      }
+    }
+
+    return html`
+      <div class="ha-bambulab-ssc-minimal-camera">
+        <div class="ha-bambulab-ssc-minimal-camera-fallback" aria-label="No camera">
+          <ha-icon icon="mdi:camera-off-outline"></ha-icon>
+        </div>
+      </div>
+    `;
+  }
+
+  #renderMinimalCoverTile() {
+    if (!this.showCover) return nothing;
+
+    const coverSrc = this.processedImage || this.coverImage || "";
+    const showCoverImage = !!coverSrc && !this.minimalCoverImageFailed;
+    return html`
+      <div class="ha-bambulab-ssc-minimal-cover">
+        ${showCoverImage
+          ? html`
+              <img
+                class="ha-bambulab-ssc-minimal-cover-image"
+                src="${coverSrc}"
+                @error="${this._handleMinimalCoverImageError}"
+                @load="${this._handleMinimalCoverImageLoad}"
+                alt="Cover Image"
+              />
+            `
+          : html`
+              <div class="ha-bambulab-ssc-minimal-cover-fallback" aria-label="No cover image">
+                <ha-icon icon="mdi:image-outline"></ha-icon>
+              </div>
+            `}
+      </div>
+    `;
   }
 
   observeCardHeight() {
@@ -263,7 +369,7 @@ export class A1ScreenCard extends LitElement {
   #isControlsPageDisabled() {
     return this.#isMqttEncryptionEnabled();
   }
-  
+
   #isMqttEncryptionEnabled() {
     return helpers.isMqttEncryptionEnabled(this._hass, this._deviceEntities)
   }
@@ -373,6 +479,17 @@ export class A1ScreenCard extends LitElement {
     return this._hass.devices[this._device_id].identifiers[0][1];
   }
 
+  #getDeviceName(): string {
+    const device = this._hass?.devices?.[this._device_id];
+    return device?.name_by_user || device?.name || "";
+  }
+
+  #getPrinterStatus(): string {
+    const entityRef = this._deviceEntities?.["stage"];
+    if (!entityRef || helpers.isEntityUnavailable(this._hass, entityRef)) return "";
+    return helpers.getLocalizedEntityState(this._hass, entityRef);
+  }
+
   render() {
     return html`
       ${this.confirmation.show
@@ -396,25 +513,90 @@ export class A1ScreenCard extends LitElement {
             _device_id=${this._device_id}
           ></skip-objects>`
         : nothing}
-      <ha-card class="ha-bambulab-ssc"> 
-        <div class="ha-bambulab-ssc-screen-container">
-          ${this.page === Page.Main ? this.#renderFrontPage() :
-            this.page === Page.Controls ? this.#renderControlsPage() :
-            this.page === Page.Ams ? this.#renderAmsPage() : ''}
+      ${this.minimal
+        ? this.#renderMinimal()
+        : html`
+            <ha-card class="ha-bambulab-ssc">
+              <div class="ha-bambulab-ssc-screen-container">
+                ${this.page === Page.Main ? this.#renderFrontPage() :
+                  this.page === Page.Controls ? this.#renderControlsPage() :
+                  this.page === Page.Ams ? this.#renderAmsPage() : ''}
+              </div>
+            </ha-card>
+            <print-history-popup
+              .device_id=${this._device_id}
+              .device_serial=${this.#getDeviceSerial()}
+              .file_type=${"3mf"}
+              .controlBlocked=${this.#isMqttEncryptionEnabled() || this.#isHybridMqttConnection()}
+            ></print-history-popup>
+          `}
+    `;
+  }
+
+  #renderMinimal() {
+    const name = this.showPrinterName ? this.#getDeviceName() : "";
+    const status = this.#getPrinterStatus();
+    const coverSide = this.showCoverPosition === "right" ? "right" : "left";
+    const cameraSide = this.showCameraPosition === "right" ? "right" : "left";
+
+    const showAnyMedia = this.showCover || this.showCameraFeed;
+    const hasLeftMedia =
+      (this.showCover && coverSide === "left") || (this.showCameraFeed && cameraSide === "left");
+    const hasRightMedia =
+      (this.showCover && coverSide === "right") || (this.showCameraFeed && cameraSide === "right");
+
+    const leftMedia = html`
+      <div class="ha-bambulab-ssc-minimal-media">
+        ${this.showCover && coverSide === "left" ? this.#renderMinimalCoverTile() : nothing}
+        ${this.showCameraFeed && cameraSide === "left" ? this.#renderMinimalCameraTile() : nothing}
+      </div>
+    `;
+
+    const rightMedia = html`
+      <div class="ha-bambulab-ssc-minimal-media">
+        ${this.showCover && coverSide === "right" ? this.#renderMinimalCoverTile() : nothing}
+        ${this.showCameraFeed && cameraSide === "right" ? this.#renderMinimalCameraTile() : nothing}
+      </div>
+    `;
+    return html`
+      <ha-card class="ha-bambulab-ssc minimal">
+        <div class="ha-bambulab-ssc-minimal-container">
+          ${showAnyMedia && hasLeftMedia ? leftMedia : nothing}
+
+          <div class="ha-bambulab-ssc-minimal-status">
+            <div class="ha-bambulab-ssc-status">
+              <div class="ha-bambulab-ssc-progress-container">
+                ${name || status
+                  ? html`
+                      <div class="ha-bambulab-ssc-minimal-header">
+                        <div class="ha-bambulab-ssc-minimal-name">${name}</div>
+                        <div class="ha-bambulab-ssc-minimal-printer-status">${status}</div>
+                      </div>
+                    `
+                  : nothing}
+                <div class="ha-bambulab-ssc-progress-bar">
+                  <div
+                    class="ha-bambulab-ssc-progress"
+                    style="width: ${this.#calculateProgress()}"
+                  ></div>
+                </div>
+                <div class="ha-bambulab-ssc-status-bar minimal">
+                  <div class="ha-bambulab-ssc-status-text">${this.#getPrintStatusText()}</div>
+                  <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          ${showAnyMedia && hasRightMedia ? rightMedia : nothing}
         </div>
       </ha-card>
-      <print-history-popup
-        .device_id=${this._device_id}
-        .device_serial=${this.#getDeviceSerial()}
-        .file_type=${"3mf"}
-        .controlBlocked=${this.#isMqttEncryptionEnabled() || this.#isHybridMqttConnection()}
-      ></print-history-popup>
     `;
   }
 
   #showMainPage() {
     this.page = Page.Main;
-    
+
     // Reset selected AMS to the active one, or default to first if none are active
     const activeIndex = this._amsList.findIndex(ams => ams.active);
     this._selectedAmsIndex = activeIndex >= 0 ? activeIndex : 0;
@@ -498,7 +680,7 @@ export class A1ScreenCard extends LitElement {
               ? html `
                 <div class="video-wrapper">
                   ${videoHtml}
-                  ${this.videoMaximized ? 
+                  ${this.videoMaximized ?
                   html`
                     <button class="video-minimize-btn" @click="${this.#minimizeVideo}" title="Restore video">
                       <ha-icon icon="mdi:arrow-collapse" class="mirrored"></ha-icon>
@@ -517,7 +699,7 @@ export class A1ScreenCard extends LitElement {
                   <div class="cover-image-wrapper">
                     <img
                         id="cover-image"
-                        src="${this.processedImage || this.coverImage}" 
+                        src="${this.processedImage || this.coverImage}"
                         @error="${this._handleCoverImageError}"
                         @load="${this._handleCoverImageLoad}"
                         alt="Cover Image" />
@@ -551,7 +733,7 @@ export class A1ScreenCard extends LitElement {
   #renderMainControlsColumn() {
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
-        <button class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}" 
+        <button class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
           @click="${() => helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}">
           <ha-icon icon="mdi:lightbulb"></ha-icon>
         </button>
@@ -660,7 +842,7 @@ export class A1ScreenCard extends LitElement {
             </div>
             <span class="sensor-value">&nbsp</span>
           </div>
-        `)}        
+        `)}
         <div class="ams-divider"></div>
         <div class="ams" @click="${this.#showAmsPage}">
           ${this.#renderAMSSvg(this._selectedAmsIndex, false)}
@@ -806,8 +988,8 @@ export class A1ScreenCard extends LitElement {
     const svgString = `
       <svg viewBox="0 0 ${totalWidth} 20" width="${totalWidth}" height="20">
         ${active ? `
-          <rect 
-            x="0" y="0" 
+          <rect
+            x="0" y="0"
             width="${totalWidth}" height="20"
             fill="none"
             stroke="green"
@@ -898,11 +1080,11 @@ export class A1ScreenCard extends LitElement {
       a.spools[0].localeCompare(b.spools[0])
     );
     this._amsList.push(...externalSpools);
-    
+
     // Set selected AMS to the active one, or default to first if none are active
     const activeIndex = this._amsList.findIndex(ams => ams.active);
     this._selectedAmsIndex = activeIndex >= 0 ? activeIndex : 0;
-    
+
     return amsList;
   }
 
@@ -942,7 +1124,7 @@ export class A1ScreenCard extends LitElement {
           L 75 100
           A25 25 0 0 0 100 125
           Z"
-          transform="rotate(45, 100, 100)" 
+          transform="rotate(45, 100, 100)"
           @click=${() => this.#moveAxis(MoveAxis.X, -1)} />
 
         <!-- Outer Slice Left -->
@@ -953,7 +1135,7 @@ export class A1ScreenCard extends LitElement {
           L 40 100
           A60 60 0 0 0 100 160
           Z"
-          transform="rotate(45, 100, 100)" 
+          transform="rotate(45, 100, 100)"
           @click=${() => this.#moveAxis(MoveAxis.X, -10)} />
 
         <!-- Inner Slice Right -->
@@ -964,7 +1146,7 @@ export class A1ScreenCard extends LitElement {
           L 125 100
           A25 25 0 0 0 100 75
           Z"
-          transform="rotate(45, 100, 100)" 
+          transform="rotate(45, 100, 100)"
           @click=${() => this.#moveAxis(MoveAxis.X, 1)} />
 
         <!-- Outer Slice Right -->
@@ -975,7 +1157,7 @@ export class A1ScreenCard extends LitElement {
           L 160 100
           A60 60 0 0 0 100 40
           Z"
-          transform="rotate(45, 100, 100)" 
+          transform="rotate(45, 100, 100)"
           @click=${() => this.#moveAxis(MoveAxis.X, 10)} />
 
         <!-- Inner Slice Top -->
@@ -986,7 +1168,7 @@ export class A1ScreenCard extends LitElement {
           L 100 75
           A25 25 0 0 0 75 100
           Z"
-          transform="rotate(45, 100, 100)" 
+          transform="rotate(45, 100, 100)"
           @click=${() => this.#moveAxis(MoveAxis.Y, 1)} />
 
         <!-- Outer Slice Top -->
@@ -997,9 +1179,9 @@ export class A1ScreenCard extends LitElement {
           L 100 40
           A60 60 0 0 0 40 100
           Z"
-          transform="rotate(45, 100, 100)" 
+          transform="rotate(45, 100, 100)"
           @click=${() => this.#moveAxis(MoveAxis.Y, 10)} />
-          
+
         <!-- Inner Slice Bottom -->
         <path class="inner-slice" d="
           M 125 100
@@ -1008,7 +1190,7 @@ export class A1ScreenCard extends LitElement {
           L 100 125
           A25 25 0 0 0 125 100
           Z"
-          transform="rotate(45, 100, 100)" 
+          transform="rotate(45, 100, 100)"
           @click=${() => this.#moveAxis(MoveAxis.Y, -1)} />
 
         <!-- Outer Slice Bottom -->
@@ -1019,7 +1201,7 @@ export class A1ScreenCard extends LitElement {
           L 100 160
           A60 60 0 0 0 160 100
           Z"
-          transform="rotate(45, 100, 100)" 
+          transform="rotate(45, 100, 100)"
           @click=${() => this.#moveAxis(MoveAxis.Y, -10)} />
       </g>
 
@@ -1105,7 +1287,7 @@ export class A1ScreenCard extends LitElement {
       true);
 
     console.log("CallResult:", callResult)
-    
+
     if (callResult.response.Error) {
       this.confirmation = {
         show: true,
