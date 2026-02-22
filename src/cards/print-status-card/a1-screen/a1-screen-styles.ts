@@ -6,7 +6,6 @@ export default css`
     --text-primary: #ffffff;
     --text-secondary: #888888;
     --accent-color: #4caf50;
-    --warning-color: #f44336;
     --control-background: rgba(255, 255, 255, 0.1);
     --divider-color: rgba(255, 255, 255, 0.1);
   }
@@ -233,7 +232,7 @@ export default css`
 
   .ha-bambulab-ssc-progress {
     height: 100%;
-    background: var(--accent-color);
+    background: var(--ha-bambulab-progress-color, var(--accent-color));
     border-radius: 2px;
     margin-top: 8px;
     transition: width 0.3s ease;
@@ -329,7 +328,7 @@ export default css`
   }
 
   .ha-bambulab-ssc-control-button.warning {
-    background: var(--warning-color);
+    background: var(--error-color);
   }
 
   .ha-bambulab-ssc-control-button ha-icon {

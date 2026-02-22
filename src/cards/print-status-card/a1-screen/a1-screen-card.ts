@@ -325,6 +325,27 @@ export class A1ScreenCard extends LitElement {
     return `${percentage}%`;
   }
 
+  #getProgressBarColor(): string {
+    const printStatusRef = this._deviceEntities?.["print_status"];
+    const stageRef = this._deviceEntities?.["stage"];
+
+    const printStatusState = printStatusRef ? this._hass.states[printStatusRef.entity_id]?.state : undefined;
+    const stageState = stageRef ? this._hass.states[stageRef.entity_id]?.state : undefined;
+
+    const errorStates = new Set(["error", "failed", "failure"]);
+    const pausedStates = new Set(["pause", "paused", "pausing"]);
+
+    if ((printStatusState && errorStates.has(printStatusState)) || (stageState && errorStates.has(stageState))) {
+      return "var(--error-color)";
+    }
+
+    if ((printStatusState && pausedStates.has(printStatusState)) || (stageState && pausedStates.has(stageState))) {
+      return "var(--warning-color)";
+    }
+
+    return "var(--accent-color)";
+  }
+
   #getPrintStatusText() {
     const printStatusRef = this._deviceEntities?.["print_status"];
     const stageRef = this._deviceEntities?.["stage"];
@@ -601,7 +622,7 @@ export class A1ScreenCard extends LitElement {
                 <div class="ha-bambulab-ssc-progress-bar">
                   <div
                     class="ha-bambulab-ssc-progress"
-                    style="width: ${this.#calculateProgress()}"
+                    style="width: ${this.#calculateProgress()}; --ha-bambulab-progress-color: ${this.#getProgressBarColor()}"
                   ></div>
                 </div>
                 <div class="ha-bambulab-ssc-status-bar minimal">
@@ -748,7 +769,7 @@ export class A1ScreenCard extends LitElement {
               <div class="ha-bambulab-ssc-progress-bar">
                 <div
                   class="ha-bambulab-ssc-progress"
-                  style="width: ${this.#calculateProgress()}"
+                  style="width: ${this.#calculateProgress()}; --ha-bambulab-progress-color: ${this.#getProgressBarColor()}"
                 ></div>
               </div>
               <div class="ha-bambulab-ssc-status-bar">
