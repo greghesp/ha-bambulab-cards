@@ -31,17 +31,23 @@ export class ConfirmationPrompt extends LitElement {
 
   render() {
     return html`
-      <ha-dialog id="confirmation-popup" open="true" .heading=${this.title} @closed=${this.onClose}>
+      <ha-dialog id="confirmation-popup" open="true" @closed=${this.onClose}>
+
         <ha-dialog-header slot="heading">
           <div slot="title">${this.title}</div>
         </ha-dialog-header>
+
         <div class="content">${this.body}</div>
-        <mwc-button slot="primaryAction" @click=${this.primaryAction}
-          >${this.primaryActionText}</mwc-button
-        >
-        <mwc-button slot="secondaryAction" @click=${this.secondaryAction}
-          >${this.secondaryActionText}</mwc-button
-        >
+
+        <ha-dialog-footer slot="footer">
+          <ha-button slot="primaryAction" @click=${this.primaryAction}>
+            ${this.primaryActionText}
+          </ha-button>
+          <ha-button slot="secondaryAction" @click=${this.secondaryAction}>
+            ${this.secondaryActionText}
+          </ha-button>
+        </ha-dialog-footer>
+
       </ha-dialog>
     `;
   }
