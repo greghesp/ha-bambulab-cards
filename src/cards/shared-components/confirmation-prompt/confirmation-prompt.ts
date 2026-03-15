@@ -39,7 +39,17 @@ export class ConfirmationPrompt extends LitElement {
 
         <div class="content">${this.body}</div>
 
+        <!-- Needed in older home assistant versions that don't support ha-button in dialog actions -->
+        <mwc-button slot="primaryAction" @click=${this.primaryAction}>
+          ${this.primaryActionText}
+        </mwc-button>
+        <mwc-button slot="secondaryAction" @click=${this.secondaryAction}>
+          ${this.secondaryActionText}
+        </mwc-button>
+
         <ha-dialog-footer slot="footer">
+
+          <!-- For newer home assistant versions that support ha-button in dialog actions -->
           <ha-button slot="primaryAction" @click=${this.primaryAction}>
             ${this.primaryActionText}
           </ha-button>
