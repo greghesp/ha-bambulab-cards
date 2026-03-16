@@ -6,7 +6,6 @@ export default css`
     --text-primary: #ffffff;
     --text-secondary: #888888;
     --accent-color: #4caf50;
-    --warning-color: #f44336;
     --control-background: rgba(255, 255, 255, 0.1);
     --divider-color: rgba(255, 255, 255, 0.1);
   }
@@ -18,6 +17,154 @@ export default css`
     height: 300px;
     overflow: hidden;
   }
+
+  .ha-bambulab-ssc.minimal {
+    height: auto;
+  }
+
+  .ha-bambulab-ssc-minimal-container {
+    padding: 12px 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .ha-bambulab-ssc-minimal-media {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    flex: 0 0 auto;
+  }
+
+  .ha-bambulab-ssc-minimal-cover {
+    flex: 0 0 auto;
+    width: 56px;
+    height: 56px;
+    padding: 4px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--control-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ha-bambulab-ssc-minimal-camera {
+    flex: 0 0 auto;
+    width: 56px;
+    height: 56px;
+    padding: 4px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--control-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .ha-bambulab-ssc-minimal-cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .ha-bambulab-ssc-minimal-camera-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .ha-bambulab-ssc-minimal-camera ha-camera-stream {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ha-bambulab-ssc-minimal-cover-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+  }
+
+  .ha-bambulab-ssc-minimal-camera-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+  }
+
+  .ha-bambulab-ssc-minimal-cover-fallback ha-icon {
+    --mdc-icon-size: 28px;
+  }
+
+  .ha-bambulab-ssc-minimal-camera-fallback ha-icon {
+    --mdc-icon-size: 28px;
+  }
+
+  .ha-bambulab-ssc-minimal-status {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .ha-bambulab-ssc-minimal-header {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+    min-width: 0;
+  }
+
+  .ha-bambulab-ssc-minimal-name {
+    color: var(--text-primary);
+    font-size: 0.9em;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .ha-bambulab-ssc-minimal-printer-status {
+    color: var(--text-secondary);
+    font-size: 0.85em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    text-align: right;
+  }
+
+  .ha-bambulab-ssc-status-bar.minimal {
+    gap: 8px;
+  }
+
+  .ha-bambulab-ssc-status-bar.minimal .ha-bambulab-ssc-status-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* printer name moved above progress bar in minimal mode */
 
   .ha-bambulab-ssc-screen-container {
     display: flex;
@@ -85,7 +232,7 @@ export default css`
 
   .ha-bambulab-ssc-progress {
     height: 100%;
-    background: var(--accent-color);
+    background: var(--ha-bambulab-progress-color, var(--accent-color));
     border-radius: 2px;
     margin-top: 8px;
     transition: width 0.3s ease;
@@ -116,7 +263,7 @@ export default css`
   .ha-bambulab-ssc-control-buttons {
     display: flex;
     flex-direction: row;
-    flex: 0 0 auto; 
+    flex: 0 0 auto;
     justify-content: flex-start;
     max-width: none;
     width: 100%;
@@ -181,7 +328,7 @@ export default css`
   }
 
   .ha-bambulab-ssc-control-button.warning {
-    background: var(--warning-color);
+    background: var(--error-color);
   }
 
   .ha-bambulab-ssc-control-button ha-icon {
@@ -647,7 +794,7 @@ export default css`
 
   .fullscreen {
     position: fixed !important;
-    inset: 0;  
+    inset: 0;
     z-index: 2000 !important;
   }
 
@@ -698,6 +845,20 @@ export default css`
     height: 100%;
     max-width: 100%;
     max-height: 100%;
+  }
+
+  .cover-image-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    background: black;
+  }
+
+  .cover-image-fallback ha-icon {
+    --mdc-icon-size: 48px;
   }
 
   .model-download-overlay {
