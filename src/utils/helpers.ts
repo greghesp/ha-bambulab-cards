@@ -87,6 +87,17 @@ export function getBambuDeviceEntities(
           } else {
             if (key == value.translation_key) {
               result[key] = value;
+            } else {
+              // Support new translation keys with slot state attribute
+              // e.g. "tray_1" matches translation_key "tray" with slot=1
+              // e.g. "hotend_rack_hotend_2" matches translation_key "hotend_rack_hotend" with slot=2
+              const slotMatch = key.match(/^(.+)_(\d+)$/)
+              if (slotMatch && value.translation_key === slotMatch[1]) {
+                const slot = hass.states[value.entity_id]?.attributes?.slot
+                if (slot != null && String(slot) === slotMatch[2]) {
+                  result[key] = value
+                }
+              }
             }
           }
         } else if (value.platform == "mqtt") {
