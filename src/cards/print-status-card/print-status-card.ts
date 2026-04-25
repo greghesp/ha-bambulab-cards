@@ -9,28 +9,18 @@ import { PRINT_STATUS_CARD_EDITOR_NAME, PRINT_STATUS_CARD_NAME } from "./const";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { entitiesContext, hassContext } from "../../utils/context";
 
-import A1_ON_IMAGE from "../../images/A1_on.png";
-import A1_OFF_IMAGE from "../../images/A1_off.png";
-import A1MINI_ON_IMAGE from "../../images/A1Mini_on.png";
-import A1MINI_OFF_IMAGE from "../../images/A1Mini_off.png";
-import H2C_ON_IMAGE from "../../images/H2C_on.png";
-import H2C_OFF_IMAGE from "../../images/H2C_off.png";
-import H2D_ON_IMAGE from "../../images/H2D_on.png";
-import H2D_OFF_IMAGE from "../../images/H2D_off.png";
-import H2DPRO_ON_IMAGE from "../../images/H2DPRO_on.png";
-import H2DPRO_OFF_IMAGE from "../../images/H2DPRO_off.png";
-import H2S_ON_IMAGE from "../../images/H2S_on.png";
-import H2S_OFF_IMAGE from "../../images/H2S_off.png";
-import P1P_ON_IMAGE from "../../images/P1P_on.png";
-import P1P_OFF_IMAGE from "../../images/P1P_off.png";
-import P1S_ON_IMAGE from "../../images/P1S_on.png";
-import P1S_OFF_IMAGE from "../../images/P1S_off.png";
-import P2S_ON_IMAGE from "../../images/P2S_on.png";
-import P2S_OFF_IMAGE from "../../images/P2S_off.png";
-import X1C_ON_IMAGE from "../../images/X1C_on.png";
-import X1C_OFF_IMAGE from "../../images/X1C_off.png";
-import X1E_ON_IMAGE from "../../images/X1E_on.png";
-import X1E_OFF_IMAGE from "../../images/X1E_off.png";
+import A1_IMAGE from "../../images/A1.png";
+import A1MINI_IMAGE from "../../images/A1Mini.png";
+import H2C_IMAGE from "../../images/H2C.png";
+import H2D_IMAGE from "../../images/H2D.png";
+import H2DPRO_IMAGE from "../../images/H2DPRO.png";
+import H2S_IMAGE from "../../images/H2S.png";
+import P1P_IMAGE from "../../images/P1P.png";
+import P1S_IMAGE from "../../images/P1S.png";
+import P2S_IMAGE from "../../images/P2S.png";
+import X1C_IMAGE from "../../images/X1C.png";
+import X1E_IMAGE from "../../images/X1E.png";
+import X2D_IMAGE from "../../images/X2D.png";
 
 import "./a1-screen/a1-screen-card";
 import EntityProvider from "../shared-components/entity-provider";
@@ -49,32 +39,19 @@ interface EntityUX {
   click_target?: string;
 }
 
-const _onImages: { [key: string]: any } = {
-  A1: A1_ON_IMAGE,
-  A1MINI: A1MINI_ON_IMAGE,
-  H2C: H2C_ON_IMAGE,
-  H2D: H2D_ON_IMAGE,
-  H2DPRO: H2DPRO_ON_IMAGE,
-  H2S: H2S_ON_IMAGE,
-  P1P: P1P_ON_IMAGE,
-  P1S: P1S_ON_IMAGE,
-  P2S: P2S_ON_IMAGE,
-  X1C: X1C_ON_IMAGE,
-  X1E: X1E_ON_IMAGE,
-};
-
-const _offImages: { [key: string]: any } = {
-  A1: A1_OFF_IMAGE,
-  A1MINI: A1MINI_OFF_IMAGE,
-  H2C: H2C_OFF_IMAGE,
-  H2D: H2D_OFF_IMAGE,
-  H2DPRO: H2DPRO_OFF_IMAGE,
-  H2S: H2S_OFF_IMAGE,
-  P1P: P1P_OFF_IMAGE,
-  P1S: P1S_OFF_IMAGE,
-  P2S: P2S_OFF_IMAGE,
-  X1C: X1C_OFF_IMAGE,
-  X1E: X1E_OFF_IMAGE,
+const _images: { [key: string]: any } = {
+  A1: A1_IMAGE,
+  A1MINI: A1MINI_IMAGE,
+  H2C: H2C_IMAGE,
+  H2D: H2D_IMAGE,
+  H2DPRO: H2DPRO_IMAGE,
+  H2S: H2S_IMAGE,
+  P1P: P1P_IMAGE,
+  P1S: P1S_IMAGE,
+  P2S: P2S_IMAGE,
+  X1C: X1C_IMAGE,
+  X1E: X1E_IMAGE,
+  X2D: X2D_IMAGE,
 };
 
 function hash32(str) {
@@ -184,6 +161,22 @@ export class PrintStatusCard extends EntityProvider {
     door_open:      { x: 86,   y: 60, width: 20,  height: 0 },
   };
 
+  private X2DEntityUX: { [key: string]: EntityUX | undefined } = {
+    power:          { x: 95.5, y: 10, width: 20,  height: 0 },
+    print_progress: { x: 29,   y: 4,  width: 25,  height: 0 },
+    remaining_time: { x: 29,   y: 9,  width: 100, height: 0 },
+    chamber_light:  { x: 13,   y: 24, width: 20,  height: 0 },
+    chamber_fan_speed: { x: 86,   y: 24, width: 70,  height: 0, click_target: "chamber_fan" },
+    nozzle_temp:    { x: 50,   y: 31, width: 25,  height: 0, click_target: "target_nozzle_temperature" },
+    chamber_temp:   { x: 86,   y: 33, width: 20,  height: 0 },
+    humidity:       { x: 86,   y: 42, width: 20,  height: 0 },
+    aux_fan_speed:  { x: 13,   y: 60, width: 70,  height: 0, click_target: "aux_fan" },
+    cover_image:    { x: 50,   y: 60, width: 50,  height: 50 },
+    bed_temp:       { x: 50,   y: 88, width: 25,  height: 0, click_target: "target_bed_temperature" },
+    stage:          { x: 50,   y: 94, width: 300, height: 0 },
+    door_open:      { x: 86,   y: 60, width: 20,  height: 0 },
+  };
+
   private P1PEntityUX: { [key: string]: EntityUX | undefined } = {
     power:          { x: 94, y: 5,   width: 20,  height: 0 },
     print_progress: { x: 23, y: 3.5, width: 25,  height: 0 },
@@ -258,6 +251,7 @@ export class PrintStatusCard extends EntityProvider {
     X1:  this.X1CEntityUX,
     X1C: this.X1CEntityUX,
     X1E: this.X1CEntityUX,
+    X2D: this.X2DEntityUX,
   };
 
   private _default_to_camera: boolean = false
@@ -424,13 +418,7 @@ export class PrintStatusCard extends EntityProvider {
   }
 
   private _getPrinterImage() {
-    const lightOn =
-      helpers.getEntityState(this._hass, this._deviceEntities["chamber_light"]) == "on";
-    if (lightOn) {
-      return _onImages[this._model];
-    } else {
-      return _offImages[this._model];
-    }
+    return _images[this._model];
   }
 
   private _addElement(key) {
