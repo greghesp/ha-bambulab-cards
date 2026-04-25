@@ -12,7 +12,8 @@ export const PRINTER_MODELS = [
     "P1S",
     "P2S",
     "X1C",
-    "X1E"
+    "X1E",
+    "X2D"
 ];
 export const AMS_MODELS = [
     "AMS",
