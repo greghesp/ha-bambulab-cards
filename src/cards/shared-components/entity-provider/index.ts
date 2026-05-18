@@ -15,6 +15,8 @@ const ENTITIES: string[] = [
   "chamber_fan_speed",
   "chamber_light",
   "chamber_temp",
+  "target_chamber_temp",
+  "target_chamber_temperature",
   "cooling_fan",
   "cooling_fan_speed",
   "cover_image",

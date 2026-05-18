@@ -178,8 +178,13 @@ export class A1ScreenCard extends LitElement {
     const card = this.shadowRoot!.querySelector("ha-card")!;
   }
 
-  #clickEntity(key: string, force: boolean = false) {
-    if (!force && this.#isMqttEncryptionEnabled()) return;
+  #clickEntity(key: string, force: boolean = false, fallbackKey?: string) {
+    if (!force && this.#isMqttEncryptionEnabled()) {
+      if (fallbackKey) {
+        this.#clickEntity(fallbackKey, force);
+      }
+      return;
+    }
     helpers.showEntityMoreInfo(this, this._deviceEntities[key]);
   }
 
@@ -623,7 +628,7 @@ export class A1ScreenCard extends LitElement {
     const placeholders = Array.from({ length: count });
     return html`
       <div class="ha-bambulab-ssc-sensors">
-        <div class="sensor" @click="${() => this.#clickEntity("target_nozzle_temperature")}">
+        <div class="sensor" @click="${() => this.#clickEntity("target_nozzle_temperature", false, "nozzle_temp")}">
           <span class="icon-and-target">
             <ha-icon icon="mdi:printer-3d-nozzle-heat-outline"></ha-icon>
             <span class="sensor-target-value">
@@ -632,19 +637,19 @@ export class A1ScreenCard extends LitElement {
           </span>
           <span class="sensor-value">${this.#formattedTemperatureState("nozzle_temp")}</span>
         </div>
-        <div class="sensor" @click="${() => this.#clickEntity("target_bed_temperature")}">
+        <div class="sensor" @click="${() => this.#clickEntity("target_bed_temperature", false, "bed_temp")}">
           <span class="icon-and-target">
             <ha-icon icon="mdi:radiator"></ha-icon>
             <span class="sensor-target-value">${this.#formattedTemperatureState("target_bed_temp")}</span>
           </span>
           <span class="sensor-value">${this.#formattedTemperatureState("bed_temp")}</span>
         </div>
-        <div class="sensor" @click="${() => this.#clickEntity("printing_speed")}">
+        <div class="sensor" @click="${() => this.#clickEntity("printing_speed", false, "speed_profile")}">
           <ha-icon icon="mdi:speedometer"></ha-icon>
           <span class="sensor-value">${this.#attribute("speed_profile", "modifier")}%</span>
         </div>
         ${(this._deviceEntities["aux_fan_speed"] && !helpers.isEntityUnavailable(this._hass, this._deviceEntities["aux_fan_speed"])) ? html`
-          <div class="sensor" @click="${() => this.#clickEntity("aux_fan")}">
+          <div class="sensor" @click="${() => this.#clickEntity("aux_fan", false, "aux_fan_speed")}">
             <div class="twoicons">
               <ha-icon icon="mdi:fan"></ha-icon>
               <ha-icon icon="mdi:chevron-right"></ha-icon>
@@ -674,17 +679,26 @@ export class A1ScreenCard extends LitElement {
     let count = 0;
     if (this._deviceEntities["chamber_temp"]) count++;
     if (this._deviceEntities["humidity"]) count++;
-    if (this._deviceEntities["chamber_fan"]) count++;
+    if (this._deviceEntities["chamber_fan"] || this._deviceEntities["chamber_fan_speed"]) count++;
     count++; // cooling fan always present
     const placeholders = Array.from({ length: 4 - count });
     return html`
       <div class="ha-bambulab-ssc-sensors">
         ${this._deviceEntities["chamber_temp"] ? html`
-          <div class="sensor">
-            <div class="twoicons">
-              <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
-              <ha-icon icon="mdi:thermometer"></ha-icon>
-            </div>
+          <div class="sensor" @click="${() => this.#clickEntity("target_chamber_temperature", false, "chamber_temp")}">
+            ${this._deviceEntities["target_chamber_temp"] ? html`
+              <span class="icon-and-target">
+                <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
+                <span class="sensor-target-value">
+                  ${this.#formattedTemperatureState("target_chamber_temp")}
+                </span>
+              </span>
+            ` : html`
+              <div class="twoicons">
+                <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
+                <ha-icon icon="mdi:thermometer"></ha-icon>
+              </div>
+            `}
             <span class="sensor-value">
               ${this.#state("chamber_temp") === 'unavailable'
                 ? html`<ha-icon icon="mdi:alert-outline"></ha-icon>`
@@ -693,7 +707,7 @@ export class A1ScreenCard extends LitElement {
           </div>
         ` : nothing}
         ${this._deviceEntities["humidity"] ? html`
-          <div class="sensor">
+          <div class="sensor" @click="${() => this.#clickEntity("humidity", true)}">
             <div class="twoicons">
               <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
               <ha-icon icon="mdi:water-percent"></ha-icon>
@@ -705,8 +719,8 @@ export class A1ScreenCard extends LitElement {
             </span>
           </div>
         ` : nothing}
-        ${this._deviceEntities["chamber_fan"] ? html`
-          <div class="sensor" @click="${() => this.#clickEntity("chamber_fan")}">
+        ${(this._deviceEntities["chamber_fan"] || this._deviceEntities["chamber_fan_speed"]) ? html`
+          <div class="sensor" @click="${() => this.#clickEntity("chamber_fan", false, "chamber_fan_speed")}">
             <div class="twoicons">
               <ha-icon icon="mdi:mirror-rectangle"></ha-icon>
               <ha-icon icon="mdi:fan"></ha-icon>
@@ -714,7 +728,7 @@ export class A1ScreenCard extends LitElement {
             <span class="sensor-value">${this.#state("chamber_fan_speed") ?? '--'}%</span>
           </div>
         ` : nothing}
-        <div class="sensor" @click="${() => this.#clickEntity("cooling_fan")}">
+        <div class="sensor" @click="${() => this.#clickEntity("cooling_fan", false, "cooling_fan_speed")}">
           <div class="twoicons">
             <ha-icon icon="mdi:printer-3d"></ha-icon>
             <ha-icon icon="mdi:fan"></ha-icon>
