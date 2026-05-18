@@ -20,7 +20,7 @@ export class PrintControlCardEditor extends LitElement {
 
   // This method dynamically builds the schema based on current config
   _buildSchema() {
-    const schema = [
+    const schema: any[] = [
       {
         name: "style",
         label: "Card Style",
@@ -28,6 +28,7 @@ export class PrintControlCardEditor extends LitElement {
           select: {
             options: [
               { label: "Simple", value: "simple" },
+              { label: "Minimal", value: "minimal" },
               { label: "Graphic", value: "graphic" },
             ],
           },
@@ -67,6 +68,56 @@ export class PrintControlCardEditor extends LitElement {
         label: "Custom camera",
         selector: { entity: { domain: "camera" } },
       });
+    }
+
+    if (this._config?.style === "minimal") {
+      schema.push({
+        name: "show_printer_name",
+        label: "Show printer name",
+        selector: { boolean: true },
+      });
+
+      schema.push({
+        name: "show_cover",
+        label: "Show cover",
+        selector: { boolean: true },
+      });
+
+      if (this._config?.show_cover) {
+        schema.push({
+          name: "cover_position",
+          label: "Cover position",
+          selector: {
+            select: {
+              options: [
+                { label: "Left", value: "left" },
+                { label: "Right", value: "right" },
+              ],
+            },
+          },
+        });
+      }
+
+      schema.push({
+        name: "show_camera_feed",
+        label: "Show camera feed",
+        selector: { boolean: true },
+      });
+
+      if (this._config?.show_camera_feed) {
+        schema.push({
+          name: "camera_position",
+          label: "Camera position",
+          selector: {
+            select: {
+              options: [
+                { label: "Right", value: "right" },
+                { label: "Left", value: "left" },
+              ],
+            },
+          },
+        });
+      }
     }
 
     return schema;
