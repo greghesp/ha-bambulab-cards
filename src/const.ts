@@ -4,6 +4,7 @@ export const MANUFACTURER = "Bambu Lab";
 export const PRINTER_MODELS = [
     "A1",
     "A1 MINI", "A1 Mini", "A1MINI", "A1Mini", "A1mini",
+    "A2L",
     "H2C",
     "H2D",
     "H2DPRO",

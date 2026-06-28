@@ -42,6 +42,7 @@ interface EntityUX {
 const _images: { [key: string]: any } = {
   A1: A1_IMAGE,
   A1MINI: A1MINI_IMAGE,
+  A2L: A1_IMAGE, // Need correct image
   H2C: H2C_IMAGE,
   H2D: H2D_IMAGE,
   H2DPRO: H2DPRO_IMAGE,
@@ -111,6 +112,17 @@ export class PrintStatusCard extends EntityProvider {
     print_progress: { x: 74, y: 89, width: 25,  height: 0 },
     remaining_time: { x: 74, y: 93, width: 100, height: 0 },
     stage:          { x: 41, y: 93, width: 300, height: 0 },
+  };
+
+  private A2LEntityUX: { [key: string]: EntityUX | undefined } = {
+    power:          { x: 95, y: 9,    width: 20,  height: 0 },
+    chamber_light:  { x: 46, y: 30,   width: 20,  height: 0 },
+    nozzle_temp:    { x: 46, y: 42,   width: 25,  height: 0, click_target: "target_nozzle_temperature" },
+    cover_image:    { x: 46, y: 60,   width: 42,  height: 42 },
+    bed_temp:       { x: 46, y: 81,   width: 25,  height: 0, click_target: "target_bed_temperature" },
+    print_progress: { x: 85, y: 81,   width: 25,  height: 0 },
+    remaining_time: { x: 85, y: 85,   width: 100, height: 0 },
+    stage:          { x: 46, y: 92.5, width: 300, height: 0 },
   };
 
   private H2SEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -241,6 +253,7 @@ export class PrintStatusCard extends EntityProvider {
   private EntityUX: { [key: string]: any } = {
     A1: this.A1EntityUX,
     A1MINI: this.A1MiniEntityUX,
+    A2L: this.A2LEntityUX,
     H2C: this.H2CEntityUX,
     H2D: this.H2DEntityUX,
     H2PRO: this.H2DEntityUX,
