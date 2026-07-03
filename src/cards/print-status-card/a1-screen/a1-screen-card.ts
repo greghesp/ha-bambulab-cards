@@ -516,7 +516,12 @@ export class A1ScreenCard extends LitElement {
   #openDevicePage() {
     if (!this._device_id) return;
     const url = `/config/devices/device/${this._device_id}`;
-    window.location.href = url;
+    history.pushState(null, "", url);
+    window.dispatchEvent(
+      new CustomEvent("location-changed", {
+        detail: { replace: false },
+      })
+    );
   }
 
   #showFileCache() {
