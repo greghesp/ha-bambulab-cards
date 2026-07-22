@@ -41,6 +41,8 @@ interface AMS {
   spools: string[];
 }
 
+const processedCoverImages = new Map<string, { source: string; image: string }>();
+
 @customElement("a1-screen-card")
 export class A1ScreenCard extends LitElement {
   @property() public coverImage;
@@ -52,6 +54,8 @@ export class A1ScreenCard extends LitElement {
   @property() public showCoverPosition: "left" | "right" = "left";
   @property() public showCameraPosition: "left" | "right" = "right";
   @state() private processedImage: string | null = null;
+  private processedImageSource: string | undefined;
+  private processingImageSource: string | undefined;
   @state() private minimalCoverImageFailed = false;
   @state() private minimalCameraImageFailed = false;
   @state() private showExtraControls = false;
@@ -91,8 +95,7 @@ export class A1ScreenCard extends LitElement {
 
   static styles = styles;
 
-  async #processCoverImage() {
-    if (!this.coverImage) return null;
+  async #processCoverImage(source: string) {
 
     return new Promise<string>((resolve) => {
       const img = new Image();
@@ -161,26 +164,58 @@ export class A1ScreenCard extends LitElement {
       };
 
       img.onerror = () => {
-        resolve(this.coverImage);
+        resolve("");
       };
 
-      img.src = this.coverImage;
+      img.src = source;
     });
+  }
+
+  async #updateCoverImage() {
+    const source = this.coverImage;
+    const cachedImage = processedCoverImages.get(this._device_id);
+
+    if (cachedImage && cachedImage.source === source) {
+      this.processedImage = cachedImage.image;
+      this.processedImageSource = source;
+      return;
+    }
+
+    if (
+      !source ||
+      source === this.processedImageSource ||
+      source === this.processingImageSource
+    ) {
+      return;
+    }
+
+    this.processingImageSource = source;
+    const processedImage = await this.#processCoverImage(source);
+
+    if (this.coverImage === source) {
+      this.processedImage = processedImage;
+      this.processedImageSource = source;
+      if (processedImage) {
+        processedCoverImages.set(this._device_id, { source, image: processedImage });
+      }
+    }
+
+    if (this.processingImageSource === source) {
+      this.processingImageSource = undefined;
+    }
   }
 
   async firstUpdated(changedProperties): Promise<void> {
     super.firstUpdated(changedProperties);
     this.observeCardHeight();
-    this.processedImage = await this.#processCoverImage();
+    await this.#updateCoverImage();
 
     this.#getAMSList();
   }
 
   updated(changedProperties) {
     if (changedProperties.has("coverImage")) {
-      this.#processCoverImage().then((processedImage) => {
-        this.processedImage = processedImage;
-      });
+      this.#updateCoverImage();
     }
 
     if (changedProperties.has("coverImage") || changedProperties.has("processedImage")) {
@@ -263,7 +298,7 @@ export class A1ScreenCard extends LitElement {
   #renderMinimalCoverTile() {
     if (!this.showCover) return nothing;
 
-    const coverSrc = this.processedImage || this.coverImage || "";
+    const coverSrc = this.processedImage || "";
     const showCoverImage = !!coverSrc && !this.minimalCoverImageFailed;
     return html`
       <div class="ha-bambulab-ssc-minimal-cover">
@@ -704,7 +739,7 @@ export class A1ScreenCard extends LitElement {
 
   #renderFrontPage() {
 
-    const coverSrc = this.processedImage || this.coverImage || "";
+    const coverSrc = this.processedImage || "";
     const showCoverImage = !!coverSrc && !this.simpleCoverImageFailed;
 
     let videoHtml: any = nothing
