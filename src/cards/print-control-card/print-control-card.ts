@@ -453,6 +453,8 @@ export class PrintControlCard extends LitElement {
             <div slot="title">Please confirm</div>
           </ha-dialog-header>
           <div class="content">${this._confirmationDialogBody}</div>
+
+          <!-- Needed in older home assistant versions that don't support ha-button in dialog actions -->
           <mwc-button
             slot="primaryAction"
             @click="${() => {
@@ -468,6 +470,25 @@ export class PrintControlCard extends LitElement {
             }}"
             >Cancel</mwc-button
           >
+
+          <ha-dialog-footer slot="footer">
+            <!-- For newer home assistant versions that support ha-button in dialog actions -->
+            <ha-button
+              slot="primaryAction"
+              @click="${() => {
+                this.#confirmationAction();
+                this._confirmationDialogVisible = false;
+              }}"
+              >Confirm</ha-button
+            >
+            <ha-button
+              slot="secondaryAction"
+              @click="${() => {
+                this._confirmationDialogVisible = false;
+              }}"
+              >Cancel</ha-button
+            >
+          </ha-dialog-footer>
         </ha-dialog>
       `;
     }
