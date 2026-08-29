@@ -390,8 +390,15 @@ export class PrintStatusCard extends EntityProvider {
   updated(changedProperties) {
     super.updated(changedProperties);
 
-    if (changedProperties.has("_hass")) {
-      this._coverImageUrl = helpers.getImageUrl(this._hass, this._deviceEntities["cover_image"]);
+    if (changedProperties.has("_hass") && this._hass.connected) {
+      const coverImageUrl = helpers.getImageUrl(this._hass, this._deviceEntities["cover_image"]);
+
+      // Home Assistant supplies its last state snapshot while reconnecting. Keep
+      // the already-rendered image until a new image URL arrives, rather than
+      // asking the browser to fetch an image using that stale token.
+      if (coverImageUrl && coverImageUrl !== this._coverImageUrl) {
+        this._coverImageUrl = coverImageUrl;
+      }
     }
   }
 
