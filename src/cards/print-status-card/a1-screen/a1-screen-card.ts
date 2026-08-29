@@ -397,13 +397,14 @@ export class A1ScreenCard extends LitElement {
     const printStatusState = this._hass.states[printStatusRef.entity_id]?.state;
 
     if (printStatusState === "running") {
+      const stage = stageRef ? this._hass.states[stageRef.entity_id]?.state : "printing";
       const currentLayerRef = this._deviceEntities?.["current_layer"];
       const totalLayersRef = this._deviceEntities?.["total_layers"];
 
       const currentLayer = currentLayerRef ? this._hass.states[currentLayerRef.entity_id]?.state : "";
       const totalLayers = totalLayersRef ? this._hass.states[totalLayersRef.entity_id]?.state : "";
 
-      if (currentLayer !== "" && totalLayers !== "") {
+      if (currentLayer !== "" && totalLayers !== "" && (stage === "printing" || (currentLayer > 0 && currentLayer < totalLayers))) {
         return `${currentLayer}/${totalLayers}`;
       }
     }
