@@ -52,7 +52,9 @@ jobs:
         with:
           draft: true
           generate_release_notes: true
-          files: ha-bambulab-cards/dist/*.js
+          files: |
+            ha-bambulab-cards/dist/*.js
+            ha-bambulab-cards/dist/images/*
 
         # Checkout the integration repo
       - name: 🛍️ Checkout target repository
@@ -62,10 +64,13 @@ jobs:
           path: "ha-bambulab"
           token: ${{ secrets.PR_TOKEN }}
 
-        # Copy the built filel into the integration repo
-      - name: 📝 Copy file to target repo
+        # Copy the built files into the integration repo
+      - name: 📝 Copy files to target repo
         run: |
-          cp ha-bambulab-cards/dist/* ha-bambulab/custom_components/bambu_lab/frontend
+          # Image filenames are content-hashed, so drop the previous release's
+          # images rather than letting them accumulate.
+          rm -rf ha-bambulab/custom_components/bambu_lab/frontend/images
+          cp -r ha-bambulab-cards/dist/. ha-bambulab/custom_components/bambu_lab/frontend/
 
         # Update the ha-bambulab-cards version stored in the integration so it force a cache clear on update
       - name: 🔄 Update version in const.py
