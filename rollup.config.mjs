@@ -5,7 +5,7 @@ import nodeResolve from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import serve from "rollup-plugin-serve";
-import image from "rollup-plugin-img";
+import url from "@rollup/plugin-url";
 import alias from "@rollup/plugin-alias";
 import path from "path";
 
@@ -23,9 +23,21 @@ const serveOptions = {
 };
 
 const plugins = [
-  image({
-    output: `dist/images`,
-    limit: 10000000,
+  url({
+    include: ["**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.gif", "**/*.svg"],
+    // Only inline genuinely small assets (the SVG icons). Anything larger is
+    // emitted as a file, so a dashboard downloads the one printer image it
+    // renders instead of all fifteen encoded into the bundle.
+    limit: 4096,
+    destDir: "dist/images",
+    // Content-hashed, because the served image URLs carry no cache-busting
+    // query and the integration registers its static path with
+    // cache_headers=False.
+    fileName: "[name]-[hash][extname]",
+    // Absolute: these URLs are resolved by the browser against the dashboard
+    // page, not against the module, so a relative path would 404. The
+    // integration serves its whole frontend directory at /bambu_lab.
+    publicPath: "/bambu_lab/images/",
   }),
   typescript({
     declaration: false,
