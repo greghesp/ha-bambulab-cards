@@ -24,7 +24,7 @@ const serveOptions = {
 
 const plugins = [
   url({
-    include: ["**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.gif", "**/*.svg"],
+    include: ["**/*.webp", "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.gif", "**/*.svg"],
     // Only inline genuinely small assets (the SVG icons). Anything larger is
     // emitted as a file, so a dashboard downloads the one printer image it
     // renders instead of all fifteen encoded into the bundle.

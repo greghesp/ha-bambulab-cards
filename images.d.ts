@@ -7,3 +7,8 @@ declare module "*.svg" {
   const content: string; // or 'React.Component<React.SVGProps<SVGSVGElement>>' if you're using React
   export default content;
 }
+
+declare module "*.webp" {
+  const content: string; // URL/path of the image
+  export default content;
+}
