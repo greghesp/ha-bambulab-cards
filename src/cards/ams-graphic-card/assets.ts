@@ -16,9 +16,9 @@
  *   - ams2pro-mech.png mechanism layer: puts the spool behind the glass / cover
  *   - *-brand.png      silkscreen layer: drawn on top so the logo is never covered by a spool
  */
-import AMSImage from "../../images/ams.png";
-import AMS2Image from "../../images/ams2.png";
-import AMSHTImage from "../../images/amsht.png";
+import AMSImage from "../../images/ams.webp";
+import AMS2Image from "../../images/ams2.webp";
+import AMSHTImage from "../../images/amsht.webp";
 import AMSAltImage from "../../images/ams-alt.png";
 import AMSHTCleanImage from "../../images/amsht-clean.png";
 import MechImage from "../../images/ams2pro-mech.png";
