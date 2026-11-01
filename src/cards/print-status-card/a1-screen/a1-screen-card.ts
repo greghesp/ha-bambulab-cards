@@ -348,17 +348,22 @@ export class A1ScreenCard extends LitElement {
   }
 
   #formattedTemperatureState(key: string) {
-    const unit = this._hass.states[this._deviceEntities[key].entity_id].attributes.unit_of_measurement;
+    // Disabled entities are not in hass.entities. Show '--' rather than a made-up 0.
+    const stateObj = this._hass.states[this._deviceEntities[key]?.entity_id];
+    if (!stateObj) {
+      return '--';
+    }
+    const unit = stateObj.attributes.unit_of_measurement;
     return html`${Math.floor(this.#state(key))}${unit}`;
   }
 
   #attribute(key: string, attribute: string) {
-    return helpers.getEntityAttribute(this._hass, this._deviceEntities[key].entity_id, attribute);
+    return helpers.getEntityAttribute(this._hass, this._deviceEntities[key]?.entity_id, attribute);
   }
 
   #calculateProgress() {
-    if (this._hass.states[this._deviceEntities["stage"].entity_id].state != "printing" &&
-        this._hass.states[this._deviceEntities["stage"].entity_id].state != "changing_filament") {
+    if (this._hass.states[this._deviceEntities["stage"]?.entity_id]?.state != "printing" &&
+        this._hass.states[this._deviceEntities["stage"]?.entity_id]?.state != "changing_filament") {
       return "0%";
     }
     const percentage = helpers.getEntityState(this._hass, this._deviceEntities["print_progress"]);
@@ -417,8 +422,10 @@ export class A1ScreenCard extends LitElement {
   }
 
   #getRemainingTime() {
-    if (this._hass.states[this._deviceEntities["stage"].entity_id].state != "printing" &&
-        this._hass.states[this._deviceEntities["stage"].entity_id].state != "changing_filament") {
+    if (this._hass.states[this._deviceEntities["stage"]?.entity_id]?.state != "printing" &&
+        this._hass.states[this._deviceEntities["stage"]?.entity_id]?.state != "changing_filament") {
+      return nothing;
+    } else if (!this._hass.states[this._deviceEntities['remaining_time']?.entity_id]) {
       return nothing;
     } else {
       return `-${helpers.getFormattedTime(this._hass, this._deviceEntities['remaining_time'].entity_id)}`;
