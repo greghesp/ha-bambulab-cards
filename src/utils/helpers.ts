@@ -296,7 +296,7 @@ export function isSkipButtonEnabled(hass, entities) {
     "objects"
   );
 
-  const countOfPrintableObjects = Object.keys(printableObjects).length;
+  const countOfPrintableObjects = Object.keys(printableObjects ?? {}).length;
 
   const pickImageState = hass.states[entities["pick_image"].entity_id].state;
   if (
