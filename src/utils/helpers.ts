@@ -136,6 +136,10 @@ export function isEntityUnavailable(hass, entity: Entity): boolean {
 }
 
 export function getLocalizedEntityState(hass, entity: Entity) {
+  // Disabled entities are not in hass.entities, so callers can pass undefined.
+  if (!entity?.entity_id) {
+    return "";
+  }
   const entityId = entity.entity_id;
   const entityClass = entityId.substring(0, entityId.indexOf("."));
   const entityState = hass.states[entityId]?.state;
@@ -156,7 +160,8 @@ export function getFormattedEntityState(hass, entity_id) {
 }
 
 export function getEntityState(hass, entity: Entity) {
-  const entityId = entity.entity_id;
+  // Disabled entities are not in hass.entities, so callers can pass undefined.
+  const entityId = entity?.entity_id;
   const entityState = hass.states[entityId]?.state;
   if (entityState) {
     return entityState;

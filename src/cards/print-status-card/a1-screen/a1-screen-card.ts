@@ -833,12 +833,17 @@ export class A1ScreenCard extends LitElement {
   }
 
   #renderMainControlsColumn() {
+    const hasLight = !!this._deviceEntities["chamber_light"]?.entity_id;
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
-        <button class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
-          @click="${() => helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}">
-          <ha-icon icon="mdi:lightbulb"></ha-icon>
-        </button>
+        ${hasLight ? html`
+          <button class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
+            @click="${() => helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}">
+            <ha-icon icon="mdi:lightbulb"></ha-icon>
+          </button>
+        ` : html`
+          <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
+        `}
         <button class="ha-bambulab-ssc-control-button" @click="${this.#showFileCache}" title="Show print history/timelapse">
           <ha-icon icon="mdi:list-box-outline"></ha-icon>
         </button>
