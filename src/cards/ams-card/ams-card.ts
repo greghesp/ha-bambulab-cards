@@ -58,6 +58,7 @@ export class AMS_CARD extends LitElement {
 
   private _customHumidity;
   private _customTemperature;
+  @state() private _customRemaining: (string | undefined)[] = [];
 
   static styles = styles;
 
@@ -96,6 +97,7 @@ export class AMS_CARD extends LitElement {
     this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
     this._customTemperature =
       config.custom_temperature === "" ? nothing : config.custom_temperature;
+    this._customRemaining = [1, 2, 3, 4].map((n) => config[`custom_remaining_${n}`] || undefined);
 
     if (this._hass) {
       this.hass = this._hass;
@@ -167,8 +169,17 @@ export class AMS_CARD extends LitElement {
     if (this._style == "graphic") {
       return html` <graphic-ams-card /> `;
     } else {
+      // Custom remaining sensors are configured per tray; key them by the tray's entity.
+      const customRemaining = {};
+      [1, 2, 3, 4].forEach((n) => {
+        const tray = this._entityList[`tray_${n}`]?.entity_id;
+        if (tray && this._customRemaining[n - 1]) {
+          customRemaining[tray] = this._customRemaining[n - 1];
+        }
+      });
       return html`
         <vector-ams-card
+          .customRemaining=${customRemaining}
           .showType=${this._showType}
           .spoolAnimReflection=${this._spoolAnimReflection}
           .spoolAnimWiggle=${this._spoolAnimWiggle}

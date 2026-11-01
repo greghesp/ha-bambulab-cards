@@ -14,6 +14,7 @@ export class Spool extends LitElement {
   @property({ type: Boolean }) public spool_anim_reflection: boolean = true;
   @property({ type: Boolean }) public spool_anim_wiggle: boolean = true;
   @property({ type: String })  public entity_id!: string;
+  @property({ type: String })  public remaining_entity?: string;
   @property({ type: Number })  private remainHeight = 95;
   @property({ type: Boolean }) public controlBlocked: boolean = true;
   @property() private resizeObserver: ResizeObserver | null = null;
@@ -54,10 +55,23 @@ export class Spool extends LitElement {
   }
 
   updated(changedProps: Map<string, any>) {
-    if (changedProps.has("entity_id")) {
+    // hass arrives through context, so it never shows up in changedProps. Track what the
+    // fill depends on instead, so the spool level follows the value rather than only resizes.
+    const key = this.heightKey();
+    if (changedProps.has("entity_id") || key !== this._heightKey) {
+      this._heightKey = key;
       this.calculateHeights();
       this.updateLayers();
     }
+  }
+
+  private _heightKey?: string;
+
+  heightKey() {
+    const attrs = this.hass.states[this.entity_id]?.attributes;
+    const custom = this.remaining_entity ? this.hass.states[this.remaining_entity] : undefined;
+    return [attrs?.remain, attrs?.empty, attrs?.tray_weight, attrs?.tag_uid,
+            custom?.state, custom?.attributes?.unit_of_measurement].join("|");
   }
 
   render() {
@@ -90,10 +104,10 @@ export class Spool extends LitElement {
                   this.spool_anim_reflection
                     ? html`<div class="v-reflection"></div>`
                     : nothing}
-                  ${this.hass.states[this.entity_id]?.attributes?.remain > 0
+                  ${this.remainingLabel() !== nothing
                     ? html`
                         <div class="remaining-percent">
-                          <p>${this.hass.states[this.entity_id]?.attributes?.remain}%</p>
+                          <p>${this.remainingLabel()}</p>
                         </div>
                       `
                     : nothing}
@@ -114,6 +128,43 @@ export class Spool extends LitElement {
         </div>
       </ams-popup>
     `;
+  }
+
+  // A custom remaining sensor (e.g. grams from Spoolman or Bambuddy) wins while it
+  // has a numeric state; otherwise fall back to the tray's RFID remain percentage.
+  // An empty tray never shows one: those sensors follow the spool, not the slot, so
+  // they keep reporting after it's pulled.
+  remainingLabel() {
+    if (this.hass.states[this.entity_id]?.attributes?.empty) return nothing;
+    const custom = this.customRemaining();
+    if (custom) {
+      const value = custom.unit === "kg" ? custom.value.toFixed(1) : Math.round(custom.value);
+      return `${value}${custom.unit ? ` ${custom.unit}` : ""}`;
+    }
+    const remain = this.hass.states[this.entity_id]?.attributes?.remain;
+    return remain > 0 ? `${remain}%` : nothing;
+  }
+
+  customRemaining(): { value: number; unit?: string } | undefined {
+    const custom = this.remaining_entity ? this.hass.states[this.remaining_entity] : undefined;
+    const value = Number(custom?.state);
+    if (!custom || custom.state === "" || !Number.isFinite(value)) return undefined;
+    return { value, unit: custom.attributes?.unit_of_measurement };
+  }
+
+  // The custom sensor as a percentage of the spool, for the fill height. A weight is
+  // measured against the tray's tray_weight, which only RFID spools report, so other
+  // spools are taken to be 1 kg. Any other unit leaves the height to remain.
+  customRemainingPercent(): number | undefined {
+    const custom = this.customRemaining();
+    if (!custom) return undefined;
+    if (custom.unit === "%") return custom.value;
+    const grams = custom.unit === "g" ? custom.value
+                : custom.unit === "kg" ? custom.value * 1000
+                : undefined;
+    if (grams === undefined) return undefined;
+    const capacity = Number(this.hass.states[this.entity_id]?.attributes?.tray_weight) || 1000;
+    return (grams / capacity) * 100;
   }
 
   updateLayers() {
@@ -154,12 +205,16 @@ export class Spool extends LitElement {
     const maxHeightPercentage = 95;
     const minHeightPercentage = 20;
 
+    // A custom remaining sensor, when it has a usable value, drives the fill instead of remain
+    const customPercent = this.customRemainingPercent();
+
     // If not a Bambu Spool or remaining is less than 0
     this.emptySpool = this.hass.states[this.entity_id]?.attributes.empty;
     if (this.emptySpool) {
       this.remainHeight = 20;
-    } else if (this.isAllZeros(this.hass.states[this.entity_id]?.attributes.tag_uid) ||
-               this.hass.states[this.entity_id]?.attributes?.remain < 0) {
+    } else if (customPercent === undefined &&
+               (this.isAllZeros(this.hass.states[this.entity_id]?.attributes.tag_uid) ||
+                this.hass.states[this.entity_id]?.attributes?.remain < 0)) {
       this.remainHeight = maxHeightPercentage;
     } else {
       // Get the container's height
@@ -174,7 +229,7 @@ export class Spool extends LitElement {
 
       // Calculate remain height based on the remain percentage
       const remainPercentage = Math.min(
-        Math.max(this.hass.states[this.entity_id]?.attributes?.remain, 0),
+        Math.max(customPercent ?? this.hass.states[this.entity_id]?.attributes?.remain, 0),
         100
       );
       this.remainHeight = minHeightPx + (maxHeightPx - minHeightPx) * (remainPercentage / 100);

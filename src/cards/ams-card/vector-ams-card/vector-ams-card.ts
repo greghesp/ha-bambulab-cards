@@ -11,6 +11,7 @@ export class VectorAmsCard extends LitElement {
   @property() public showType;
   @property() public spoolAnimReflection;
   @property() public spoolAnimWiggle;
+  @property() public customRemaining: { [entity_id: string]: string } = {};
 
   @consume({ context: entitiesContext, subscribe: true })
   private _entities;
@@ -33,6 +34,7 @@ export class VectorAmsCard extends LitElement {
                     class="${classType}"
                     .key="${spool.entity_id}"
                     .entity_id="${spool.entity_id}"
+                    .remaining_entity=${this.customRemaining?.[spool.entity_id]}
                     .show_type=${this.showType}
                     .spool_anim_reflection=${this.spoolAnimReflection}
                     .spool_anim_wiggle=${this.spoolAnimWiggle}
