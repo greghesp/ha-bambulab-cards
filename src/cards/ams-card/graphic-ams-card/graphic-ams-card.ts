@@ -2,9 +2,9 @@ import * as helpers from "../../../utils/helpers"
 import { customElement, property } from "lit/decorators.js";
 import { html, LitElement, nothing } from "lit";
 import styles from "./graphic-ams-card.styles";
-import AMSImage from "../../../images/ams.png";
-import AMS2Image from "../../../images/ams2.png";
-import AMSHTImage from "../../../images/amsht.png";
+import AMSImage from "../../../images/ams.webp";
+import AMS2Image from "../../../images/ams2.webp";
+import AMSHTImage from "../../../images/amsht.webp";
 import "../components/info-bar/info-bar";
 import "../../shared-components/ams-popup/ams-popup";
 import { entitiesContext, hassContext } from "../../../utils/context";
