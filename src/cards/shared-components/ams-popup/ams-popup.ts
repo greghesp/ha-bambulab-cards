@@ -68,7 +68,7 @@ export class AMSPopup extends LitElement {
   firstUpdated() {
     if (this.entity_id) {
       this.is_bambu_lab = this.hass.entities[this.entity_id].platform == "bambu_lab";
-      this.color = this.hass.states[this.entity_id].attributes.color.substring(0, 7);
+      this.color = (this.hass.states[this.entity_id]?.attributes?.color ?? "").substring(0, 7);
     }
   }
 
@@ -130,7 +130,7 @@ export class AMSPopup extends LitElement {
   }
 
   #isSetEnabled() {
-    const colorMatches = this.color.toUpperCase() == this.hass.states[this.entity_id].attributes.color.substring(0, 7).toUpperCase();
+    const colorMatches = this.color.toUpperCase() == (this.hass.states[this.entity_id]?.attributes?.color ?? "").substring(0, 7).toUpperCase();
     const minTempMatches = this.selectedFilament.nozzle_temperature_range_low == this.hass.states[this.entity_id].attributes.nozzle_temp_min;
     const maxTempMatches = this.selectedFilament.nozzle_temperature_range_high == this.hass.states[this.entity_id].attributes.nozzle_temp_max;
     const typeMatches = this.selectedFilament.filament_type == this.hass.states[this.entity_id].attributes.type;
@@ -299,7 +299,7 @@ export class AMSPopup extends LitElement {
           <input
             type="color"
             style="padding: 0px 0px; border-radius: 5px;"
-            .value="${this.hass.states[this.entity_id].attributes.color.substring(0, 7)}"
+            .value="${(this.hass.states[this.entity_id]?.attributes?.color ?? "").substring(0, 7)}"
             @input="${this.#handleColorChange}"
           />
         </div>

@@ -136,6 +136,10 @@ export function isEntityUnavailable(hass, entity: Entity): boolean {
 }
 
 export function getLocalizedEntityState(hass, entity: Entity) {
+  // Disabled entities are not in hass.entities, so callers can pass undefined.
+  if (!entity?.entity_id) {
+    return "";
+  }
   const entityId = entity.entity_id;
   const entityClass = entityId.substring(0, entityId.indexOf("."));
   const entityState = hass.states[entityId]?.state;
@@ -156,7 +160,8 @@ export function getFormattedEntityState(hass, entity_id) {
 }
 
 export function getEntityState(hass, entity: Entity) {
-  const entityId = entity.entity_id;
+  // Disabled entities are not in hass.entities, so callers can pass undefined.
+  const entityId = entity?.entity_id;
   const entityState = hass.states[entityId]?.state;
   if (entityState) {
     return entityState;
@@ -265,7 +270,7 @@ export async function unloadFilament(hass, target_id) {
 
 export function getEntityAttribute(hass, entity_id, attribute) {
   const entity = hass.states[entity_id];
-  return entity.attributes[attribute];
+  return entity?.attributes[attribute];
 }
 
 export function toggleLight(hass, entity) {
@@ -287,13 +292,16 @@ export function clickButton(hass: any, entity: Entity) {
 export function isSkipButtonEnabled(hass, entities) {
   const printableObjects = getEntityAttribute(
     hass,
-    entities["printable_objects"].entity_id,
+    entities["printable_objects"]?.entity_id,
     "objects"
   );
+  if (printableObjects == undefined) {
+    return false;
+  }
 
-  const countOfPrintableObjects = Object.keys(printableObjects).length;
+  const countOfPrintableObjects = Object.keys(printableObjects ?? {}).length;
 
-  const pickImageState = hass.states[entities["pick_image"].entity_id].state;
+  const pickImageState = hass.states[entities["pick_image"]?.entity_id]?.state;
   if (
     pickImageState == undefined ||
     countOfPrintableObjects < 2 ||
@@ -356,8 +364,9 @@ export function getAttachedDeviceIds(hass, device_id): string[] {
 
 export function isMqttEncryptionEnabled(hass, deviceEntities) {
     // Check if mqtt encryption is present and enabled.
-    if (hass.states[deviceEntities.mqtt_encryption.entity_id].state == "on" &&
-        hass.states[deviceEntities.developer_lan_mode.entity_id].state == "off") {
+    // Disabled entities are not in hass.entities, so either can be missing.
+    if (hass.states[deviceEntities.mqtt_encryption?.entity_id]?.state == "on" &&
+        hass.states[deviceEntities.developer_lan_mode?.entity_id]?.state == "off") {
         return true;
     }
 
@@ -365,7 +374,7 @@ export function isMqttEncryptionEnabled(hass, deviceEntities) {
 }
 
 export function isHybridMqttConnection(hass, deviceEntities) {
-    return hass.states[deviceEntities.hybrid_mode_blocks_control.entity_id].state == "on";
+    return hass.states[deviceEntities.hybrid_mode_blocks_control?.entity_id]?.state == "on";
 }
 
 export function getFormattedTime(hass, entity_id) {

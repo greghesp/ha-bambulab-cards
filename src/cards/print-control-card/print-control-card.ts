@@ -185,6 +185,12 @@ export class PrintControlCard extends LitElement {
       });
     }
 
+    // Disabled entities are not in hass.entities. Without a pick image there is nothing to draw.
+    const pickImage = this._hass.states[this.#entityList["pick_image"]?.entity_id];
+    if (!pickImage) {
+      return;
+    }
+
     // Now create a the image to load the pick image into from home assistant.
     this._pickImage = new Image();
     this._pickImage.onload = () => {
@@ -195,14 +201,13 @@ export class PrintControlCard extends LitElement {
     };
 
     // Finally set the home assistant image URL into it to load the image.
-    this._pickImage.src =
-      this._hass.states[this.#entityList["pick_image"].entity_id].attributes.entity_picture;
+    this._pickImage.src = pickImage.attributes.entity_picture;
   }
 
   private _getSkippedObjects() {
     return helpers.getEntityAttribute(
       this._hass,
-      this.#entityList["skipped_objects"].entity_id,
+      this.#entityList["skipped_objects"]?.entity_id,
       "objects"
     );
   }
@@ -210,7 +215,7 @@ export class PrintControlCard extends LitElement {
   private _getPrintableObjects() {
     return helpers.getEntityAttribute(
       this._hass,
-      this.#entityList["printable_objects"].entity_id,
+      this.#entityList["printable_objects"]?.entity_id,
       "objects"
     );
   }
@@ -355,14 +360,14 @@ export class PrintControlCard extends LitElement {
     }
 
     if (changedProperties.has("_states")) {
-      let newState = this._hass.states[this.#entityList["pick_image"].entity_id].state;
+      let newState = this._hass.states[this.#entityList["pick_image"]?.entity_id]?.state;
       if (newState !== this.#pickImageState) {
         this.#pickImageState = newState;
         this.#initializeCanvas();
         this.#populateCheckboxList();
       }
 
-      newState = this._hass.states[this.#entityList["skipped_objects"].entity_id].state;
+      newState = this._hass.states[this.#entityList["skipped_objects"]?.entity_id]?.state;
       if (newState !== this.#skippedObjectsState) {
         this.#skippedObjectsState = newState;
         this.#initializeCanvas();
@@ -628,7 +633,8 @@ export class PrintControlCard extends LitElement {
     if (list == undefined) {
       return;
     }
-    const skipped = this._getSkippedObjects();
+    // A disabled skipped_objects entity means none are known to be skipped.
+    const skipped = this._getSkippedObjects() ?? [];
 
     let objects = new Map<number, PrintableObject>();
     Object.keys(list).forEach((key) => {

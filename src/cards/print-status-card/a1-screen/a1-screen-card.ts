@@ -348,17 +348,22 @@ export class A1ScreenCard extends LitElement {
   }
 
   #formattedTemperatureState(key: string) {
-    const unit = this._hass.states[this._deviceEntities[key].entity_id].attributes.unit_of_measurement;
+    // Disabled entities are not in hass.entities. Show '--' rather than a made-up 0.
+    const stateObj = this._hass.states[this._deviceEntities[key]?.entity_id];
+    if (!stateObj) {
+      return '--';
+    }
+    const unit = stateObj.attributes.unit_of_measurement;
     return html`${Math.floor(this.#state(key))}${unit}`;
   }
 
   #attribute(key: string, attribute: string) {
-    return helpers.getEntityAttribute(this._hass, this._deviceEntities[key].entity_id, attribute);
+    return helpers.getEntityAttribute(this._hass, this._deviceEntities[key]?.entity_id, attribute);
   }
 
   #calculateProgress() {
-    if (this._hass.states[this._deviceEntities["stage"].entity_id].state != "printing" &&
-        this._hass.states[this._deviceEntities["stage"].entity_id].state != "changing_filament") {
+    if (this._hass.states[this._deviceEntities["stage"]?.entity_id]?.state != "printing" &&
+        this._hass.states[this._deviceEntities["stage"]?.entity_id]?.state != "changing_filament") {
       return "0%";
     }
     const percentage = helpers.getEntityState(this._hass, this._deviceEntities["print_progress"]);
@@ -417,8 +422,10 @@ export class A1ScreenCard extends LitElement {
   }
 
   #getRemainingTime() {
-    if (this._hass.states[this._deviceEntities["stage"].entity_id].state != "printing" &&
-        this._hass.states[this._deviceEntities["stage"].entity_id].state != "changing_filament") {
+    if (this._hass.states[this._deviceEntities["stage"]?.entity_id]?.state != "printing" &&
+        this._hass.states[this._deviceEntities["stage"]?.entity_id]?.state != "changing_filament") {
+      return nothing;
+    } else if (!this._hass.states[this._deviceEntities['remaining_time']?.entity_id]) {
       return nothing;
     } else {
       return `-${helpers.getFormattedTime(this._hass, this._deviceEntities['remaining_time'].entity_id)}`;
@@ -833,12 +840,17 @@ export class A1ScreenCard extends LitElement {
   }
 
   #renderMainControlsColumn() {
+    const hasLight = !!this._deviceEntities["chamber_light"]?.entity_id;
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
-        <button class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
-          @click="${() => helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}">
-          <ha-icon icon="mdi:lightbulb"></ha-icon>
-        </button>
+        ${hasLight ? html`
+          <button class="ha-bambulab-ssc-control-button ${this.#state("chamber_light")}"
+            @click="${() => helpers.toggleLight(this._hass, this._deviceEntities["chamber_light"])}">
+            <ha-icon icon="mdi:lightbulb"></ha-icon>
+          </button>
+        ` : html`
+          <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
+        `}
         <button class="ha-bambulab-ssc-control-button" @click="${this.#showFileCache}" title="Show print history/timelapse">
           <ha-icon icon="mdi:list-box-outline"></ha-icon>
         </button>
@@ -1161,7 +1173,13 @@ export class A1ScreenCard extends LitElement {
       var entities = helpers.getBambuDeviceEntities(this._hass, ams_device_id, ENTITYLIST);
       var spools: string[] = [];
 
-      const active = this._hass.states[entities["active_ams"].entity_id].state == "on";
+      // Not every attached device is an AMS or external spool (e.g. the H2C's hotend rack),
+      // so skip anything without an active_ams entity instead of throwing.
+      if (!entities["active_ams"]?.entity_id) {
+        return;
+      }
+
+      const active = this._hass.states[entities["active_ams"].entity_id]?.state == "on";
 
       if (device.model === "External Spool") {
         if (entities["external_spool"]?.entity_id) {
