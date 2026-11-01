@@ -1166,7 +1166,13 @@ export class A1ScreenCard extends LitElement {
       var entities = helpers.getBambuDeviceEntities(this._hass, ams_device_id, ENTITYLIST);
       var spools: string[] = [];
 
-      const active = this._hass.states[entities["active_ams"].entity_id].state == "on";
+      // Not every attached device is an AMS or external spool (e.g. the H2C's hotend rack),
+      // so skip anything without an active_ams entity instead of throwing.
+      if (!entities["active_ams"]?.entity_id) {
+        return;
+      }
+
+      const active = this._hass.states[entities["active_ams"].entity_id]?.state == "on";
 
       if (device.model === "External Spool") {
         if (entities["external_spool"]?.entity_id) {
