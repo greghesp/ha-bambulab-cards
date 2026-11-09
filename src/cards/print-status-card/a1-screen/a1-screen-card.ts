@@ -754,6 +754,7 @@ export class A1ScreenCard extends LitElement {
     if (this._deviceEntities['camera'] && !helpers.isEntityUnavailable(this._hass, this._deviceEntities['camera'])) {
       videoHtml = html`
         <ha-camera-stream
+          muted
           .hass=${this._hass}
           .stateObj=${this._hass.states[this._deviceEntities['camera'].entity_id]}
           style=${this.videoAspectRatio ? `aspect-ratio: ${this.videoAspectRatio};` : ''}>
