@@ -8,6 +8,7 @@ import styles from "./card.styles";
 import { AMS_GRAPHIC_CARD_NAME } from "./const";
 import { Slot, VARIANTS, variantFromModel } from "./geo";
 import { renderSvg } from "./render";
+import { findTrayEntities } from "./trays";
 
 registerCustomCard({
   type: AMS_GRAPHIC_CARD_NAME,
@@ -137,13 +138,7 @@ export class AmsGraphicCard extends LitElement {
       r.deviceName = dev.name_by_user || dev.name || "";
       r.geo = VARIANTS[r.variantKey] || VARIANTS.ams2pro;
       const ents = this._deviceEntities(cfg.ams);
-      const trayEnts = ents
-        .filter((e) => /_tray_\d+$/.test(e) && hass.states[e])
-        .sort((a, b) => {
-          const na = Number((a.match(/_tray_(\d+)$/) || [])[1] || 0);
-          const nb = Number((b.match(/_tray_(\d+)$/) || [])[1] || 0);
-          return na - nb;
-        });
+      const trayEnts = findTrayEntities(hass, ents);
       if (trayEnts.length) r.trays = trayEnts;
       const dc = (e: string) =>
         (hass.states[e] && hass.states[e].attributes && hass.states[e].attributes.device_class) || "";
@@ -260,21 +255,24 @@ export class AmsGraphicCard extends LitElement {
       temp: temp === "" ? "--" : `${temp}°`,
     });
 
-    return html`<ha-card>${this._head(r)}${unsafeSVG(svg)}</ha-card>`;
+    return html`<ha-card @click=${this._onCardClick}>${this._head(r)}${unsafeSVG(svg)}</ha-card>`;
   }
 
-  protected updated(): void {
-    this.renderRoot.querySelectorAll("[data-tray-entity]").forEach((g) => {
-      g.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        this._openFilamentPopup((g as HTMLElement).getAttribute("data-tray-entity") || "");
-      });
-    });
+  /* One delegated handler for the spool labels. Adding a listener per label in updated() piled
+     up a new one on every hass update, so one click opened the popup (and called
+     get_filament_data) many times over. */
+  private _onCardClick(ev: Event): void {
+    const label = ev
+      .composedPath()
+      .find((n) => n instanceof Element && n.hasAttribute("data-tray-entity")) as Element | undefined;
+    if (!label) return;
+    ev.stopPropagation();
+    this._openFilamentPopup(label.getAttribute("data-tray-entity") || "");
   }
 
   /* Clicking a filament label opens the integration's filament popup; when the integration
      is not loaded it falls back to the native more-info dialog */
-  private _openFilamentPopup(entityId: string): void {
+  private async _openFilamentPopup(entityId: string): Promise<void> {
     if (!entityId) return;
     if (customElements.get("ams-popup")) {
       let p = this._popupEl;
@@ -287,6 +285,8 @@ export class AmsGraphicCard extends LitElement {
       (p as any).hass = this._hass;
       (p as any).entity_id = entityId;
       if ((p as any).is_bambu_lab === undefined) (p as any).is_bambu_lab = true;
+      // A popup created just now has not rendered its click target yet
+      await (p as any).updateComplete;
       const inner = p.shadowRoot && p.shadowRoot.querySelector(".popup-action-container");
       if (inner) {
         inner.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }));
