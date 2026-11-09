@@ -7,6 +7,7 @@
  */
 
 const ENTITY_ID_TRAY = /_tray_(\d+)$/;
+const ENTITY_ID_NUMBER = /_(\d+)$/;
 const TRANSLATION_KEY_TRAY = /^tray_(\d+)$/;
 
 /** The 1-based tray number of a tray entity, or null when the entity is not a tray. */
@@ -17,7 +18,11 @@ export function traySlot(hass: any, entityId: string): number | null {
     const key: string = entry.translation_key || "";
     if (key === "tray") {
       const slot = Number(state?.attributes?.slot);
-      return Number.isInteger(slot) && slot > 0 ? slot : null;
+      if (Number.isInteger(slot) && slot > 0) return slot;
+      // An unavailable tray has no attributes. The key already says it is a tray, so the
+      // number at the end of its id ("_tray_2", "_slot_2", ...) is the tray number.
+      const numMatch = entityId.match(ENTITY_ID_NUMBER);
+      return numMatch ? Number(numMatch[1]) : null;
     }
     const keyMatch = key.match(TRANSLATION_KEY_TRAY);
     return keyMatch ? Number(keyMatch[1]) : null;
