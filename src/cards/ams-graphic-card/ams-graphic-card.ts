@@ -8,6 +8,7 @@ import styles from "./card.styles";
 import { AMS_GRAPHIC_CARD_NAME } from "./const";
 import { Slot, VARIANTS, variantFromModel } from "./geo";
 import { renderSvg } from "./render";
+import { findTrayEntities } from "./trays";
 
 registerCustomCard({
   type: AMS_GRAPHIC_CARD_NAME,
@@ -137,13 +138,7 @@ export class AmsGraphicCard extends LitElement {
       r.deviceName = dev.name_by_user || dev.name || "";
       r.geo = VARIANTS[r.variantKey] || VARIANTS.ams2pro;
       const ents = this._deviceEntities(cfg.ams);
-      const trayEnts = ents
-        .filter((e) => /_tray_\d+$/.test(e) && hass.states[e])
-        .sort((a, b) => {
-          const na = Number((a.match(/_tray_(\d+)$/) || [])[1] || 0);
-          const nb = Number((b.match(/_tray_(\d+)$/) || [])[1] || 0);
-          return na - nb;
-        });
+      const trayEnts = findTrayEntities(hass, ents);
       if (trayEnts.length) r.trays = trayEnts;
       const dc = (e: string) =>
         (hass.states[e] && hass.states[e].attributes && hass.states[e].attributes.device_class) || "";
