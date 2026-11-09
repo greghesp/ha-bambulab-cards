@@ -15,6 +15,7 @@ import H2C_IMAGE from "../../images/H2C.webp";
 import H2D_IMAGE from "../../images/H2D.webp";
 import H2DPRO_IMAGE from "../../images/H2DPRO.webp";
 import H2S_IMAGE from "../../images/H2S.webp";
+import H3C_IMAGE from "../../images/H3C.webp";
 import P1P_IMAGE from "../../images/P1P.webp";
 import P1S_IMAGE from "../../images/P1S.webp";
 import P2S_IMAGE from "../../images/P2S.webp";
@@ -46,6 +47,7 @@ const _images: { [key: string]: any } = {
   H2C: H2C_IMAGE,
   H2D: H2D_IMAGE,
   H2DPRO: H2DPRO_IMAGE,
+  H3C: H3C_IMAGE,
   H2S: H2S_IMAGE,
   P1P: P1P_IMAGE,
   P1S: P1S_IMAGE,
@@ -125,28 +127,12 @@ export class PrintStatusCard extends EntityProvider {
     stage:          { x: 46, y: 92.5, width: 300, height: 0 },
   };
 
-  private H2SEntityUX: { [key: string]: EntityUX | undefined } = {
-    power:          { x: 95.5, y: 10, width: 20,  height: 0 },
-    print_progress: { x: 29,   y: 4,  width: 25,  height: 0 },
-    remaining_time: { x: 29,   y: 9,  width: 100, height: 0 },
-    chamber_light:  { x: 13,   y: 24, width: 20,  height: 0 },
-    chamber_fan_speed: { x: 86,   y: 24, width: 70,  height: 0, click_target: "chamber_fan" },
-    nozzle_temp:    { x: 50,   y: 31, width: 25,  height: 0, click_target: "target_nozzle_temperature" },
-    chamber_temp:   { x: 86,   y: 33, width: 20,  height: 0 },
-    humidity:       { x: 86,   y: 42, width: 20,  height: 0 },
-    aux_fan_speed:  { x: 13,   y: 60, width: 70,  height: 0, click_target: "aux_fan" },
-    cover_image:    { x: 50,   y: 60, width: 50,  height: 50 },
-    bed_temp:       { x: 50,   y: 88, width: 25,  height: 0, click_target: "target_bed_temperature" },
-    stage:          { x: 50,   y: 94, width: 300, height: 0 },
-    door_open:      { x: 86,   y: 60, width: 20,  height: 0 },
-  };
-
   private H2CEntityUX: { [key: string]: EntityUX | undefined } = {
     power:          { x: 95.5, y: 10, width: 20,  height: 0 },
     print_progress: { x: 29,   y: 4,  width: 25,  height: 0 },
     remaining_time: { x: 29,   y: 9,  width: 100, height: 0 },
     chamber_light:  { x: 13,   y: 24, width: 20,  height: 0 },
-    chamber_fan_speed: { x: 86,   y: 24, width: 70,  height: 0, click_target: "chamber_fan" },
+    chamber_fan_speed: { x: 86,y: 24, width: 70,  height: 0, click_target: "chamber_fan" },
     nozzle_temp:    { x: 50,   y: 31, width: 25,  height: 0, click_target: "target_nozzle_temperature" },
     chamber_temp:   { x: 86,   y: 33, width: 20,  height: 0 },
     humidity:       { x: 86,   y: 42, width: 20,  height: 0 },
@@ -162,7 +148,7 @@ export class PrintStatusCard extends EntityProvider {
     print_progress: { x: 29,   y: 4,  width: 25,  height: 0 },
     remaining_time: { x: 29,   y: 9,  width: 100, height: 0 },
     chamber_light:  { x: 13,   y: 24, width: 20,  height: 0 },
-    chamber_fan_speed: { x: 86,   y: 24, width: 70,  height: 0, click_target: "chamber_fan" },
+    chamber_fan_speed: { x: 86,y: 24, width: 70,  height: 0, click_target: "chamber_fan" },
     nozzle_temp:    { x: 50,   y: 31, width: 25,  height: 0, click_target: "target_nozzle_temperature" },
     chamber_temp:   { x: 86,   y: 33, width: 20,  height: 0 },
     humidity:       { x: 86,   y: 42, width: 20,  height: 0 },
@@ -173,12 +159,44 @@ export class PrintStatusCard extends EntityProvider {
     door_open:      { x: 86,   y: 60, width: 20,  height: 0 },
   };
 
+  private H2SEntityUX: { [key: string]: EntityUX | undefined } = {
+    power:          { x: 95.5, y: 10, width: 20,  height: 0 },
+    print_progress: { x: 29,   y: 4,  width: 25,  height: 0 },
+    remaining_time: { x: 29,   y: 9,  width: 100, height: 0 },
+    chamber_light:  { x: 13,   y: 24, width: 20,  height: 0 },
+    chamber_fan_speed: { x: 86,y: 24, width: 70,  height: 0, click_target: "chamber_fan" },
+    nozzle_temp:    { x: 50,   y: 31, width: 25,  height: 0, click_target: "target_nozzle_temperature" },
+    chamber_temp:   { x: 86,   y: 33, width: 20,  height: 0 },
+    humidity:       { x: 86,   y: 42, width: 20,  height: 0 },
+    aux_fan_speed:  { x: 13,   y: 60, width: 70,  height: 0, click_target: "aux_fan" },
+    cover_image:    { x: 50,   y: 60, width: 50,  height: 50 },
+    bed_temp:       { x: 50,   y: 88, width: 25,  height: 0, click_target: "target_bed_temperature" },
+    stage:          { x: 50,   y: 94, width: 300, height: 0 },
+    door_open:      { x: 86,   y: 60, width: 20,  height: 0 },
+  };
+
+  private H3CEntityUX: { [key: string]: EntityUX | undefined } = {
+    power:          { x: 95.5, y: 43, width: 20,  height: 0 },
+    print_progress: { x: 29,   y: 42, width: 25,  height: 0 },
+    remaining_time: { x: 29,   y: 47, width: 100, height: 0 },
+    chamber_light:  { x: 17,   y: 52, width: 20,  height: 0 },
+    chamber_fan_speed: { x: 84,y: 53.5, width: 70,  height: 0, click_target: "chamber_fan" },
+    nozzle_temp:    { x: 50,   y: 58, width: 25,  height: 0, click_target: "target_nozzle_temperature" },
+    chamber_temp:   { x: 84,   y: 70, width: 20,  height: 0 },
+    humidity:       { x: 84,   y: 75, width: 20,  height: 0 },
+    aux_fan_speed:  { x: 17,   y: 70, width: 70,  height: 0, click_target: "aux_fan" },
+    cover_image:    { x: 50,   y: 70, width: 50,  height: 50 },
+    bed_temp:       { x: 50,   y: 83, width: 25,  height: 0, click_target: "target_bed_temperature" },
+    stage:          { x: 50,   y: 94, width: 300, height: 0 },
+    door_open:      { x: 84,   y: 80, width: 20,  height: 0 },
+  };
+
   private X2DEntityUX: { [key: string]: EntityUX | undefined } = {
     power:          { x: 95.5, y: 10, width: 20,  height: 0 },
     print_progress: { x: 29,   y: 4,  width: 25,  height: 0 },
     remaining_time: { x: 29,   y: 9,  width: 100, height: 0 },
     chamber_light:  { x: 13,   y: 24, width: 20,  height: 0 },
-    chamber_fan_speed: { x: 86,   y: 24, width: 70,  height: 0, click_target: "chamber_fan" },
+    chamber_fan_speed: { x: 86,y: 24, width: 70,  height: 0, click_target: "chamber_fan" },
     nozzle_temp:    { x: 50,   y: 31, width: 25,  height: 0, click_target: "target_nozzle_temperature" },
     chamber_temp:   { x: 86,   y: 33, width: 20,  height: 0 },
     humidity:       { x: 86,   y: 42, width: 20,  height: 0 },
@@ -258,6 +276,7 @@ export class PrintStatusCard extends EntityProvider {
     H2D: this.H2DEntityUX,
     H2PRO: this.H2DEntityUX,
     H2S: this.H2SEntityUX,
+    H3C: this.H3CEntityUX,
     P1P: this.P1PEntityUX,
     P1S: this.P1SEntityUX,
     P2S: this.P2SEntityUX,
