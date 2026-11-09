@@ -9,6 +9,7 @@ export const PRINTER_MODELS = [
     "H2D",
     "H2DPRO",
     "H2S",
+    "H3C",
     "P1P",
     "P1S",
     "P2S",
@@ -20,12 +21,14 @@ export const AMS_MODELS = [
     "AMS",
     "AMS Lite",
     "AMS 2 Pro",
+    "AMS 3H",
     "AMS HT"
 ];
 export const AMS_MODELS_WITH_EXTERNAL_SPOOL = [
     "AMS",
     "AMS Lite",
     "AMS 2 Pro",
+    "AMS 3H",
     "AMS HT",
     "External Spool"
 ];
