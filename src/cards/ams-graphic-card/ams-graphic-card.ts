@@ -2,7 +2,7 @@ import { html, LitElement, nothing, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
-import { AMS_MODELS, MANUFACTURER } from "../../const";
+import { AMS_3H_MODEL, AMS_MODELS, MANUFACTURER } from "../../const";
 import { registerCustomCard } from "../../utils/custom-cards";
 import styles from "./card.styles";
 import { AMS_GRAPHIC_CARD_NAME } from "./const";
@@ -107,7 +107,7 @@ export class AmsGraphicCard extends LitElement {
     const devices = this._hass?.devices || {};
     for (const key of Object.keys(devices)) {
       const d = devices[key];
-      if (d.manufacturer === MANUFACTURER && AMS_MODELS.includes(d.model)) return key;
+      if (d.manufacturer === MANUFACTURER && AMS_MODELS.includes(d.model) && d.model !== AMS_3H_MODEL) return key;
     }
     return "";
   }

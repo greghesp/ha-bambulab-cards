@@ -2,12 +2,12 @@ import { html, LitElement } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import memoizeOne from "memoize-one";
 
-import { AMS_MODELS, MANUFACTURER } from "../../const";
+import { AMS_3H_MODEL, AMS_MODELS, MANUFACTURER } from "../../const";
 import { AMS_GRAPHIC_CARD_EDITOR_NAME } from "./const";
 
-/* AMS Lite has no body art yet, so it is filtered out of the device picker rather than
-   showing a notice once it is selected */
-const AMS_FILTER = AMS_MODELS.filter((m) => m !== "AMS Lite").map((model) => ({
+/* AMS Lite and AMS 3H have no body art yet, so they are filtered out of the device picker
+   rather than showing a notice once selected (the AMS card shows the AMS 3H) */
+const AMS_FILTER = AMS_MODELS.filter((m) => m !== "AMS Lite" && m !== AMS_3H_MODEL).map((model) => ({
   manufacturer: MANUFACTURER,
   model,
 }));

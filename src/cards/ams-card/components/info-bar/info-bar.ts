@@ -94,11 +94,53 @@ export class InfoBar extends LitElement {
     }
   }
 
+  /* One reading of an AMS 3H zone; nothing while its sensor has no value */
+  #renderZoneReading(entity: helpers.Entity | undefined, icon: string, label: string) {
+    const stateObj = entity ? this.hass.states[entity.entity_id] : undefined;
+    if (!stateObj || ["unavailable", "unknown", ""].includes(stateObj.state)) return nothing;
+    const value = this.hass.formatEntityState(stateObj);
+    return html`<span
+      class="zone-reading"
+      title="${label}: ${value}"
+      @click="${() => helpers.showEntityMoreInfo(this, entity!)}"
+    >
+      ${this._showIcons ? html`<ha-icon icon=${icon} />` : nothing}
+      <span>${value}</span>
+    </span>`;
+  }
+
+  /* The AMS 3H has no cabinet humidity or temperature, so each drying zone shows its own, plus
+     the time left while it is drying. The tooltip says which trays the zone holds. */
+  #renderZones() {
+    return this._entities.zones.map((zone) => {
+      const dryingState = zone.dryingTime ? this.hass.states[zone.dryingTime.entity_id]?.state : undefined;
+      const name = `Zone ${zone.zone}`;
+      const trays = zone.slots.length ? ` (trays ${zone.slots.join(", ")})` : "";
+      return html`<div class="info zone" title="${name}${trays}">
+        <span class="zone-name">Z${zone.zone}</span>
+        ${this.#renderZoneReading(zone.humidity, "mdi:water", `${name} humidity`)}
+        ${this.#renderZoneReading(zone.temperature, "mdi:thermometer", `${name} temperature`)}
+        ${Number(dryingState) > 0
+          ? this.#renderZoneReading(zone.dryingTime, "mdi:heat-wave", `${name} drying time left`)
+          : nothing}
+      </div>`;
+    });
+  }
+
   render() {
     if (!this._infoBar.active) return nothing;
 
     // If this is an AMS HT model, we need to hide the title (even if enabled) and give 100% width to the info slots
     const isAmsHtModel = this._entities?.spools?.length === 1;
+
+    if (this._entities?.zones?.length) {
+      return html`
+        <div class="extra-info">
+          <div class="title zones-title">${this._infoBar.title}</div>
+          <div class="info-slots zones">${this.#renderZones()}</div>
+        </div>
+      `;
+    }
 
     return html`
       <div class="extra-info">

@@ -16,16 +16,20 @@ export const PRINTER_MODELS = [
     "X1E",
     "X2D"
 ];
+// The H3C's AMS: nine trays in two drying zones, with no cabinet-wide humidity or temperature
+export const AMS_3H_MODEL = "AMS 3H";
 export const AMS_MODELS = [
     "AMS",
     "AMS Lite",
     "AMS 2 Pro",
-    "AMS HT"
+    "AMS HT",
+    AMS_3H_MODEL
 ];
 export const AMS_MODELS_WITH_EXTERNAL_SPOOL = [
     "AMS",
     "AMS Lite",
     "AMS 2 Pro",
     "AMS HT",
+    AMS_3H_MODEL,
     "External Spool"
 ];

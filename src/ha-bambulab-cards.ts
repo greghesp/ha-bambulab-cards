@@ -3,8 +3,6 @@ import "./cards/ams-card/ams-card";
 console.info("🐼 Loaded: AMS Card");
 import "./cards/ams-graphic-card/ams-graphic-card";
 console.info("🐼 Loaded: AMS Graphic Card");
-import "./cards/ams-3h-card/ams-3h-card";
-console.info("🐼 Loaded: AMS 3H Card");
 import "./cards/print-control-card/print-control-card";
 console.info("🐼 Loaded: Print Control Card");
 import "./cards/print-status-card/print-status-card";
