@@ -37,4 +37,37 @@ export default css`
   .info ha-icon {
     --mdc-icon-size: 16px;
   }
+
+  /* AMS 3H: one chip per drying zone, which needs more room than the title */
+  .title.zones-title {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .info-slots.zones {
+    width: auto;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .info.zone {
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .zone-name {
+    font-weight: 600;
+    opacity: 0.75;
+  }
+
+  .zone-reading {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+  }
 `;

@@ -23,6 +23,19 @@ export default css`
     padding: 0px 2px;
   }
 
+  /* Two rows of up to five spools (AMS 3H) */
+  .ha-bambulab-spool.two-rows {
+    width: calc(20% - 4px);
+    min-width: calc(20% - 4px);
+    max-width: calc(20% - 4px);
+  }
+
+  .v-spools-wrapper.two-rows {
+    flex-wrap: wrap;
+    align-content: stretch;
+    row-gap: 8px;
+  }
+
   .ha-bambulab-vector-ams-card {
     align-items: center;
     height: 100%;

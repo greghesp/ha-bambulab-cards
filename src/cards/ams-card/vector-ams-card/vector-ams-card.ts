@@ -20,14 +20,18 @@ export class VectorAmsCard extends LitElement {
 
   render() {
     const spoolCount = this._entities?.spools?.length ?? 4;
-    const classType = (spoolCount === 1) ? "ha-bambulab-spool ht" : "ha-bambulab-spool";
+    // More than four spools (the AMS 3H's nine) are laid out in two rows
+    const twoRows = spoolCount > 4;
+    const classType = (spoolCount === 1) ? "ha-bambulab-spool ht"
+      : twoRows ? "ha-bambulab-spool two-rows"
+      : "ha-bambulab-spool";
 
     return html`
       <ha-card class="ha-bambulab-vector-ams-card">
         <div class="v-wrapper">
           <info-bar></info-bar>
           <div class="v-ams-container">
-            <div class="v-spools-wrapper">
+            <div class="v-spools-wrapper ${twoRows ? "two-rows" : ""}">
               ${this._entities?.spools?.map(
                 (spool: { entity_id: string }) => html`
                   <ha-bambulab-spool
