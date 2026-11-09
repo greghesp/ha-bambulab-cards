@@ -9,6 +9,7 @@ import "~/cards/shared-components/confirmation-prompt/confirmation-prompt";
 import "~/cards/shared-components/skip-objects";
 import "~/cards/ams-card/vector-ams-card/vector-ams-card";
 import "~/cards/shared-components/print-history-popup";
+import "~/cards/shared-components/panda-accessories/panda-accessories";
 
 type ConfirmationState = {
   show: boolean;
@@ -620,6 +621,7 @@ export class A1ScreenCard extends LitElement {
                   this.page === Page.Controls ? this.#renderControlsPage() :
                   this.page === Page.Ams ? this.#renderAmsPage() : ''}
               </div>
+              <panda-accessories .printerDeviceId=${this._device_id}></panda-accessories>
             </ha-card>
             <print-history-popup
               .device_id=${this._device_id}
@@ -688,6 +690,7 @@ export class A1ScreenCard extends LitElement {
 
           ${showAnyMedia && hasRightMedia ? rightMedia : nothing}
         </div>
+        <panda-accessories .printerDeviceId=${this._device_id}></panda-accessories>
       </ha-card>
     `;
   }

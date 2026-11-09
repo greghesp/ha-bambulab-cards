@@ -28,6 +28,8 @@ const ENTITYLIST: string[] = [
   "tray_2",
   "tray_3",
   "tray_4",
+  "ams_heater_power",   // External AMS heater/dryer on a smart plug
+  "ams_heater_drying",
 ];
 
 @customElement(AMS_CARD_NAME)
@@ -150,6 +152,8 @@ export class AMS_CARD extends LitElement {
       this._entities = {
         humidity: this._entityList["humidity_index"],
         temperature: this._entityList["ams_temp"],
+        heaterPower: this._entityList["ams_heater_power"],
+        heaterDrying: this._entityList["ams_heater_drying"],
         spools: (() => {
           const spools = [
             this._entityList["tray_1"],
