@@ -17,18 +17,15 @@ export const PRINTER_MODELS = [
     "X1E",
     "X2D"
 ];
+export const AMS_3H_MODEL = "AMS 3H";
 export const AMS_MODELS = [
     "AMS",
     "AMS Lite",
     "AMS 2 Pro",
-    "AMS 3H",
+    AMS_3H_MODEL,
     "AMS HT"
 ];
 export const AMS_MODELS_WITH_EXTERNAL_SPOOL = [
-    "AMS",
-    "AMS Lite",
-    "AMS 2 Pro",
-    "AMS 3H",
-    "AMS HT",
+    ...AMS_MODELS,
     "External Spool"
 ];
