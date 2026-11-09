@@ -38,7 +38,7 @@ For questions and help, join us on [Discord](https://discord.gg/rsUHAW3DKz).
 | Card | Type | What it shows |
 |---|---|---|
 | [Print Status](#print-status-card) | `custom:ha-bambulab-print_status-card` | Your printer with live values, in a graphic, simple or minimal style |
-| [AMS](#ams-card) | `custom:ha-bambulab-ams-card` | One AMS unit's spools, humidity and temperature |
+| [AMS](#ams-card) | `custom:ha-bambulab-ams-card` | One AMS unit's spools, humidity and temperature, including the H3C's nine-spool AMS 3H |
 | [AMS Graphic](#ams-graphic-card) | `custom:ha-bambulab-ams-graphic-card` | The AMS drawn with fill levels and labels |
 | [Spool](#spool-card) | `custom:ha-bambulab-spool-card` | A single spool: the external spool or one AMS slot |
 | [Print Control](#print-control-card) | `custom:ha-bambulab-print_control-card` | Speed, pause, resume, stop and skip objects |
@@ -86,6 +86,12 @@ One AMS unit. The active slot is highlighted and animated, and remaining
 filament shows when it's enabled in the slicer for a Bambu spool. Tap a
 spool to see its details or change its filament.
 
+**AMS 3H (H3C).** The same card shows the AMS 3H's nine spools in two rows,
+five over four. The AMS 3H has no single humidity or temperature reading, so
+the info bar shows each drying zone instead: its humidity, temperature and,
+while it's drying, the time left. Hover a zone to see which trays it holds,
+and tap a reading to open it. The AMS 3H always uses the vector style.
+
 ![AMS card in vector style with info bar](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-vector.png)
 
 ```yaml
@@ -100,13 +106,14 @@ spool_anim_wiggle: true
 # Optional overrides
 custom_humidity: sensor.my_ams_humidity
 custom_temperature: sensor.my_ams_temperature
-custom_remaining_1: sensor.tray_1_remaining   # _1 to _4, one per tray
+custom_remaining_1: sensor.tray_1_remaining   # one per tray: _1 to _4, or _1 to _9 on an AMS 3H
 ```
 
 ### AMS Graphic card
 
 Draws the unit itself (AMS, AMS 2 Pro, AMS HT) with spool fill levels and
-optional labels.
+optional labels. There's no drawing of the AMS 3H yet, so use the
+[AMS card](#ams-card) for it.
 
 ![AMS Graphic card for an AMS 2 Pro](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-graphic.png)
 
@@ -132,7 +139,7 @@ One spool: the external spool, or a single slot of an AMS.
 ```yaml
 type: custom:ha-bambulab-spool-card
 spool: <external spool or AMS device id>
-tray: 1                   # 1 to 4, for an AMS
+tray: 1                   # 1 to 4 for an AMS, 1 to 9 for an AMS 3H
 show_info_bar: true
 subtitle: External spool
 show_type: true
@@ -211,7 +218,7 @@ src/
 ├── const.ts                  # Supported printer and AMS models
 ├── cards/
 │   ├── print-status-card/    # Graphic, simple (a1-screen) and minimal styles
-│   ├── ams-card/             # Vector and graphic AMS styles, info bar
+│   ├── ams-card/             # Vector and graphic AMS styles, info bar, AMS 3H zones
 │   ├── ams-graphic-card/     # SVG AMS rendering
 │   ├── spool-card/
 │   ├── print-control-card/

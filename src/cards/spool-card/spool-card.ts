@@ -107,10 +107,8 @@ export class SpoolCard extends LitElement {
       this._spool,
       [
         'external_spool',
-        'tray_1',
-        'tray_2',
-        'tray_3',
-        'tray_4'
+        // Trays 5-9 only exist on the AMS 3H
+        ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `tray_${n}`),
       ]);
     if (entities['external_spool']?.entity_id) {
       this._spoolEntityId = entities['external_spool'].entity_id;
