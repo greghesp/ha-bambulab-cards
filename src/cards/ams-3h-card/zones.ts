@@ -26,11 +26,25 @@ export interface ZoneGroup {
 
 const ID_NUMBER = /_(\d+)$/;
 
+/* hass.entities is only replaced when the entity registry changes, not on state updates, so the
+   per-device entity list is cached against it instead of rescanning every entity per render. */
+const deviceEntityCache = new WeakMap<object, Map<string, any[]>>();
+
 function deviceEntities(hass: any, deviceId: string): any[] {
   if (!hass?.entities || !deviceId) return [];
-  return Object.values(hass.entities).filter(
-    (e: any) => e.device_id === deviceId && e.platform === "bambu_lab" && !e.disabled_by
-  );
+  let byDevice = deviceEntityCache.get(hass.entities);
+  if (!byDevice) {
+    byDevice = new Map();
+    deviceEntityCache.set(hass.entities, byDevice);
+  }
+  let list = byDevice.get(deviceId);
+  if (!list) {
+    list = Object.values(hass.entities).filter(
+      (e: any) => e.device_id === deviceId && e.platform === "bambu_lab" && !e.disabled_by
+    );
+    byDevice.set(deviceId, list);
+  }
+  return list;
 }
 
 function positiveInt(value: unknown): number | null {

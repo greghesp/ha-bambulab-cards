@@ -101,9 +101,18 @@ export class Ams3hCard extends LitElement {
     });
     return shown.map(({ sensor, icon }) => {
       const entityId = group.sensors[sensor]!;
-      return html`<button class="chip ${sensor}" @click=${() => this._showMoreInfo(entityId)}>
-        <ha-icon .icon=${icon}></ha-icon>
-        <span>${this._hass.formatEntityState(this._hass.states[entityId])}</span>
+      const stateObj = this._hass.states[entityId];
+      const value = this._hass.formatEntityState(stateObj);
+      // The icon alone doesn't say which reading this is, so name it for screen readers
+      const label = `${stateObj.attributes?.friendly_name || sensor}: ${value}`;
+      return html`<button
+        class="chip ${sensor}"
+        aria-label=${label}
+        title=${label}
+        @click=${() => this._showMoreInfo(entityId)}
+      >
+        <ha-icon .icon=${icon} aria-hidden="true"></ha-icon>
+        <span>${value}</span>
       </button>`;
     });
   }
@@ -113,7 +122,7 @@ export class Ams3hCard extends LitElement {
   private _renderZone(group: ZoneGroup, showHead: boolean): TemplateResult {
     const label = group.zone === null ? "Other" : `Zone ${group.zone}`;
     return html`
-      <section class="zone">
+      <section class="zone" aria-label=${label}>
         ${showHead
           ? html`<div class="zone-head">
               <span class="zone-name">${label}</span>
@@ -125,7 +134,6 @@ export class Ams3hCard extends LitElement {
             (trayId) => html`
               <ha-bambulab-spool
                 class="spool"
-                .key=${trayId}
                 .entity_id=${trayId}
                 .show_type=${this._config.show_type}
                 .spool_anim_reflection=${this._config.spool_anim_reflection}
