@@ -4,11 +4,12 @@ import { html, LitElement, nothing } from "lit";
 import { provide } from "@lit/context";
 
 import { registerCustomCard } from "../../utils/custom-cards";
-import { INTEGRATION_DOMAIN, MANUFACTURER, AMS_MODELS } from "../../const";
+import { INTEGRATION_DOMAIN, MANUFACTURER, AMS_MODELS, AMS_3H_MODEL } from "../../const";
 import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME } from "./const";
 import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
+import { findAmsZones } from "./zones";
 import { entitiesContext, hassContext, showInfoBarContext, nodeRedContext } from "../../utils/context";
 
 registerCustomCard({
@@ -28,9 +29,18 @@ const ENTITYLIST: string[] = [
   "tray_2",
   "tray_3",
   "tray_4",
+  "tray_5",           // AMS 3H only, as are trays 6-9
+  "tray_6",
+  "tray_7",
+  "tray_8",
+  "tray_9",
   "ams_heater_power",   // External AMS heater/dryer on a smart plug
   "ams_heater_drying",
 ];
+
+// The most trays any AMS has (the AMS 3H)
+const MAX_TRAYS = 9;
+const TRAY_NUMBERS = Array.from({ length: MAX_TRAYS }, (_, i) => i + 1);
 
 @customElement(AMS_CARD_NAME)
 export class AMS_CARD extends LitElement {
@@ -64,8 +74,14 @@ export class AMS_CARD extends LitElement {
 
   static styles = styles;
 
+  private _isAms3h(): boolean {
+    return this._hass?.devices?.[this._deviceId]?.model === AMS_3H_MODEL;
+  }
+
   public getLayoutOptions() {
-    var rows = (this._style === "graphic") ? 4 : 3;
+    // The AMS 3H shows its nine spools in two rows (taller with the filament names under them),
+    // and has no graphic style
+    var rows = this._isAms3h() ? (this._showType ? 6 : 4) : (this._style === "graphic") ? 4 : 3;
     if (this._showInfoBar.active) {
       rows++;
     }
@@ -99,7 +115,7 @@ export class AMS_CARD extends LitElement {
     this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
     this._customTemperature =
       config.custom_temperature === "" ? nothing : config.custom_temperature;
-    this._customRemaining = [1, 2, 3, 4].map((n) => config[`custom_remaining_${n}`] || undefined);
+    this._customRemaining = TRAY_NUMBERS.map((n) => config[`custom_remaining_${n}`] || undefined);
 
     if (this._hass) {
       this.hass = this._hass;
@@ -154,28 +170,22 @@ export class AMS_CARD extends LitElement {
         temperature: this._entityList["ams_temp"],
         heaterPower: this._entityList["ams_heater_power"],
         heaterDrying: this._entityList["ams_heater_drying"],
-        spools: (() => {
-          const spools = [
-            this._entityList["tray_1"],
-            this._entityList["tray_2"],
-            this._entityList["tray_3"],
-            this._entityList["tray_4"],
-          ];
-          // Filter out undefined entries
-          return spools.filter(spool => spool?.entity_id);
-        })(),
+        // Trays that don't exist on this AMS are left out
+        spools: TRAY_NUMBERS.map((n) => this._entityList[`tray_${n}`]).filter((spool) => spool?.entity_id),
+        // The AMS 3H's drying zones stand in for the cabinet humidity and temperature
+        zones: findAmsZones(hass, this._deviceId),
         type: this._hass.devices[this._deviceId].model.toUpperCase(),
       };
     }
   }
 
   render() {
-    if (this._style == "graphic") {
+    if (this._style == "graphic" && !this._isAms3h()) {
       return html` <graphic-ams-card /> `;
     } else {
       // Custom remaining sensors are configured per tray; key them by the tray's entity.
       const customRemaining = {};
-      [1, 2, 3, 4].forEach((n) => {
+      TRAY_NUMBERS.forEach((n) => {
         const tray = this._entityList[`tray_${n}`]?.entity_id;
         if (tray && this._customRemaining[n - 1]) {
           customRemaining[tray] = this._customRemaining[n - 1];

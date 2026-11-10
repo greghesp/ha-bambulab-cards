@@ -1,5 +1,5 @@
 import { AMS_CARD_EDITOR_NAME } from "./const";
-import { MANUFACTURER, AMS_MODELS } from "../../const";
+import { MANUFACTURER, AMS_MODELS, AMS_3H_MODEL } from "../../const";
 import { customElement, state } from "lit/decorators.js";
 import { LitElement, html, nothing } from "lit";
 import memoizeOne from "memoize-one";
@@ -19,7 +19,8 @@ export class AmsCardEditor extends LitElement {
     this._config = config;
   }
 
-  private _schema = memoizeOne((showInfoBar: boolean, style: string) => [
+  // The AMS 3H has nine trays and only the vector style
+  private _schema = memoizeOne((showInfoBar: boolean, style: string, isAms3h: boolean) => [
     { 
       name: "show_info_bar",
       label: "Show Info Bar",
@@ -44,7 +45,7 @@ export class AmsCardEditor extends LitElement {
           selector: { entity: { domain: "sensor" } },
         }
       ] : ""),
-    ...(style === "vector" ? [
+    ...(style === "vector" || isAms3h ? [
       {
         name: "show_type",
         label: "Show Filament Types",
@@ -64,7 +65,7 @@ export class AmsCardEditor extends LitElement {
         selector: { boolean: true },
         default: true,
       },
-      ...[1, 2, 3, 4].map((n) => ({
+      ...Array.from({ length: isAms3h ? 9 : 4 }, (_, i) => i + 1).map((n) => ({
         name: `custom_remaining_${n}`,
         label: `Custom Remaining Sensor (Tray ${n})`,
         selector: { entity: { domain: "sensor" } },
@@ -79,7 +80,7 @@ export class AmsCardEditor extends LitElement {
         }
       },
     },
-    {
+    ...(isAms3h ? [] : [{
       name: "style",
       label: "Card Style",
       selector: {
@@ -90,12 +91,13 @@ export class AmsCardEditor extends LitElement {
           ],
         },
       },
-    },
-  ]); 
+    }]),
+  ]);
 
 
   render() {
-    const schema = this._schema(this._config?.show_info_bar, this._config?.style);
+    const isAms3h = this.hass?.devices?.[this._config?.ams]?.model === AMS_3H_MODEL;
+    const schema = this._schema(this._config?.show_info_bar, this._config?.style, isAms3h);
 
     return html`
       <div>
