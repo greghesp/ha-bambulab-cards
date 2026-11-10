@@ -86,11 +86,13 @@ One AMS unit. The active slot is highlighted and animated, and remaining
 filament shows when it's enabled in the slicer for a Bambu spool. Tap a
 spool to see its details or change its filament.
 
-**AMS 3H (H3C).** The same card shows the AMS 3H's nine spools in two rows,
-five over four. The AMS 3H has no single humidity or temperature reading, so
-the info bar shows each drying zone instead: its humidity, temperature and,
-while it's drying, the time left. Hover a zone to see which trays it holds,
-and tap a reading to open it. The AMS 3H always uses the vector style.
+**AMS 3H (H3C).** The same card lays the AMS 3H out like the unit. The back
+row has two spools beside the **dry box**, outlined with its two spools, and
+the five front spools are below. The dry box shows its temperature and
+humidity above its spools, plus the time left while it's drying, when its
+outline turns orange. The AMS 3H has no single humidity or temperature
+reading, so the info bar shows the other zone's instead. Tap a reading to
+open it. The AMS 3H always uses the vector style.
 
 ![AMS card in vector style with info bar](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-vector.png)
 

@@ -112,7 +112,7 @@ export class InfoBar extends LitElement {
   /* The AMS 3H has no cabinet humidity or temperature, so each drying zone shows its own, plus
      the time left while it is drying. The tooltip says which trays the zone holds. */
   #renderZones() {
-    return this._entities.zones.map((zone) => {
+    return this.#infoBarZones().map((zone) => {
       const dryingState = zone.dryingTime ? this.hass.states[zone.dryingTime.entity_id]?.state : undefined;
       const name = `Zone ${zone.zone}`;
       const trays = zone.slots.length ? ` (trays ${zone.slots.join(", ")})` : "";
@@ -127,13 +127,19 @@ export class InfoBar extends LitElement {
     });
   }
 
+  /* The zones shown here. The AMS 3H's dry box shows its own readings above its spools. */
+  #infoBarZones() {
+    const dryBoxZone = this._entities?.ams3hLayout?.dryBox?.zone?.zone;
+    return (this._entities?.zones ?? []).filter((zone) => zone.zone !== dryBoxZone);
+  }
+
   render() {
     if (!this._infoBar.active) return nothing;
 
     // If this is an AMS HT model, we need to hide the title (even if enabled) and give 100% width to the info slots
     const isAmsHtModel = this._entities?.spools?.length === 1;
 
-    if (this._entities?.zones?.length) {
+    if (this.#infoBarZones().length) {
       return html`
         <div class="extra-info">
           <div class="title zones-title">${this._infoBar.title}</div>

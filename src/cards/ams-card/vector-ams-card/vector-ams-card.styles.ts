@@ -36,6 +36,89 @@ export default css`
     row-gap: 8px;
   }
 
+  /* AMS 3H: back row with the dry box, then the front row (spools sized as five per row) */
+  .ams3h {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .ams3h-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 5px;
+  }
+
+  .ha-bambulab-spool.ams3h {
+    width: calc(20% - 4px);
+    min-width: calc(20% - 4px);
+    max-width: calc(20% - 4px);
+  }
+
+  .dry-box {
+    /* Two spools' width plus the gap between them and the box's own border and padding */
+    width: calc(40% + 6px);
+    box-sizing: border-box;
+    padding: 4px 4px 4px;
+    border: 2px solid var(--divider-color, #5f6368);
+    border-radius: 10px;
+    transition: border-color 200ms ease-out, background-color 200ms ease-out;
+  }
+
+  .dry-box.drying {
+    border-color: #ff8a00;
+    background: rgba(255, 138, 0, 0.07);
+  }
+
+  .dry-box-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    min-height: 22px;
+    padding: 0 2px 4px;
+    font-size: 12px;
+    color: var(--secondary-text-color);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .dry-box.drying .dry-box-head {
+    color: #ff8a00;
+  }
+
+  .dry-box-readings {
+    display: inline-flex;
+    gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .dry-box-reading {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+  }
+
+  .dry-box-reading ha-icon {
+    --mdc-icon-size: 15px;
+  }
+
+  .dry-box-spools {
+    display: flex;
+    gap: 5px;
+  }
+
+  .dry-box-spools .ha-bambulab-spool.ams3h {
+    width: calc(50% - 3px);
+    min-width: calc(50% - 3px);
+    max-width: calc(50% - 3px);
+  }
+
   .ha-bambulab-vector-ams-card {
     align-items: center;
     height: 100%;

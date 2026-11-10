@@ -9,7 +9,7 @@ import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME } from "./const";
 import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
-import { findAmsZones } from "./zones";
+import { findAmsZones, findDryBoxZone, layoutAms3h } from "./zones";
 import { entitiesContext, hassContext, showInfoBarContext, nodeRedContext } from "../../utils/context";
 
 registerCustomCard({
@@ -77,9 +77,9 @@ export class AMS_CARD extends LitElement {
   }
 
   public getLayoutOptions() {
-    // The AMS 3H shows its nine spools in two rows (taller with the filament names under them),
-    // and has no graphic style
-    var rows = this._isAms3h() ? (this._showType ? 6 : 4) : (this._style === "graphic") ? 4 : 3;
+    // The AMS 3H shows its nine spools in two rows (taller with the filament names under them)
+    // plus the dry box's readings, and has no graphic style
+    var rows = this._isAms3h() ? (this._showType ? 7 : 5) : (this._style === "graphic") ? 4 : 3;
     if (this._showInfoBar.active) {
       rows++;
     }
@@ -162,14 +162,22 @@ export class AMS_CARD extends LitElement {
         }
       }
 
+      // Trays that don't exist on this AMS are left out
+      const trays = TRAY_NUMBERS
+        .map((n) => ({ tray: n, spool: this._entityList[`tray_${n}`] }))
+        .filter((t) => t.spool?.entity_id);
+      // The AMS 3H's drying zones stand in for the cabinet humidity and temperature
+      const zones = findAmsZones(hass, this._deviceId);
+      const dryBox = findDryBoxZone(zones);
+
       // Convert data to form rest of the cards are expecting.
       this._entities = {
         humidity: this._entityList["humidity_index"],
         temperature: this._entityList["ams_temp"],
-        // Trays that don't exist on this AMS are left out
-        spools: TRAY_NUMBERS.map((n) => this._entityList[`tray_${n}`]).filter((spool) => spool?.entity_id),
-        // The AMS 3H's drying zones stand in for the cabinet humidity and temperature
-        zones: findAmsZones(hass, this._deviceId),
+        spools: trays.map((t) => t.spool),
+        zones,
+        // AMS 3H: the back row, the dry box and the front row, laid out like the unit
+        ams3hLayout: dryBox ? layoutAms3h(trays, dryBox) : undefined,
         type: this._hass.devices[this._deviceId].model.toUpperCase(),
       };
     }
