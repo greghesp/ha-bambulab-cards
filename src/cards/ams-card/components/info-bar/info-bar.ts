@@ -99,12 +99,22 @@ export class InfoBar extends LitElement {
     const stateObj = entity ? this.hass.states[entity.entity_id] : undefined;
     if (!stateObj || ["unavailable", "unknown", ""].includes(stateObj.state)) return nothing;
     const value = this.hass.formatEntityState(stateObj);
+    const open = () => helpers.showEntityMoreInfo(this, entity!);
     return html`<span
       class="zone-reading"
+      role="button"
+      tabindex="0"
       title="${label}: ${value}"
-      @click="${() => helpers.showEntityMoreInfo(this, entity!)}"
+      aria-label="${label}: ${value}"
+      @click=${open}
+      @keydown=${(ev: KeyboardEvent) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          open();
+        }
+      }}
     >
-      ${this._showIcons ? html`<ha-icon icon=${icon} />` : nothing}
+      ${this._showIcons ? html`<ha-icon icon=${icon} aria-hidden="true" />` : nothing}
       <span>${value}</span>
     </span>`;
   }

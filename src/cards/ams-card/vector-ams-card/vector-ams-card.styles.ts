@@ -73,17 +73,17 @@ export default css`
     background: rgba(255, 138, 0, 0.07);
   }
 
+  /* Wraps onto a second line in a narrow card rather than cutting a reading off */
   .dry-box-head {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    gap: 6px;
+    gap: 2px 6px;
     min-height: 22px;
     padding: 0 2px 4px;
     font-size: 12px;
     color: var(--secondary-text-color);
-    white-space: nowrap;
-    overflow: hidden;
   }
 
   .dry-box.drying .dry-box-head {
@@ -92,16 +92,22 @@ export default css`
 
   .dry-box-readings {
     display: inline-flex;
-    gap: 8px;
-    min-width: 0;
-    overflow: hidden;
+    flex-wrap: wrap;
+    gap: 2px 8px;
   }
 
   .dry-box-reading {
     display: inline-flex;
     align-items: center;
     gap: 2px;
+    white-space: nowrap;
     cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .dry-box-reading:focus-visible {
+    outline: 2px solid var(--primary-color, #03a9f4);
+    outline-offset: 1px;
   }
 
   .dry-box-reading ha-icon {

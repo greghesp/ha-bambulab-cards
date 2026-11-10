@@ -40,12 +40,22 @@ export class VectorAmsCard extends LitElement {
     const stateObj = entity ? this.hass?.states?.[entity.entity_id] : undefined;
     if (!stateObj || ["unavailable", "unknown", ""].includes(stateObj.state)) return nothing;
     const value = this.hass.formatEntityState(stateObj);
+    const open = () => helpers.showEntityMoreInfo(this, entity!);
     return html`<span
       class="dry-box-reading"
+      role="button"
+      tabindex="0"
       title="${label}: ${value}"
-      @click=${() => helpers.showEntityMoreInfo(this, entity!)}
+      aria-label="${label}: ${value}"
+      @click=${open}
+      @keydown=${(ev: KeyboardEvent) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          open();
+        }
+      }}
     >
-      <ha-icon icon=${icon}></ha-icon><span>${value}</span>
+      <ha-icon icon=${icon} aria-hidden="true"></ha-icon><span>${value}</span>
     </span>`;
   }
 
