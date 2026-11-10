@@ -37,8 +37,11 @@ export default css`
   }
 
   /* AMS 3H: back row with the dry box, then the front row (spools sized as five per row) */
-  .ams3h {
+  .ams3h-layout {
     width: 100%;
+    /* Keep the full front row off the card's edges, as the four-spool layout does */
+    box-sizing: border-box;
+    padding: 0 5px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;

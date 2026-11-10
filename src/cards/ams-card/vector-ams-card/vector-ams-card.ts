@@ -66,7 +66,7 @@ export class VectorAmsCard extends LitElement {
     const drying = Number(this.hass?.states?.[zone.dryingTime?.entity_id]?.state) > 0;
     const spoolClass = "ha-bambulab-spool ams3h";
     return html`
-      <div class="ams3h">
+      <div class="ams3h-layout">
         <div class="ams3h-row back">
           ${layout.back.map((spool) => this.#renderSpool(spool, spoolClass))}
           <div class="dry-box ${drying ? "drying" : ""}" title="Dry box (zone ${zone.zone})">
