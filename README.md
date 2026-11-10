@@ -96,6 +96,10 @@ open it. The AMS 3H always uses the vector style.
 
 ![AMS card in vector style with info bar](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-vector.png)
 
+| AMS 3H, dry box drying | AMS 3H, dry box idle |
+|---|---|
+| ![AMS 3H in the AMS card while its dry box is drying](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-ams3h-drying.png) | ![AMS 3H in the AMS card with its dry box idle](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-ams3h-idle.png) |
+
 ```yaml
 type: custom:ha-bambulab-ams-card
 ams: <AMS device id>
