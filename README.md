@@ -62,6 +62,16 @@ Three styles:
 |---|---|
 | ![Print Status card, graphic style, light theme](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/print-status-light.png) | ![Print Status card, graphic style, dark theme](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/print-status-dark.png) |
 
+**BIQU Panda devices.** When a Panda Breath, Panda PWR or Panda Status is
+linked to the printer in the integration, every style adds a row of chips:
+the chamber temperature (glowing while the Panda Breath heats), the drying
+time left while it dries filament, the Panda PWR's power draw, and the
+Panda Status light. Tap a chip for its details, or tap the light to switch
+it. The Panda PWR chip only opens its details, since its outlet usually
+powers the printer.
+
+![Print Status card chips for a Panda Breath, Panda PWR and Panda Status](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/print-status-panda.png)
+
 ```yaml
 type: custom:ha-bambulab-print_status-card
 printer: <printer device id>
@@ -108,6 +118,14 @@ custom_humidity: sensor.my_ams_humidity
 custom_temperature: sensor.my_ams_temperature
 custom_remaining_1: sensor.tray_1_remaining   # one per tray: _1 to _4, or _1 to _9 on an AMS 3H
 ```
+
+**External AMS heater.** When an AMS has a SUNLU AMS Heater or EIBOS
+Series X set up in the integration (switched by a smart plug), the info bar
+adds a heater chip: **Off**, **On**, **Auto** (drying mode waiting for the
+humidity to rise), **Drying**, or **Limit** once the heater hits its
+maximum runtime. Tap it to open drying mode.
+
+![AMS card info bar with the external heater drying](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-heater.png)
 
 ### AMS Graphic card
 
