@@ -94,6 +94,35 @@ export class InfoBar extends LitElement {
     }
   }
 
+  #isOn(entity): boolean {
+    return !!entity?.entity_id && this.hass.states[entity.entity_id]?.state === "on";
+  }
+
+  // External AMS heater/dryer (SUNLU, EIBOS) switched through a smart plug.
+  #renderHeater() {
+    const drying = this._entities?.heaterDrying;
+    const power = this._entities?.heaterPower;
+    const target = drying?.entity_id ? drying : power;
+    if (!target?.entity_id) return nothing;
+
+    const heating = this.#isOn(power);
+    const auto = this.#isOn(drying);
+    const lockout = !!(drying?.entity_id && this.hass.states[drying.entity_id]?.attributes?.runtime_lockout);
+    const icon = lockout ? "mdi:timer-alert-outline" : heating ? "mdi:heating-coil" : "mdi:radiator-off";
+    const label = lockout ? "Limit" : auto ? (heating ? "Drying" : "Auto") : heating ? "On" : "Off";
+    const color = lockout ? "#ffb300" : heating ? "#ff7800" : "white";
+    return html`<div
+      class="info"
+      title="AMS heater"
+      @click="${() => helpers.showEntityMoreInfo(this, target)}"
+    >
+      ${this._showIcons
+        ? html`<span><ha-icon icon="${icon}" style="color: ${color}"></ha-icon></span>`
+        : nothing}
+      <span>${label}</span>
+    </div>`;
+  }
+
   /* One reading of an AMS 3H zone; nothing while its sensor has no value */
   #renderZoneReading(entity: helpers.Entity | undefined, icon: string, label: string) {
     const stateObj = entity ? this.hass.states[entity.entity_id] : undefined;
@@ -170,6 +199,7 @@ export class InfoBar extends LitElement {
                 </span>
               </div>`
             : nothing}
+          ${this.#renderHeater()}
         </div>
       </div>
     `;

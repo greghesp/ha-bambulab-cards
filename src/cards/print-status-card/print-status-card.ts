@@ -1,4 +1,5 @@
 import * as helpers from "../../utils/helpers";
+import "~/cards/shared-components/panda-accessories/panda-accessories";
 
 import { customElement, state, query } from "lit/decorators.js";
 import { html, PropertyValues } from "lit";
@@ -472,6 +473,7 @@ export class PrintStatusCard extends EntityProvider {
               })}
             </div>
           </div>
+          <panda-accessories .printerDeviceId=${this._device_id}></panda-accessories>
         </ha-card>
       `;
     }
