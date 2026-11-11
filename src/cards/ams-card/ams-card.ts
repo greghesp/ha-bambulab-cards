@@ -9,7 +9,7 @@ import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME } from "./const";
 import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
-import { findAmsZones } from "./zones";
+import { findAmsZones, findDryBoxZone, layoutAms3h } from "./zones";
 import { entitiesContext, hassContext, showInfoBarContext, nodeRedContext } from "../../utils/context";
 
 registerCustomCard({
@@ -51,6 +51,8 @@ export class AMS_CARD extends LitElement {
   @state() private _spoolAnimReflection;
   @state() private _spoolAnimWiggle;
   private _entityList: { [key: string]: helpers.Entity } = {};
+  private _trays: { tray: number; spool: helpers.Entity }[] = [];
+  private _zonesKey?: string;
 
   @provide({ context: hassContext })
   @state()
@@ -77,9 +79,9 @@ export class AMS_CARD extends LitElement {
   }
 
   public getLayoutOptions() {
-    // The AMS 3H shows its nine spools in two rows (taller with the filament names under them),
-    // and has no graphic style
-    var rows = this._isAms3h() ? (this._showType ? 6 : 4) : (this._style === "graphic") ? 4 : 3;
+    // The AMS 3H shows its nine spools in two rows (taller with the filament names under them)
+    // plus the dry box's readings, and has no graphic style
+    var rows = this._isAms3h() ? (this._showType ? 7 : 5) : (this._style === "graphic") ? 4 : 3;
     if (this._showInfoBar.active) {
       rows++;
     }
@@ -162,17 +164,42 @@ export class AMS_CARD extends LitElement {
         }
       }
 
+      // Trays that don't exist on this AMS are left out
+      this._trays = TRAY_NUMBERS
+        .map((n) => ({ tray: n, spool: this._entityList[`tray_${n}`] }))
+        .filter((t) => t.spool?.entity_id);
+
       // Convert data to form rest of the cards are expecting.
       this._entities = {
         humidity: this._entityList["humidity_index"],
         temperature: this._entityList["ams_temp"],
-        // Trays that don't exist on this AMS are left out
-        spools: TRAY_NUMBERS.map((n) => this._entityList[`tray_${n}`]).filter((spool) => spool?.entity_id),
-        // The AMS 3H's drying zones stand in for the cabinet humidity and temperature
-        zones: findAmsZones(hass, this._deviceId),
+        spools: this._trays.map((t) => t.spool),
+        zones: [],
         type: this._hass.devices[this._deviceId].model.toUpperCase(),
       };
     }
+
+    if (this._isAms3h()) {
+      this.#updateAms3hZones(hass);
+    }
+  }
+
+  /* The AMS 3H's drying zones stand in for the cabinet humidity and temperature, and the dry box
+     (the smaller zone) is drawn with its spools. The zones' trays come from the printer and can
+     change, or be missing while it's offline, so they're re-read on every update and the layout
+     is rebuilt only when they change. */
+  #updateAms3hZones(hass) {
+    const zones = findAmsZones(hass, this._deviceId);
+    const key = JSON.stringify(zones.map((z) => [z.zone, z.slots, z.humidity?.entity_id, z.temperature?.entity_id, z.dryingTime?.entity_id]));
+    if (key === this._zonesKey) return;
+    this._zonesKey = key;
+    const dryBox = findDryBoxZone(zones);
+    this._entities = {
+      ...this._entities,
+      zones,
+      // AMS 3H: the back row, the dry box and the front row, laid out like the unit
+      ams3hLayout: dryBox ? layoutAms3h(this._trays, dryBox) : undefined,
+    };
   }
 
   render() {
