@@ -2,19 +2,20 @@ import { html, LitElement, nothing, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
-import { AMS_3H_MODEL, AMS_MODELS, MANUFACTURER } from "../../const";
+import { AMS_MODELS, MANUFACTURER } from "../../const";
 import { registerCustomCard } from "../../utils/custom-cards";
 import styles from "./card.styles";
 import { AMS_GRAPHIC_CARD_NAME } from "./const";
 import { Slot, VARIANTS, variantFromModel } from "./geo";
 import { renderSvg } from "./render";
+import { resolveAms3h } from "./ams3h";
 import { findTrayEntities } from "./trays";
 
 registerCustomCard({
   type: AMS_GRAPHIC_CARD_NAME,
   name: "Bambu Lab AMS Graphic Card",
   description:
-    "Spool status for AMS / AMS 2 PRO / AMS HT with graphic spool rendering (fill level, glass overlay, labels)",
+    "Spool status for AMS / AMS 2 PRO / AMS HT / AMS 3H with graphic spool rendering (fill level, glass overlay, labels)",
 });
 
 const ICON_TEMP =
@@ -47,7 +48,7 @@ export class AmsGraphicCard extends LitElement {
       throw new Error("Invalid configuration");
     }
     const trays = Array.isArray(config.trays)
-      ? config.trays.slice(0, 4)
+      ? config.trays.slice(0, 9)
       : [config.tray_1, config.tray_2, config.tray_3, config.tray_4];
     this._config = {
       ams: "",
@@ -107,7 +108,7 @@ export class AmsGraphicCard extends LitElement {
     const devices = this._hass?.devices || {};
     for (const key of Object.keys(devices)) {
       const d = devices[key];
-      if (d.manufacturer === MANUFACTURER && AMS_MODELS.includes(d.model) && d.model !== AMS_3H_MODEL) return key;
+      if (d.manufacturer === MANUFACTURER && AMS_MODELS.includes(d.model)) return key;
     }
     return "";
   }
@@ -151,6 +152,11 @@ export class AmsGraphicCard extends LitElement {
           ents.find((e) => /_humidity$/.test(e) && !/_index$/.test(e)) ||
           "";
       }
+    }
+    if (r.variantKey === "ams3h") {
+      const resolved = resolveAms3h(hass, cfg, dev);
+      r.trays = resolved.trays;
+      r.ams3h = resolved.data;
     }
     if (!r.trays.length) r.trays = (cfg.trays || []).filter(Boolean);
     return r;
@@ -214,8 +220,8 @@ export class AmsGraphicCard extends LitElement {
       const u = this._unit(e) || fallbackUnit;
       return html`<span class="chip">${unsafeSVG(icon)}<span class="val">${v}${u}</span></span>`;
     };
-    const t = cfg.show_info_bar === false ? nothing : chip(r.tempEntity, ICON_TEMP, "°C");
-    const h = cfg.show_info_bar === false ? nothing : chip(r.humEntity, ICON_HUM, "%");
+    const t = (cfg.show_info_bar === false || r.variantKey === "ams3h") ? nothing : chip(r.tempEntity, ICON_TEMP, "°C");
+    const h = (cfg.show_info_bar === false || r.variantKey === "ams3h") ? nothing : chip(r.humEntity, ICON_HUM, "%");
     if (!showTitle && t === nothing && h === nothing) return nothing;
     return html`<div class="head ${r.variantKey === "ht" ? "center" : ""}">
       ${showTitle ? html`<div class="title">${cfg.subtitle}</div>` : nothing}
@@ -231,7 +237,7 @@ export class AmsGraphicCard extends LitElement {
     if (r.geo.unsupported) {
       return html`<ha-card>
         <div class="notice">
-          ${r.geo.name} is not supported yet — supported models: AMS / AMS 2 PRO / AMS HT.
+          ${r.geo.name} is not supported yet — supported models: AMS / AMS 2 PRO / AMS HT / AMS 3H.
         </div>
       </ha-card>`;
     }
@@ -246,6 +252,8 @@ export class AmsGraphicCard extends LitElement {
     const temp = this._stateValue(r.tempEntity);
     const svg = renderSvg({
       geo: r.geo,
+      ams3h: r.ams3h,
+      showInfo: cfg.show_info_bar !== false,
       slots,
       trayEntities: r.trays,
       showLabels: cfg.show_labels !== false,

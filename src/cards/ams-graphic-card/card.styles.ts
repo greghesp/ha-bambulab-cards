@@ -90,4 +90,49 @@ export default css`
   .slotlabel:hover rect {
     fill-opacity: 0.72;
   }
+
+  .ams3h text {
+    fill: #eeeeee;
+  }
+
+  .ams3h .cabinet {
+    fill: #252525;
+    stroke: #666666;
+  }
+
+  .ams3h .drying-zone rect,
+  .ams3h .rim,
+  .ams3h .tool rect,
+  .ams3h .tool .nozzle {
+    fill: #383838;
+    stroke: #888888;
+    stroke-width: 2;
+  }
+
+  .ams3h .drying .rim,
+  .ams3h .drying-zone.drying rect {
+    stroke: #ffa340;
+    stroke-width: 3;
+  }
+
+  .ams3h .drying .temperature {
+    fill: #ff4d4f;
+  }
+
+  .ams3h .heat-icon {
+    fill: none;
+    stroke: #ffa340;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .ams3h .feed-path {
+    fill: none;
+    stroke-width: 3;
+  }
+
+  .ams3h .feed.active .tool rect {
+    stroke: #ffffff;
+    fill: #606060;
+  }
 `;

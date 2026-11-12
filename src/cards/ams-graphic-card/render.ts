@@ -7,6 +7,7 @@
  * the string form is the easiest to read and to verify.
  */
 import { BASE_IMAGES, BRAND_IMAGES, MECH_IMAGE } from "./assets";
+import type { Ams3hData } from "./ams3h";
 import {
   chipWidth,
   EMPTY_LABEL,
@@ -109,6 +110,8 @@ function lcdSvg(geo: VariantGeo, hum: string, temp: string): string {
 }
 
 export interface RenderOpts {
+  ams3h?: Ams3hData;
+  showInfo?: boolean;
   geo: VariantGeo;
   slots: Slot[];
   trayEntities: string[];
@@ -120,6 +123,7 @@ export interface RenderOpts {
 }
 
 export function renderSvg(o: RenderOpts): string {
+  if (o.ams3h) return renderAms3h(o, o.ams3h);
   const { geo, slots, trayEntities } = o;
   const [vbx, vby, vbw, vbh] = geo.vb;
   const baseSrc = BASE_IMAGES[geo.base];
@@ -182,4 +186,56 @@ export function renderSvg(o: RenderOpts): string {
 
   svg += "</svg>";
   return svg;
+}
+
+/* The 3H uses the same 700 × 360 canvas as the image-backed models, entirely in SVG. */
+function renderAms3h(o: RenderOpts, data: Ams3hData): string {
+  const text = (x: number, y: number, value: string, cls = "", size = 12) =>
+    `<text x="${x}" y="${y}" class="${cls}" font-size="${size}" text-anchor="middle">${esc(value)}</text>`;
+  let svg = `<svg class="art ams3h" viewBox="${o.geo.vb.join(" ")}" xmlns="${SVG_NS}" aria-label="AMS 3H spool status">`;
+  svg += '<rect class="cabinet" x="4" y="4" width="692" height="352" rx="16"/>';
+  if (o.showInfo !== false) {
+    [data.zones[1], data.zones[0]].forEach((zone, i) => {
+      const x = i ? 642 : 58;
+      svg += `<g class="drying-zone${zone.drying ? " drying" : ""}" data-zone="${i ? 1 : 2}">`;
+      svg += `<rect x="${x - 49}" y="16" width="98" height="112" rx="8"/>`;
+      svg += text(x, 36, i ? "Dry box" : "Cabinet");
+      svg += text(x, 61, zone.humidity, "humidity", 15);
+      svg += text(x, 86, zone.temperature, "temperature", 15);
+      if (i && zone.drying) svg += text(x, 113, zone.remaining, "remaining");
+      svg += "</g>";
+    });
+  }
+  // Even trays form the back row of four; odd trays form the front row of five.
+  o.slots.forEach((slot, i) => {
+    const x = o.geo.centers[i];
+    const y = i % 2 ? 72 : 197;
+    const active = data.active === i + 1 && !slot.empty;
+    const color = /^#[\da-f]{6}$/i.test(slot.color) ? slot.color : "#888888";
+    svg += `<g class="feed${active ? " active" : ""}" data-tool="${i + 1}">`;
+    svg += `<path class="feed-path" d="M${x} ${y + 34}V288" stroke="${active ? color : "#555555"}"/>`;
+    svg += `<g class="tool" transform="translate(${x} 288)"><rect x="-13" width="26" height="31" rx="4"/><path class="nozzle" d="M-7 31H7L0 42Z"/>`;
+    if (active) svg += `<path d="M0 0V39" stroke="${color}" stroke-width="4"/>`;
+    svg += "</g>" + text(x, 347, data.diameters[i], "nozzle-diameter", 11) + "</g>";
+  });
+  o.slots.forEach((slot, i) => {
+    const x = o.geo.centers[i];
+    const y = i % 2 ? 72 : 197;
+    const color = /^#[\da-f]{6}$/i.test(slot.color) ? slot.color : "#888888";
+    const drying = data.zones.some((zone) => zone.drying && zone.slots.includes(i + 1));
+    svg += `<g class="ams3h-slot slotlabel${drying ? " drying" : ""}" data-slot="${i + 1}" data-tray-entity="${esc(o.trayEntities[i])}">`;
+    svg += `<title>Tray ${i + 1}: ${esc(slot.name || slot.type)}</title>`;
+    svg += `<circle class="rim" cx="${x}" cy="${y}" r="34"/>`;
+    if (!slot.empty) svg += `<circle cx="${x}" cy="${y}" r="${Math.min(29, Math.max(8, remainPct(slot) * 0.3))}" fill="${color}"/>`;
+    svg += `<circle cx="${x}" cy="${y}" r="8" fill="#333333"/>`;
+    svg += text(x, y - 40, String(i + 1), "slot-number");
+    if (drying) svg += `<path class="heat-icon" d="M${x + 20} ${y - 32}q-4-4 0-8t0-8m6 16q-4-4 0-8t0-8"/>`;
+    if (o.showLabels && (!slot.empty || o.showEmptyLabel)) {
+      const label = slot.empty ? EMPTY_LABEL : o.labelMode === "name" ? slot.name || slot.type : slot.type;
+      const short = label.length > 10 ? label.slice(0, 9) + "…" : label;
+      svg += text(x, y + 49, short, "material", 11);
+    }
+    svg += "</g>";
+  });
+  return svg + "</svg>";
 }

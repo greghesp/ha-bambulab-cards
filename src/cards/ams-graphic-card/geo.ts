@@ -80,6 +80,14 @@ const AMS_LIKE: Pick<
 };
 
 export const VARIANTS: { [key: string]: VariantGeo } = {
+  ams3h: {
+    name: "AMS 3H",
+    base: "",
+    ...AMS_LIKE,
+    centers: Array.from({ length: 9 }, (_, i) => 90 + i * 65),
+    mech: false,
+    fade: "none",
+  },
   ams2pro: {
     name: "AMS 2 PRO",
     base: "ams2",
@@ -157,6 +165,7 @@ export const FADE_STOPS: [number, number][] = [
 /* Pick the geometry table from the device model string */
 export function variantFromModel(model: string): string {
   const m = String(model || "").toLowerCase();
+  if (/ams[\s_-]*3h/.test(m)) return "ams3h";
   if (m.includes("lite")) return "lite";
   if (m.includes("ht")) return "ht";
   if (m.includes("2")) return "ams2pro";
