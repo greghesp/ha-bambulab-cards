@@ -1,12 +1,13 @@
+import "./ams3h-graphic";
 import { html, LitElement, nothing, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
-import { AMS_3H_MODEL, AMS_MODELS, MANUFACTURER } from "../../const";
+import { AMS_MODELS, MANUFACTURER } from "../../const";
 import { registerCustomCard } from "../../utils/custom-cards";
 import styles from "./card.styles";
 import { AMS_GRAPHIC_CARD_NAME } from "./const";
-import { Slot, VARIANTS, variantFromModel } from "./geo";
+import { Slot, VARIANTS, variantFromModel, amsDeviceModel } from "./geo";
 import { renderSvg } from "./render";
 import { findTrayEntities } from "./trays";
 
@@ -14,7 +15,7 @@ registerCustomCard({
   type: AMS_GRAPHIC_CARD_NAME,
   name: "Bambu Lab AMS Graphic Card",
   description:
-    "Spool status for AMS / AMS 2 PRO / AMS HT with graphic spool rendering (fill level, glass overlay, labels)",
+    "Spool status for AMS / AMS 2 PRO / AMS HT / AMS-3H with graphic spool rendering (fill level, glass overlay, labels)",
 });
 
 const ICON_TEMP =
@@ -76,12 +77,27 @@ export class AmsGraphicCard extends LitElement {
   }
 
   public getCardSize(): number {
+    if (this._resolve().variantKey === "ams3h") return 6;
     return 4 + (this._config?.show_info_bar === false ? 0 : 1);
   }
 
   /* Match the graphic style of the integration's own AMS card: 4 rows (plus 1 for the info
      bar), with AMS HT spanning a single column */
+  public getGridOptions() {
+    if (this._resolve().variantKey === "ams3h")
+      return { columns: "full", min_columns: 6, rows: 5, min_rows: 5 };
+    const layout = this.getLayoutOptions();
+    return {
+      columns: layout.grid_columns,
+      min_columns: layout.grid_min_columns,
+      rows: layout.grid_rows,
+      min_rows: layout.grid_min_rows,
+    };
+  }
+
   public getLayoutOptions() {
+    if (this._resolve().variantKey === "ams3h")
+      return { grid_rows: 5, grid_columns: 6, grid_min_rows: 5, grid_min_columns: 6 };
     const rows = this.getCardSize();
     const columns = this._resolve().variantKey === "ht" ? 1 : 4;
     return {
@@ -107,7 +123,7 @@ export class AmsGraphicCard extends LitElement {
     const devices = this._hass?.devices || {};
     for (const key of Object.keys(devices)) {
       const d = devices[key];
-      if (d.manufacturer === MANUFACTURER && AMS_MODELS.includes(d.model) && d.model !== AMS_3H_MODEL) return key;
+      if (d.manufacturer === MANUFACTURER && AMS_MODELS.includes(d.model)) return key;
     }
     return "";
   }
@@ -134,16 +150,20 @@ export class AmsGraphicCard extends LitElement {
     };
     const dev = cfg.ams && hass && hass.devices ? hass.devices[cfg.ams] : null;
     if (dev) {
-      r.variantKey = variantFromModel(dev.model);
+      r.variantKey = variantFromModel(amsDeviceModel(dev, hass));
       r.deviceName = dev.name_by_user || dev.name || "";
       r.geo = VARIANTS[r.variantKey] || VARIANTS.ams2pro;
       const ents = this._deviceEntities(cfg.ams);
       const trayEnts = findTrayEntities(hass, ents);
       if (trayEnts.length) r.trays = trayEnts;
       const dc = (e: string) =>
-        (hass.states[e] && hass.states[e].attributes && hass.states[e].attributes.device_class) || "";
+        (hass.states[e] && hass.states[e].attributes && hass.states[e].attributes.device_class) ||
+        "";
       if (!r.tempEntity) {
-        r.tempEntity = ents.find((e) => dc(e) === "temperature") || ents.find((e) => /_temperature$/.test(e)) || "";
+        r.tempEntity =
+          ents.find((e) => dc(e) === "temperature") ||
+          ents.find((e) => /_temperature$/.test(e)) ||
+          "";
       }
       if (!r.humEntity) {
         r.humEntity =
@@ -162,7 +182,15 @@ export class AmsGraphicCard extends LitElement {
     }
     const st = this._hass && this._hass.states[entityId];
     if (!st) {
-      return { empty: true, type: "", color: "#000000", remain: -1, name: "", active: false, missing: true };
+      return {
+        empty: true,
+        type: "",
+        color: "#000000",
+        remain: -1,
+        name: "",
+        active: false,
+        missing: true,
+      };
     }
     const a = st.attributes || {};
     const blank = (c: any) => {
@@ -180,7 +208,13 @@ export class AmsGraphicCard extends LitElement {
       st.state === "Empty" ||
       st.state === "empty";
     const remainNum = a.remain == null ? -1 : Number(a.remain);
-    const label = empty ? "" : a.type && a.type !== "?" ? String(a.type) : a.name ? String(a.name) : "";
+    const label = empty
+      ? ""
+      : a.type && a.type !== "?"
+        ? String(a.type)
+        : a.name
+          ? String(a.name)
+          : "";
     return {
       empty,
       color: empty ? "#000000" : String(rawColor).slice(0, 7),
@@ -228,6 +262,13 @@ export class AmsGraphicCard extends LitElement {
     if (!cfg || !this._hass) return nothing;
 
     const r = this._resolve();
+    if (r.variantKey === "ams3h") {
+      return html`<bambu-lab-ams3h-graphic
+        ._hass=${this._hass}
+        ._config=${cfg}
+        @ams3h-filament=${(e: CustomEvent) => this._openFilamentPopup(e.detail.entityId)}
+      ></bambu-lab-ams3h-graphic>`;
+    }
     if (r.geo.unsupported) {
       return html`<ha-card>
         <div class="notice">
@@ -264,7 +305,9 @@ export class AmsGraphicCard extends LitElement {
   private _onCardClick(ev: Event): void {
     const label = ev
       .composedPath()
-      .find((n) => n instanceof Element && n.hasAttribute("data-tray-entity")) as Element | undefined;
+      .find((n) => n instanceof Element && n.hasAttribute("data-tray-entity")) as
+      | Element
+      | undefined;
     if (!label) return;
     ev.stopPropagation();
     this._openFilamentPopup(label.getAttribute("data-tray-entity") || "");
