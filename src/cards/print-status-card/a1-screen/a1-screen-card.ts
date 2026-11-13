@@ -51,6 +51,7 @@ export class A1ScreenCard extends LitElement {
   @property({ type: Boolean }) public showPrinterName = false;
   @property({ type: Boolean }) public showCover = false;
   @property({ type: Boolean }) public showCameraFeed = false;
+  @property({ type: Boolean }) public coverProgress = false;
   @property() public showCoverPosition: "left" | "right" = "left";
   @property() public showCameraPosition: "left" | "right" = "right";
   @state() private processedImage: string | null = null;
@@ -78,6 +79,7 @@ export class A1ScreenCard extends LitElement {
   @query("#cover-image") coverImageElement: HTMLImageElement | undefined;
 
   @state() private simpleCoverImageFailed = false;
+  @state() private coverAspectRatio = 1;
 
   @state() private confirmation: ConfirmationState = {
     show: false,
@@ -295,14 +297,74 @@ export class A1ScreenCard extends LitElement {
     `;
   }
 
+  // Fraction of the print that is done, by layer, or null when the cover should be shown as is
+  // (option off, nothing printing, or layer counts not known yet).
+  #coverFillFraction(): number | null {
+    if (!this.coverProgress) return null;
+
+    const stateOf = (key: string) => {
+      const ref = this._deviceEntities?.[key];
+      return ref ? this._hass.states[ref.entity_id]?.state : undefined;
+    };
+    if (!["running", "pause", "paused", "pausing"].includes(stateOf("print_status"))) return null;
+
+    const currentLayer = Number(stateOf("current_layer"));
+    const totalLayers = Number(stateOf("total_layers"));
+    if (!Number.isFinite(currentLayer) || !Number.isFinite(totalLayers) || totalLayers <= 0) return null;
+
+    return Math.min(1, Math.max(0, currentLayer / totalLayers));
+  }
+
+  private _handleCoverFillLoad(ev: Event) {
+    const img = ev.target as HTMLImageElement;
+    if (img.naturalWidth && img.naturalHeight) {
+      this.coverAspectRatio = img.naturalWidth / img.naturalHeight;
+    }
+  }
+
+  // The cover drawn twice: a faded copy for what is still to print and the normal one clipped
+  // from the bottom up to the current layer. The image is already cropped to the model, so the
+  // top and bottom edges of the box are the top and bottom of the print.
+  #renderCoverFill(coverSrc: string, fraction: number, id: string, onError: () => void, onLoad: () => void) {
+    const remaining = ((1 - fraction) * 100).toFixed(2);
+    return html`
+      <div class="cover-fill">
+        <div
+          class="cover-fill-box"
+          style="--cover-fill-aspect: ${this.coverAspectRatio}; --cover-fill-remaining: ${remaining}%; --ha-bambulab-progress-color: ${this.#getProgressBarColor()}"
+        >
+          <img class="cover-fill-pending" src="${coverSrc}" @load="${this._handleCoverFillLoad}" alt="" />
+          <img
+            id="${id}"
+            class="cover-fill-done"
+            src="${coverSrc}"
+            @error="${onError}"
+            @load="${onLoad}"
+            alt="Cover Image"
+          />
+          <div class="cover-fill-level"></div>
+        </div>
+      </div>
+    `;
+  }
+
   #renderMinimalCoverTile() {
     if (!this.showCover) return nothing;
 
     const coverSrc = this.processedImage || "";
     const showCoverImage = !!coverSrc && !this.minimalCoverImageFailed;
+    const fillFraction = this.#coverFillFraction();
     return html`
       <div class="ha-bambulab-ssc-minimal-cover">
-        ${showCoverImage
+        ${showCoverImage && fillFraction !== null
+          ? this.#renderCoverFill(
+              coverSrc,
+              fillFraction,
+              "minimal-cover-image",
+              this._handleMinimalCoverImageError,
+              this._handleMinimalCoverImageLoad
+            )
+          : showCoverImage
           ? html`
               <img
                 class="ha-bambulab-ssc-minimal-cover-image"
@@ -749,6 +811,7 @@ export class A1ScreenCard extends LitElement {
 
     const coverSrc = this.processedImage || "";
     const showCoverImage = !!coverSrc && !this.simpleCoverImageFailed;
+    const fillFraction = this.#coverFillFraction();
 
     let videoHtml: any = nothing
     if (this._deviceEntities['camera'] && !helpers.isEntityUnavailable(this._hass, this._deviceEntities['camera'])) {
@@ -799,7 +862,15 @@ export class A1ScreenCard extends LitElement {
                 `
               : html`
                   <div class="cover-image-wrapper">
-                    ${showCoverImage
+                    ${showCoverImage && fillFraction !== null
+                      ? this.#renderCoverFill(
+                          coverSrc,
+                          fillFraction,
+                          "cover-image",
+                          this._handleCoverImageError,
+                          this._handleCoverImageLoad
+                        )
+                      : showCoverImage
                       ? html`
                           <img
                             id="cover-image"

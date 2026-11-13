@@ -890,6 +890,51 @@ export default css`
     object-fit: contain;
   }
 
+  /* Cover image that fills with the print progress */
+  .cover-fill {
+    container-type: size;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cover-fill-box {
+    position: relative;
+    flex: none;
+    aspect-ratio: var(--cover-fill-aspect, 1);
+    width: min(100cqw, calc(100cqh * var(--cover-fill-aspect, 1)));
+  }
+
+  .cover-fill-box img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .cover-fill-pending {
+    opacity: 0.3;
+    filter: grayscale(1);
+  }
+
+  .cover-fill-done {
+    clip-path: inset(var(--cover-fill-remaining, 0%) 0 0 0);
+  }
+
+  .cover-fill-level {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--cover-fill-remaining, 0%);
+    height: 2px;
+    transform: translateY(-50%);
+    border-radius: 1px;
+    background: var(--ha-bambulab-progress-color, var(--accent-color));
+  }
+
   .image_camera {
     display: block;
     width: 100%;
