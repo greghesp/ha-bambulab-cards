@@ -7,6 +7,8 @@ import { LitElement, nothing } from "lit";
 import { property, customElement } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { esc } from "./geo";
+import * as helpers from "../../utils/helpers";
+import { findAmsZones } from "../ams-card/zones";
 const A2P_MESSAGES = {
   dryingZone: {
     zh: "干燥区",
@@ -177,21 +179,24 @@ export class Ams3hGraphic extends LitElement {
   _resolveAms3h(r, dev) {
     const cfg = this._config,
       states = this._hass.states;
-    const ents = this._deviceEntities(cfg.ams);
+    const zones = findAmsZones(this._hass, cfg.ams);
+    const trayEntities = helpers.getBambuDeviceEntities(
+      this._hass,
+      cfg.ams,
+      Array.from({ length: 9 }, (_, i) => `tray_${i + 1}`)
+    );
     // 空槽/缺实体必须保留原槽号，不因数组 filter 发生错位。
     r.trays = Array.from(
       { length: 9 },
       (_, i) =>
         cfg.ams3h_trays?.[i] ||
-        ents.find((id) => {
-          const slot = states[id]?.attributes?.slot;
-          return /_tray_\d+$/.test(id) && Number(slot ?? id.match(/_tray_(\d+)$/)![1]) === i + 1;
-        }) ||
+        trayEntities[`tray_${i + 1}`]?.entity_id ||
         ""
     );
     r.zones = [1, 2].map((z) =>
-      ["temperature", "humidity", "remaining_drying_time"].reduce(
+      ["temperature", "humidity"].reduce(
         (zone, key) => {
+          const translatedZone = zones.find((candidate) => candidate.zone === z);
           const configured =
             cfg["zone_" + z + "_" + key + "_entity"] ||
             (z === 1 && key === "temperature"
@@ -199,43 +204,42 @@ export class Ams3hGraphic extends LitElement {
               : z === 1 && key === "humidity"
                 ? cfg.custom_humidity
                 : "");
-          const matches = ents.filter((id) => {
-            const a = states[id]?.attributes || {};
-            return (
-              new RegExp("_zone_" + z + "_" + key + "$").test(id) ||
-              (Number(a.zone) === z && (a.device_class === key || a.sensor_type === key))
-            );
-          });
-          zone[key] = configured || (matches.length === 1 ? matches[0] : "");
+          const translatedEntity = translatedZone?.[key as "temperature" | "humidity"];
+          zone[key] = configured || translatedEntity?.entity_id || "";
           return zone;
         },
         {} as Record<string, string>
       )
     );
+    const remainingEntity = helpers.getBambuDeviceEntities(this._hass, cfg.ams, [
+      "remaining_drying_time",
+    ]).remaining_drying_time;
+    r.remainingDryingTimeEntity = remainingEntity?.entity_id || "";
     const parent = dev?.via_device_id;
-    const activeCandidates = parent
-      ? this._deviceEntities(parent).filter((id) => /_active_tray$/.test(id))
+    const parentEntities = parent
+      ? helpers.getBambuDeviceEntities(this._hass, parent, ["active_tray", "print_status"])
+      : {};
+    r.activeEntity = cfg.active_tray_entity || parentEntities.active_tray?.entity_id || "";
+    r.printStatusEntity = parentEntities.print_status?.entity_id || "";
+    const toolDeviceIds = parent
+      ? [
+          parent,
+          ...Object.values<any>(this._hass.devices || {})
+            .filter((device) => device.via_device_id === parent)
+            .map((device) => device.id),
+        ]
       : [];
-    r.activeEntity =
-      cfg.active_tray_entity || (activeCandidates.length === 1 ? activeCandidates[0] : "");
-    const printCandidates = parent
-      ? this._deviceEntities(parent).filter((id) => /_print_status$/.test(id))
-      : [];
-    r.printStatusEntity = printCandidates.length === 1 ? printCandidates[0] : "";
-    const toolEntities = parent
-      ? Object.entries<any>(this._hass.entities || {})
-          .filter(([id, entity]) => {
-            const device = this._hass.devices?.[entity.device_id];
-            return (
-              !entity.disabled_by &&
-              (entity.device_id === parent || device?.via_device_id === parent) &&
-              /_printtool_\d+$/.test(id)
-            );
-          })
-          .map(([id]) => id)
-      : [];
+    const toolKeys = Array.from({ length: 9 }, (_, i) => `hotend_rack_printtool_${i + 1}`);
+    const toolMatches = new Map<number, string[]>();
+    for (const deviceId of toolDeviceIds) {
+      const entities = helpers.getBambuDeviceEntities(this._hass, deviceId, toolKeys, "tool");
+      toolKeys.forEach((key, i) => {
+        const entityId = entities[key]?.entity_id;
+        if (entityId) toolMatches.set(i + 1, [...(toolMatches.get(i + 1) || []), entityId]);
+      });
+    }
     r.tools = Array.from({ length: 9 }, (_, i) => {
-      const matches = toolEntities.filter((id) => Number(states[id]?.attributes?.tool) === i + 1);
+      const matches = toolMatches.get(i + 1) || [];
       return matches.length === 1 ? matches[0] : "";
     });
   }
@@ -271,10 +275,22 @@ export class Ams3hGraphic extends LitElement {
   }
   _ams3hZone(z, number, x) {
     const states = this._hass.states;
-    const value = (key, unit) =>
-      ams3hAvailable(states[z[key]])
-        ? states[z[key]].state + (states[z[key]].attributes?.unit_of_measurement || unit)
-        : "—";
+    const value = (key, unit) => {
+      const entity = states[z[key]];
+      if (!ams3hAvailable(entity)) return "—";
+      const sensorUnit = entity.attributes?.unit_of_measurement || unit;
+      if (key !== "remaining_drying_time") return entity.state + sensorUnit;
+      const amount = Number(entity.state);
+      if (!Number.isFinite(amount)) return entity.state + sensorUnit;
+      if (
+        amount >= 0 &&
+        amount < 1 &&
+        ["h", "hr", "hrs", "hour", "hours"].includes(String(sensorUnit).toLowerCase())
+      ) {
+        return `${Math.round(amount * 60)}m`;
+      }
+      return `${Number(amount.toFixed(1))}${sensorUnit}`;
+    };
     const isDryingZone = number === 2; // 右侧为 zone_1；左侧整舱 zone_2 不显示烘干信息。
     const heating = isDryingZone && this._ams3hDrying(z).active;
     const remaining = states[z.remaining_drying_time];
@@ -293,37 +309,45 @@ export class Ams3hGraphic extends LitElement {
       ") translate(" +
       -x +
       ' -86)">' +
-      (isDryingZone
+      (heating
         ? ams3hText(
             x + 8 / zoneScale,
             106,
             a2pText(this?._hass, "dryingZone"),
-            16,
+            20,
             'class="zone-title"'
           )
         : "") +
       '<g class="zone-humidity"' +
-      (isDryingZone ? ' data-center="' + (x + 109.08 / zoneScale / 2) + '"' : "") +
+      (isDryingZone
+        ? ' data-spool-edge="1099"'
+        : ' data-right="' + (x + 109.08 / zoneScale) + '"') +
       ">" +
       Ams3hGraphic.humidityIcon(
         states[z.humidity]?.state,
         'x="' + (x + 1) + '" y="130" data-x="' + (x + 1) + '"'
       ) +
-      ams3hText(x + 28, 150, value("humidity", "%"), 23) +
+      ams3hText(x + 28, 150, value("humidity", "%"), 30) +
       "</g>" +
       ams3hText(
-        x,
+        isDryingZone ? x : x + 109.08 / zoneScale,
         188,
         value("temperature", "°C"),
         23,
-        'class="zone-temperature"' + (heating ? ' style="fill:var(--a2p-drying-temperature)"' : "")
+        'class="zone-temperature"' +
+          (isDryingZone ? "" : ' text-anchor="end"') +
+          (heating ? ' style="fill:var(--a2p-drying-temperature)"' : "")
       ) +
-      (drying ? ams3hText(x, 222, drying, 17, 'class="zone-time"') : "") +
+      (drying ? ams3hText(x, 222, drying, 26, 'class="zone-time"') : "") +
       "</g>"
     );
   }
   _renderAms3h(r, slots, active) {
-    const drying = this._ams3hDrying(r.zones[0]);
+    const dryingZone = {
+      ...r.zones[0],
+      remaining_drying_time: r.remainingDryingTimeEntity,
+    };
+    const drying = this._ams3hDrying(dryingZone);
     return `<style>
       :host{display:block;height:100%;
         --a2p-panel:var(--ha-card-background,var(--card-background-color,#242424));
@@ -354,7 +378,7 @@ export class Ams3hGraphic extends LitElement {
       <defs><linearGradient id="spool-shade" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#000" stop-opacity=".16"/></linearGradient></defs>
       <rect x="152" y="64" width="1096" height="532" rx="18" fill="var(--a2p-panel)"/>
       <path d="M152 496H1248V578Q1248 596 1230 596H170Q152 596 152 578Z" fill="none"/>
-      ${this._config.show_info_bar !== false ? [r.zones[1], r.zones[0]].map((z, i) => this._ams3hZone(z, i + 1, i ? 1120 : 177)).join("") : ""}
+      ${this._config.show_info_bar !== false ? [r.zones[1], dryingZone].map((z, i) => this._ams3hZone(z, i + 1, i ? 1120 : 177)).join("") : ""}
       ${slots.map((s) => this._ams3hPath(s, s.number === active)).join("")}
       ${slots.map((s) => this._ams3hSlot(s, s.number === active, !!active, drying.active && drying.slots.has(s.number))).join("")}
       </svg><svg class="nozzle-sizes" viewBox="152 0 1096 44" xmlns="http://www.w3.org/2000/svg">
@@ -392,30 +416,48 @@ export class Ams3hGraphic extends LitElement {
       const icon = el.querySelector<SVGSVGElement>(".humidity-icon")!,
         text = el.querySelector<SVGTextElement>("text")!;
       const size = 19 / factor,
-        gap = 4 / factor,
+        gap = 2 / factor,
         x = Number(icon.dataset.x);
       icon.setAttribute("width", String(size));
       icon.setAttribute("height", String(size));
       icon.setAttribute("y", String(142 - size / 2));
-      text.setAttribute("x", String(x + size + gap));
+      const iconRight = x + (size * 18.2) / 24;
+      text.setAttribute("x", String(iconRight + gap));
       text.removeAttribute("textLength");
       text.removeAttribute("lengthAdjust");
-      text.setAttribute("font-size", "23");
-      const available = Math.max(1, 109.08 / 1.4 - size - gap);
+      text.setAttribute("font-size", "30");
+      const available = Math.max(1, 109.08 / 1.4 - 1 - (size * 18.2) / 24 - gap);
       if (text.getBBox().width > available) {
-        text.setAttribute("font-size", String((23 * available) / text.getBBox().width));
+        text.setAttribute("font-size", String((30 * available) / text.getBBox().width));
       }
+      const textBox = text.getBBox();
+      text.setAttribute(
+        "y",
+        String(Number(text.getAttribute("y")) + 142 - (textBox.y + textBox.height / 2))
+      );
       const box = el.getBBox();
-      const offset = el.dataset.center
-        ? Number(el.dataset.center) - (box.x + box.width / 2)
-        : -5 / factor;
+      const art = this.renderRoot.querySelector<SVGSVGElement>(".ams3h-art");
+      const artMatrix = art?.getScreenCTM();
+      const groupMatrix = el.getScreenCTM();
+      const offset = el.dataset.right
+        ? Number(el.dataset.right) - (box.x + box.width)
+        : el.dataset.spoolEdge && artMatrix && groupMatrix
+          ? (Number(el.dataset.spoolEdge) * artMatrix.a + artMatrix.e + 4 -
+              (factor * (x + (size * 5.8) / 24) + groupMatrix.e)) /
+            factor
+          : 0;
       el.setAttribute("transform", "translate(" + offset + " 0)");
+      if (!el.dataset.right) {
+        el.parentElement
+          ?.querySelectorAll<SVGTextElement>(".zone-temperature,.zone-time")
+          .forEach((value) => value.setAttribute("x", String(x + (size * 5.8) / 24 + offset)));
+      }
     });
     this.renderRoot
       .querySelectorAll<SVGGraphicsElement>(".zone-temperature,.zone-time")
       .forEach((el) => {
-        if (el.getBBox().width > 109.08 / 1.4) {
-          el.setAttribute("textLength", String(109.08 / 1.4));
+        if (el.getBBox().width > 109.08) {
+          el.setAttribute("textLength", "109.08");
           el.setAttribute("lengthAdjust", "spacingAndGlyphs");
         }
       });
