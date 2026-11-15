@@ -95,7 +95,7 @@ export class AmsGraphicCardEditor extends LitElement {
           },
           ...([] as any[]).concat(
             ...[1, 2].map((zone) =>
-              ["temperature", "humidity", "remaining_drying_time"].map((key) => ({
+              ["temperature", "humidity"].map((key) => ({
                 name: `zone_${zone}_${key}_entity`,
                 label: `${zone === 1 ? "Right drying zone" : "Left chamber"}: ${key}`,
                 selector: { entity: { domain: "sensor" } },

@@ -7,6 +7,8 @@ import { LitElement, nothing } from "lit";
 import { property, customElement } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { esc } from "./geo";
+import * as helpers from "../../utils/helpers";
+import { findAmsZones } from "../ams-card/zones";
 const A2P_MESSAGES = {
   dryingZone: {
     zh: "干燥区",
@@ -177,21 +179,24 @@ export class Ams3hGraphic extends LitElement {
   _resolveAms3h(r, dev) {
     const cfg = this._config,
       states = this._hass.states;
-    const ents = this._deviceEntities(cfg.ams);
+    const zones = findAmsZones(this._hass, cfg.ams);
+    const trayEntities = helpers.getBambuDeviceEntities(
+      this._hass,
+      cfg.ams,
+      Array.from({ length: 9 }, (_, i) => `tray_${i + 1}`)
+    );
     // 空槽/缺实体必须保留原槽号，不因数组 filter 发生错位。
     r.trays = Array.from(
       { length: 9 },
       (_, i) =>
         cfg.ams3h_trays?.[i] ||
-        ents.find((id) => {
-          const slot = states[id]?.attributes?.slot;
-          return /_tray_\d+$/.test(id) && Number(slot ?? id.match(/_tray_(\d+)$/)![1]) === i + 1;
-        }) ||
+        trayEntities[`tray_${i + 1}`]?.entity_id ||
         ""
     );
     r.zones = [1, 2].map((z) =>
       ["temperature", "humidity"].reduce(
         (zone, key) => {
+          const translatedZone = zones.find((candidate) => candidate.zone === z);
           const configured =
             cfg["zone_" + z + "_" + key + "_entity"] ||
             (z === 1 && key === "temperature"
@@ -199,55 +204,42 @@ export class Ams3hGraphic extends LitElement {
               : z === 1 && key === "humidity"
                 ? cfg.custom_humidity
                 : "");
-          const matches = ents.filter((id) => {
-            const a = states[id]?.attributes || {};
-            return (
-              new RegExp("_zone_" + z + "_" + key + "$").test(id) ||
-              (Number(a.zone) === z && (a.device_class === key || a.sensor_type === key))
-            );
-          });
-          zone[key] = configured || (matches.length === 1 ? matches[0] : "");
+          const translatedEntity = translatedZone?.[key as "temperature" | "humidity"];
+          zone[key] = configured || translatedEntity?.entity_id || "";
           return zone;
         },
         {} as Record<string, string>
       )
     );
-    const remainingMatches = ents.filter((id) => {
-      const a = states[id]?.attributes || {};
-      return (
-        /[._]remaining_drying_time$/.test(id) ||
-        (Number(a.zone) === 2 &&
-          (a.device_class === "remaining_drying_time" ||
-            a.sensor_type === "remaining_drying_time"))
-      );
-    });
-    r.zones[1].remaining_drying_time =
-      cfg.zone_2_remaining_drying_time_entity ||
-      (remainingMatches.length === 1 ? remainingMatches[0] : "");
+    const remainingEntity = helpers.getBambuDeviceEntities(this._hass, cfg.ams, [
+      "remaining_drying_time",
+    ]).remaining_drying_time;
+    r.remainingDryingTimeEntity = remainingEntity?.entity_id || "";
     const parent = dev?.via_device_id;
-    const activeCandidates = parent
-      ? this._deviceEntities(parent).filter((id) => /_active_tray$/.test(id))
+    const parentEntities = parent
+      ? helpers.getBambuDeviceEntities(this._hass, parent, ["active_tray", "print_status"])
+      : {};
+    r.activeEntity = cfg.active_tray_entity || parentEntities.active_tray?.entity_id || "";
+    r.printStatusEntity = parentEntities.print_status?.entity_id || "";
+    const toolDeviceIds = parent
+      ? [
+          parent,
+          ...Object.values<any>(this._hass.devices || {})
+            .filter((device) => device.via_device_id === parent)
+            .map((device) => device.id),
+        ]
       : [];
-    r.activeEntity =
-      cfg.active_tray_entity || (activeCandidates.length === 1 ? activeCandidates[0] : "");
-    const printCandidates = parent
-      ? this._deviceEntities(parent).filter((id) => /_print_status$/.test(id))
-      : [];
-    r.printStatusEntity = printCandidates.length === 1 ? printCandidates[0] : "";
-    const toolEntities = parent
-      ? Object.entries<any>(this._hass.entities || {})
-          .filter(([id, entity]) => {
-            const device = this._hass.devices?.[entity.device_id];
-            return (
-              !entity.disabled_by &&
-              (entity.device_id === parent || device?.via_device_id === parent) &&
-              /_printtool_\d+$/.test(id)
-            );
-          })
-          .map(([id]) => id)
-      : [];
+    const toolKeys = Array.from({ length: 9 }, (_, i) => `hotend_rack_printtool_${i + 1}`);
+    const toolMatches = new Map<number, string[]>();
+    for (const deviceId of toolDeviceIds) {
+      const entities = helpers.getBambuDeviceEntities(this._hass, deviceId, toolKeys, "tool");
+      toolKeys.forEach((key, i) => {
+        const entityId = entities[key]?.entity_id;
+        if (entityId) toolMatches.set(i + 1, [...(toolMatches.get(i + 1) || []), entityId]);
+      });
+    }
     r.tools = Array.from({ length: 9 }, (_, i) => {
-      const matches = toolEntities.filter((id) => Number(states[id]?.attributes?.tool) === i + 1);
+      const matches = toolMatches.get(i + 1) || [];
       return matches.length === 1 ? matches[0] : "";
     });
   }
@@ -353,7 +345,7 @@ export class Ams3hGraphic extends LitElement {
   _renderAms3h(r, slots, active) {
     const dryingZone = {
       ...r.zones[0],
-      remaining_drying_time: r.zones[1].remaining_drying_time,
+      remaining_drying_time: r.remainingDryingTimeEntity,
     };
     const drying = this._ams3hDrying(dryingZone);
     return `<style>

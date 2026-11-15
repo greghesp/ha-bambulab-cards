@@ -68,7 +68,8 @@ export async function asyncGetEntity(hass, entity_id) {
 export function getBambuDeviceEntities(
   hass,
   device_id,
-  entities: string[]
+  entities: string[],
+  indexedAttribute: string = "slot"
 ): { [key: string]: Entity } {
   const result: { [key: string]: Entity } = {};
   // Loop through all hass entities, and find those that belong to the selected device
@@ -88,13 +89,13 @@ export function getBambuDeviceEntities(
             if (key == value.translation_key) {
               result[key] = value;
             } else {
-              // Support new translation keys with slot state attribute
+              // Support numbered requests via a shared translation key and state attribute
               // e.g. "tray_1" matches translation_key "tray" with slot=1
-              // e.g. "hotend_rack_hotend_2" matches translation_key "hotend_rack_hotend" with slot=2
-              const slotMatch = key.match(/^(.+)_(\d+)$/)
-              if (slotMatch && value.translation_key === slotMatch[1]) {
-                const slot = hass.states[value.entity_id]?.attributes?.slot
-                if (slot != null && String(slot) === slotMatch[2]) {
+              // e.g. "hotend_rack_printtool_2" matches translation_key "hotend_rack_printtool" with tool=2
+              const numberedKey = key.match(/^(.+)_(\d+)$/)
+              if (numberedKey && value.translation_key === numberedKey[1]) {
+                const index = hass.states[value.entity_id]?.attributes?.[indexedAttribute]
+                if (index != null && String(index) === numberedKey[2]) {
                   result[key] = value
                 }
               }
