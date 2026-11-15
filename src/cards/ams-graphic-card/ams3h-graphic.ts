@@ -190,7 +190,7 @@ export class Ams3hGraphic extends LitElement {
         ""
     );
     r.zones = [1, 2].map((z) =>
-      ["temperature", "humidity", "remaining_drying_time"].reduce(
+      ["temperature", "humidity"].reduce(
         (zone, key) => {
           const configured =
             cfg["zone_" + z + "_" + key + "_entity"] ||
@@ -212,6 +212,18 @@ export class Ams3hGraphic extends LitElement {
         {} as Record<string, string>
       )
     );
+    const remainingMatches = ents.filter((id) => {
+      const a = states[id]?.attributes || {};
+      return (
+        /[._]remaining_drying_time$/.test(id) ||
+        (Number(a.zone) === 2 &&
+          (a.device_class === "remaining_drying_time" ||
+            a.sensor_type === "remaining_drying_time"))
+      );
+    });
+    r.zones[1].remaining_drying_time =
+      cfg.zone_2_remaining_drying_time_entity ||
+      (remainingMatches.length === 1 ? remainingMatches[0] : "");
     const parent = dev?.via_device_id;
     const activeCandidates = parent
       ? this._deviceEntities(parent).filter((id) => /_active_tray$/.test(id))
@@ -271,10 +283,22 @@ export class Ams3hGraphic extends LitElement {
   }
   _ams3hZone(z, number, x) {
     const states = this._hass.states;
-    const value = (key, unit) =>
-      ams3hAvailable(states[z[key]])
-        ? states[z[key]].state + (states[z[key]].attributes?.unit_of_measurement || unit)
-        : "—";
+    const value = (key, unit) => {
+      const entity = states[z[key]];
+      if (!ams3hAvailable(entity)) return "—";
+      const sensorUnit = entity.attributes?.unit_of_measurement || unit;
+      if (key !== "remaining_drying_time") return entity.state + sensorUnit;
+      const amount = Number(entity.state);
+      if (!Number.isFinite(amount)) return entity.state + sensorUnit;
+      if (
+        amount >= 0 &&
+        amount < 1 &&
+        ["h", "hr", "hrs", "hour", "hours"].includes(String(sensorUnit).toLowerCase())
+      ) {
+        return `${Math.round(amount * 60)}m`;
+      }
+      return `${Number(amount.toFixed(1))}${sensorUnit}`;
+    };
     const isDryingZone = number === 2; // 右侧为 zone_1；左侧整舱 zone_2 不显示烘干信息。
     const heating = isDryingZone && this._ams3hDrying(z).active;
     const remaining = states[z.remaining_drying_time];
@@ -293,37 +317,45 @@ export class Ams3hGraphic extends LitElement {
       ") translate(" +
       -x +
       ' -86)">' +
-      (isDryingZone
+      (heating
         ? ams3hText(
             x + 8 / zoneScale,
             106,
             a2pText(this?._hass, "dryingZone"),
-            16,
+            20,
             'class="zone-title"'
           )
         : "") +
       '<g class="zone-humidity"' +
-      (isDryingZone ? ' data-center="' + (x + 109.08 / zoneScale / 2) + '"' : "") +
+      (isDryingZone
+        ? ' data-spool-edge="1099"'
+        : ' data-right="' + (x + 109.08 / zoneScale) + '"') +
       ">" +
       Ams3hGraphic.humidityIcon(
         states[z.humidity]?.state,
         'x="' + (x + 1) + '" y="130" data-x="' + (x + 1) + '"'
       ) +
-      ams3hText(x + 28, 150, value("humidity", "%"), 23) +
+      ams3hText(x + 28, 150, value("humidity", "%"), 30) +
       "</g>" +
       ams3hText(
-        x,
+        isDryingZone ? x : x + 109.08 / zoneScale,
         188,
         value("temperature", "°C"),
         23,
-        'class="zone-temperature"' + (heating ? ' style="fill:var(--a2p-drying-temperature)"' : "")
+        'class="zone-temperature"' +
+          (isDryingZone ? "" : ' text-anchor="end"') +
+          (heating ? ' style="fill:var(--a2p-drying-temperature)"' : "")
       ) +
-      (drying ? ams3hText(x, 222, drying, 17, 'class="zone-time"') : "") +
+      (drying ? ams3hText(x, 222, drying, 26, 'class="zone-time"') : "") +
       "</g>"
     );
   }
   _renderAms3h(r, slots, active) {
-    const drying = this._ams3hDrying(r.zones[0]);
+    const dryingZone = {
+      ...r.zones[0],
+      remaining_drying_time: r.zones[1].remaining_drying_time,
+    };
+    const drying = this._ams3hDrying(dryingZone);
     return `<style>
       :host{display:block;height:100%;
         --a2p-panel:var(--ha-card-background,var(--card-background-color,#242424));
@@ -354,7 +386,7 @@ export class Ams3hGraphic extends LitElement {
       <defs><linearGradient id="spool-shade" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#000" stop-opacity=".16"/></linearGradient></defs>
       <rect x="152" y="64" width="1096" height="532" rx="18" fill="var(--a2p-panel)"/>
       <path d="M152 496H1248V578Q1248 596 1230 596H170Q152 596 152 578Z" fill="none"/>
-      ${this._config.show_info_bar !== false ? [r.zones[1], r.zones[0]].map((z, i) => this._ams3hZone(z, i + 1, i ? 1120 : 177)).join("") : ""}
+      ${this._config.show_info_bar !== false ? [r.zones[1], dryingZone].map((z, i) => this._ams3hZone(z, i + 1, i ? 1120 : 177)).join("") : ""}
       ${slots.map((s) => this._ams3hPath(s, s.number === active)).join("")}
       ${slots.map((s) => this._ams3hSlot(s, s.number === active, !!active, drying.active && drying.slots.has(s.number))).join("")}
       </svg><svg class="nozzle-sizes" viewBox="152 0 1096 44" xmlns="http://www.w3.org/2000/svg">
@@ -392,30 +424,48 @@ export class Ams3hGraphic extends LitElement {
       const icon = el.querySelector<SVGSVGElement>(".humidity-icon")!,
         text = el.querySelector<SVGTextElement>("text")!;
       const size = 19 / factor,
-        gap = 4 / factor,
+        gap = 2 / factor,
         x = Number(icon.dataset.x);
       icon.setAttribute("width", String(size));
       icon.setAttribute("height", String(size));
       icon.setAttribute("y", String(142 - size / 2));
-      text.setAttribute("x", String(x + size + gap));
+      const iconRight = x + (size * 18.2) / 24;
+      text.setAttribute("x", String(iconRight + gap));
       text.removeAttribute("textLength");
       text.removeAttribute("lengthAdjust");
-      text.setAttribute("font-size", "23");
-      const available = Math.max(1, 109.08 / 1.4 - size - gap);
+      text.setAttribute("font-size", "30");
+      const available = Math.max(1, 109.08 / 1.4 - 1 - (size * 18.2) / 24 - gap);
       if (text.getBBox().width > available) {
-        text.setAttribute("font-size", String((23 * available) / text.getBBox().width));
+        text.setAttribute("font-size", String((30 * available) / text.getBBox().width));
       }
+      const textBox = text.getBBox();
+      text.setAttribute(
+        "y",
+        String(Number(text.getAttribute("y")) + 142 - (textBox.y + textBox.height / 2))
+      );
       const box = el.getBBox();
-      const offset = el.dataset.center
-        ? Number(el.dataset.center) - (box.x + box.width / 2)
-        : -5 / factor;
+      const art = this.renderRoot.querySelector<SVGSVGElement>(".ams3h-art");
+      const artMatrix = art?.getScreenCTM();
+      const groupMatrix = el.getScreenCTM();
+      const offset = el.dataset.right
+        ? Number(el.dataset.right) - (box.x + box.width)
+        : el.dataset.spoolEdge && artMatrix && groupMatrix
+          ? (Number(el.dataset.spoolEdge) * artMatrix.a + artMatrix.e + 4 -
+              (factor * (x + (size * 5.8) / 24) + groupMatrix.e)) /
+            factor
+          : 0;
       el.setAttribute("transform", "translate(" + offset + " 0)");
+      if (!el.dataset.right) {
+        el.parentElement
+          ?.querySelectorAll<SVGTextElement>(".zone-temperature,.zone-time")
+          .forEach((value) => value.setAttribute("x", String(x + (size * 5.8) / 24 + offset)));
+      }
     });
     this.renderRoot
       .querySelectorAll<SVGGraphicsElement>(".zone-temperature,.zone-time")
       .forEach((el) => {
-        if (el.getBBox().width > 109.08 / 1.4) {
-          el.setAttribute("textLength", String(109.08 / 1.4));
+        if (el.getBBox().width > 109.08) {
+          el.setAttribute("textLength", "109.08");
           el.setAttribute("lengthAdjust", "spacingAndGlyphs");
         }
       });
