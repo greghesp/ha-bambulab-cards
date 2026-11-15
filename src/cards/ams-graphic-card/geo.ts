@@ -64,7 +64,17 @@ const VB_DEFAULT: [number, number, number, number] = [0, 0, 700, 360];
    in the base image and the silkscreen layer */
 const AMS_LIKE: Pick<
   VariantGeo,
-  "centers" | "spW" | "spH" | "spY" | "flangeFrac" | "bandCY" | "matCap" | "labelY" | "fade" | "vb" | "mech"
+  | "centers"
+  | "spW"
+  | "spH"
+  | "spY"
+  | "flangeFrac"
+  | "bandCY"
+  | "matCap"
+  | "labelY"
+  | "fade"
+  | "vb"
+  | "mech"
 > = {
   centers: [155.75, 284.5, 414.25, 542.75],
   spW: 101,
@@ -157,6 +167,7 @@ export const FADE_STOPS: [number, number][] = [
 /* Pick the geometry table from the device model string */
 export function variantFromModel(model: string): string {
   const m = String(model || "").toLowerCase();
+  if (/\bams[\s_-]*3h\b/i.test(m)) return "ams3h";
   if (m.includes("lite")) return "lite";
   if (m.includes("ht")) return "ht";
   if (m.includes("2")) return "ams2pro";
@@ -222,4 +233,18 @@ export function chipWidth(text: any, size: number, extra?: number, perChar?: num
     w + (extra == null ? 18 : extra),
     t.length * size * (perChar == null ? 0.72 : perChar)
   );
+}
+
+/* Some device registries expose the model only on their owned entities. */
+export function amsDeviceModel(device: any, hass: any): string {
+  if (!device) return "";
+  if (/ams/i.test(device.model || "")) return device.model;
+  for (const [id, entity] of Object.entries<any>(hass?.entities || {})) {
+    if (entity.device_id !== device.id) continue;
+    const a = hass.states?.[id]?.attributes || {};
+    for (const model of [a.device_model, a.model, a.device_type]) {
+      if (/\bams[\s_-]*3h\b/i.test(model || "")) return model;
+    }
+  }
+  return device.model || "";
 }
