@@ -61,8 +61,15 @@ export class PrintControlCardEditor extends LitElement {
       },
     ];
 
+    const coverProgress = {
+      name: "cover_progress",
+      label: "Fill cover image with print progress",
+      selector: { boolean: true },
+    };
+
     // ✅ Conditionally add checkbox
     if (this._config?.style === "simple") {
+      schema.push(coverProgress);
       schema.push({
         name: "custom_camera",
         label: "Custom camera",
@@ -84,6 +91,7 @@ export class PrintControlCardEditor extends LitElement {
       });
 
       if (this._config?.show_cover) {
+        schema.push(coverProgress);
         schema.push({
           name: "cover_position",
           label: "Cover position",

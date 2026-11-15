@@ -72,6 +72,8 @@ custom_humidity: sensor.my_chamber_humidity
 custom_light: light.my_printer_light
 custom_power: switch.my_printer_plug
 custom_camera: camera.my_printer_camera
+# Simple and minimal styles: fill the cover image from the bottom up as layers print
+cover_progress: false
 # Minimal style only
 show_printer_name: true
 show_cover: true
