@@ -311,7 +311,30 @@ export class PrintStatusCard extends EntityProvider {
       if (this._model == "A1 MINI") {
         this._model = "A1MINI";
       }
-      this._entityUX = this.EntityUX[this._model];
+    }
+    this._applyP1SUpgradeKit();
+    this._entityUX = this.EntityUX[this._model];
+  }
+
+  // A P1P fitted with the P1S upgrade kit is still reported as a P1P, but looks
+  // and behaves like a P1S, so show the P1S image and layout. The flag can arrive
+  // after the card first renders, so this is re-checked on every hass update.
+  private _applyP1SUpgradeKit() {
+    if (this._model != "P1P" && this._model != "P1S") {
+      return;
+    }
+    const deviceModel = this._hass.devices[this._device_id!]?.model?.toUpperCase();
+    if (deviceModel != "P1P") {
+      return;
+    }
+    const upgradeEntity = this._deviceEntities?.["p1s_upgrade_installed"];
+    const isUpgraded = upgradeEntity
+      ? this._hass.states[upgradeEntity.entity_id]?.state == "on"
+      : false;
+    const model = isUpgraded ? "P1S" : "P1P";
+    if (model != this._model) {
+      this._model = model;
+      this._entityUX = this.EntityUX[model];
     }
   }
 
@@ -347,6 +370,8 @@ export class PrintStatusCard extends EntityProvider {
     super.hass = hass;
     if (firstTime) {
       this._initializeModelAndUX()
+    } else {
+      this._applyP1SUpgradeKit();
     }
   }
 
