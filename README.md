@@ -42,6 +42,7 @@ For questions and help, join us on [Discord](https://discord.gg/rsUHAW3DKz).
 | [AMS Graphic](#ams-graphic-card) | `custom:ha-bambulab-ams-graphic-card` | The AMS drawn with fill levels and labels |
 | [Spool](#spool-card) | `custom:ha-bambulab-spool-card` | A single spool: the external spool or one AMS slot |
 | [Print Control](#print-control-card) | `custom:ha-bambulab-print_control-card` | Speed, pause, resume, stop and skip objects |
+| [Skip Objects](#skip-objects-card) | `custom:ha-bambulab-skip_objects-card` | A single button that opens the skip objects dialog |
 
 Every option is in the card's visual editor. The YAML below is for reference.
 
@@ -165,6 +166,23 @@ plate mid-print.
 ```yaml
 type: custom:ha-bambulab-print_control-card
 printer: <printer device id>
+```
+
+### Skip Objects card
+
+Just the **skip objects** button from the Print Control card, as its own
+small card. Use it to put skip objects into your own dashboard layout. It
+fits in a single grid cell, and you can restyle it with card-mod. Tap it to
+open the same skip objects dialog. The button is greyed out when skipping
+isn't possible: no print running, fewer than two objects on the plate, or
+MQTT encryption on without LAN developer mode.
+
+```yaml
+type: custom:ha-bambulab-skip_objects-card
+printer: <printer device id>
+name: Skip Objects          # optional
+icon: mdi:debug-step-over   # optional
+show_name: true             # optional, false for an icon-only button
 ```
 
 ---
