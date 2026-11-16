@@ -13,6 +13,12 @@ import {
 } from "../../../utils/helpers";
 import styles from "./ams-popup.styles";
 
+// Upper bound on how long to wait for the printer to report the tray as (in)active.
+// Loading can involve heating, cutting and purging, so this is deliberately generous.
+const LOAD_TIMEOUT_MS = 5 * 60 * 1000;
+// How long the success/error icon is shown before the buttons return to idle.
+const RESULT_DISPLAY_MS = 2000;
+
 interface FilamentInfo {
   name: string;
   filament_vendor: string;
@@ -200,38 +206,80 @@ export class AMSPopup extends LitElement {
   @property({ type: String })
   private _loadState: "idle" | "loading" | "unloading" | "success" | "error" = "idle";
 
+  // The tray `active` value we're waiting for after a load/unload request, or null if none.
+  private _pendingActiveTarget: boolean | null = null;
+  private _loadTimeout?: ReturnType<typeof setTimeout>;
+  private _resultTimeout?: ReturnType<typeof setTimeout>;
+
   async #handleRefresh() {
     await refreshRFID(this.hass, this.entity_id);
   }
 
   async #handleLoad() {
-    this._loadState = "loading";
-    try {
-      await loadFilament(this.hass, this.entity_id);
-      setTimeout(() => {
-        this._loadState = "idle";
-      }, 10000);
-    } catch (error) {
-      this._loadState = "error";
-      setTimeout(() => {
-        this._loadState = "idle";
-      }, 2000);
-    }
+    await this.#runLoadAction("loading", true, () => loadFilament(this.hass, this.entity_id));
   }
 
   async #handleUnload() {
-    this._loadState = "unloading";
+    await this.#runLoadAction("unloading", false, () => unloadFilament(this.hass, this.entity_id));
+  }
+
+  // Keeps the buttons disabled until the printer reports the tray reached the expected
+  // active state, rather than re-enabling them after a fixed delay that can be shorter
+  // than the actual load/unload.
+  async #runLoadAction(
+    pendingState: "loading" | "unloading",
+    targetActive: boolean,
+    action: () => Promise<unknown>
+  ) {
+    this.#clearLoadTimers();
+    this._loadState = pendingState;
+    this._pendingActiveTarget = null;
     try {
-      await unloadFilament(this.hass, this.entity_id);
-      setTimeout(() => {
-        this._loadState = "idle";
-      }, 10000);
+      await action();
     } catch (error) {
-      this._loadState = "error";
-      setTimeout(() => {
-        this._loadState = "idle";
-      }, 2000);
+      this.#finishLoadAction("error");
+      return;
     }
+    if (this.#isTrayActive() === targetActive) {
+      this.#finishLoadAction("success");
+      return;
+    }
+    this._pendingActiveTarget = targetActive;
+    this._loadTimeout = setTimeout(() => this.#finishLoadAction("error"), LOAD_TIMEOUT_MS);
+  }
+
+  #finishLoadAction(result: "success" | "error") {
+    this.#clearLoadTimers();
+    this._pendingActiveTarget = null;
+    this._loadState = result;
+    this._resultTimeout = setTimeout(() => {
+      this._resultTimeout = undefined;
+      this._loadState = "idle";
+    }, RESULT_DISPLAY_MS);
+  }
+
+  #clearLoadTimers() {
+    clearTimeout(this._loadTimeout);
+    clearTimeout(this._resultTimeout);
+    this._loadTimeout = undefined;
+    this._resultTimeout = undefined;
+  }
+
+  #isTrayActive(): boolean {
+    return Boolean(this.hass?.states[this.entity_id]?.attributes?.active);
+  }
+
+  willUpdate() {
+    if (this._pendingActiveTarget !== null && this.#isTrayActive() === this._pendingActiveTarget) {
+      this.#finishLoadAction("success");
+    }
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.#clearLoadTimers();
+    this._pendingActiveTarget = null;
+    this._loadState = "idle";
   }
 
   async #closePopup() {
