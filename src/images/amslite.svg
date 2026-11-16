@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 360" width="700" height="360">
+  <!-- Stylised AMS Lite: four open spools on a shared stand, fed from a hub on a central column.
+       Spool centres (x = 150, 283.3, 416.7, 550) line up with the .slot-N-lite overlay positions. -->
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a4a4a"/>
+      <stop offset="1" stop-color="#1f1f1f"/>
+    </linearGradient>
+    <radialGradient id="filament" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0.45" stop-color="#5c5c5c"/>
+      <stop offset="0.8" stop-color="#7a7a7a"/>
+      <stop offset="1" stop-color="#666"/>
+    </radialGradient>
+    <g id="spool">
+      <!-- rollers the spool rests on -->
+      <circle cx="-38" cy="66" r="9" fill="#2a2a2a" stroke="#555" stroke-width="2"/>
+      <circle cx="38" cy="66" r="9" fill="#2a2a2a" stroke="#555" stroke-width="2"/>
+      <!-- flange -->
+      <circle r="62" fill="#2e2e2e" fill-opacity="0.85" stroke="#6a6a6a" stroke-width="3"/>
+      <!-- wound filament -->
+      <circle r="55" fill="url(#filament)"/>
+      <circle r="49" fill="none" stroke="#505050" stroke-width="1"/>
+      <circle r="42" fill="none" stroke="#505050" stroke-width="1"/>
+      <circle r="35" fill="none" stroke="#505050" stroke-width="1"/>
+      <!-- hub -->
+      <circle r="26" fill="#252525" stroke="#6a6a6a" stroke-width="2"/>
+      <circle cx="0" cy="-15" r="4" fill="#111"/>
+      <circle cx="13" cy="7.5" r="4" fill="#111"/>
+      <circle cx="-13" cy="7.5" r="4" fill="#111"/>
+      <circle r="8" fill="#111" stroke="#777" stroke-width="2"/>
+    </g>
+  </defs>
+
+  <!-- PTFE tubes from the hub to each spool -->
+  <g fill="none" stroke="#d9d9d9" stroke-opacity="0.55" stroke-width="5" stroke-linecap="round">
+    <path d="M330 52 C 250 52, 160 70, 150 112"/>
+    <path d="M340 56 C 310 70, 288 85, 283 112"/>
+    <path d="M360 56 C 390 70, 412 85, 417 112"/>
+    <path d="M370 52 C 450 52, 540 70, 550 112"/>
+  </g>
+
+  <!-- central column and feeder hub -->
+  <rect x="338" y="56" width="24" height="248" rx="6" fill="url(#body)" stroke="#555" stroke-width="2"/>
+  <rect x="300" y="22" width="100" height="40" rx="14" fill="url(#body)" stroke="#666" stroke-width="2"/>
+  <rect x="318" y="36" width="64" height="8" rx="4" fill="#1a1a1a"/>
+
+  <!-- stand rail carrying the spool holders -->
+  <rect x="80" y="262" width="540" height="18" rx="9" fill="url(#body)" stroke="#555" stroke-width="2"/>
+  <g fill="#333" stroke="#555" stroke-width="2">
+    <rect x="102" y="246" width="96" height="22" rx="6"/>
+    <rect x="235.3" y="246" width="96" height="22" rx="6"/>
+    <rect x="368.7" y="246" width="96" height="22" rx="6"/>
+    <rect x="502" y="246" width="96" height="22" rx="6"/>
+  </g>
+
+  <!-- spools -->
+  <use href="#spool" x="150" y="174"/>
+  <use href="#spool" x="283.3" y="174"/>
+  <use href="#spool" x="416.7" y="174"/>
+  <use href="#spool" x="550" y="174"/>
+
+  <!-- round base -->
+  <ellipse cx="350" cy="318" rx="300" ry="26" fill="url(#body)" stroke="#555" stroke-width="2"/>
+  <ellipse cx="350" cy="310" rx="280" ry="14" fill="#3c3c3c"/>
+  <rect x="330" y="280" width="40" height="30" fill="url(#body)"/>
+</svg>
