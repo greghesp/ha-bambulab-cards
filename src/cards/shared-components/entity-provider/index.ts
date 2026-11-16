@@ -33,6 +33,7 @@ const ENTITIES: string[] = [
   "pause",
   "pick_image", // Node red does not have
   "power",
+  "p1s_upgrade_installed",
   "print_progress",
   "print_status",
   "printable_objects",
