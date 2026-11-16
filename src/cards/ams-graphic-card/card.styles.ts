@@ -90,4 +90,14 @@ export default css`
   .slotlabel:hover rect {
     fill-opacity: 0.72;
   }
+
+  /* Active spool: same primary-colour accent the classic AMS card uses */
+  .active-frame {
+    stroke: var(--primary-color, #03a9f4);
+  }
+
+  .slotlabel.active rect {
+    stroke: var(--primary-color, #03a9f4);
+    stroke-width: 2;
+  }
 `;
