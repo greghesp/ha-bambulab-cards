@@ -186,8 +186,26 @@ export class InfoBar extends LitElement {
                 </span>
               </div>`
             : nothing}
+          ${!isAmsHtModel ? this.#renderDryingTime() : nothing}
         </div>
       </div>
     `;
+  }
+
+  /* The time left while the AMS dries; the AMS HT shows it on its spool instead */
+  #renderDryingTime() {
+    const entity = this._entities?.dryingTime;
+    if (!entity || !(Number(this.hass.states[entity.entity_id]?.state) > 0)) return nothing;
+    const value = helpers.getFormattedTime(this.hass, entity.entity_id);
+    return html`<div
+      class="info"
+      title="Drying time left: ${value}"
+      @click="${() => helpers.showEntityMoreInfo(this, entity)}"
+    >
+      ${this._showIcons
+        ? html`<span><ha-icon icon="mdi:heat-wave" /></span>`
+        : nothing}
+      <span>${value}</span>
+    </div>`;
   }
 }
