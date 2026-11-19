@@ -95,14 +95,16 @@ export class VectorAmsCard extends LitElement {
     `;
   }
 
-  /* Which nozzle this AMS feeds, on printers with two. The info bar shows it when it's on. */
+  /* Which nozzle this AMS feeds, on printers with two. The info bar shows it when it's on;
+     otherwise it gets a row of its own above the spools, which shrink to make room. */
   #renderNozzleBadge() {
     if (!this._entities?.nozzle || this._infoBar?.active) return nothing;
-    return html`<bambu-lab-nozzle-badge
-      class="nozzle-badge"
-      .hass=${this.hass}
-      .entityId=${this._entities.nozzle}
-    ></bambu-lab-nozzle-badge>`;
+    return html`<div class="nozzle-row">
+      <bambu-lab-nozzle-badge
+        .hass=${this.hass}
+        .entityId=${this._entities.nozzle}
+      ></bambu-lab-nozzle-badge>
+    </div>`;
   }
 
   render() {
@@ -111,9 +113,8 @@ export class VectorAmsCard extends LitElement {
         <ha-card class="ha-bambulab-vector-ams-card">
           <div class="v-wrapper">
             <info-bar></info-bar>
-            <div class="v-ams-container">
-              ${this.#renderNozzleBadge()}${this.#renderAms3h(this._entities.ams3hLayout)}
-            </div>
+            ${this.#renderNozzleBadge()}
+            <div class="v-ams-container">${this.#renderAms3h(this._entities.ams3hLayout)}</div>
           </div>
         </ha-card>
       `;
@@ -130,8 +131,8 @@ export class VectorAmsCard extends LitElement {
       <ha-card class="ha-bambulab-vector-ams-card">
         <div class="v-wrapper">
           <info-bar></info-bar>
+          ${this.#renderNozzleBadge()}
           <div class="v-ams-container">
-            ${this.#renderNozzleBadge()}
             <div class="v-spools-wrapper ${twoRows ? "two-rows" : ""}">
               ${this._entities?.spools?.map(
                 (spool: { entity_id: string }) => html`
