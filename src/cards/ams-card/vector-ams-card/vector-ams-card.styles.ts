@@ -152,6 +152,7 @@ export default css`
   }
 
   .v-ams-container {
+    position: relative;
     display: flex;
     flex-wrap: nowrap;
     justify-content: center;
@@ -168,5 +169,13 @@ export default css`
     width: 100%;
     gap: 5px;
     box-sizing: border-box;
+  }
+
+  /* Which nozzle this AMS feeds (printers with two nozzles), over the top right corner */
+  .nozzle-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 2;
   }
 `;

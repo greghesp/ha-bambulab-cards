@@ -156,4 +156,12 @@ export default css`
     color: white;
     font-size: smaller;
   }
+
+  /* Which nozzle this AMS feeds (printers with two nozzles), over the top right corner */
+  .nozzle-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 2;
+  }
 `;

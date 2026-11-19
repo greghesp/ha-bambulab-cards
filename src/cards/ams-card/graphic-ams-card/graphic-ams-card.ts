@@ -7,7 +7,8 @@ import AMS2Image from "../../../images/ams2.webp";
 import AMSHTImage from "../../../images/amsht.webp";
 import "../components/info-bar/info-bar";
 import "../../shared-components/ams-popup/ams-popup";
-import { entitiesContext, hassContext } from "../../../utils/context";
+import "../../shared-components/nozzle-badge/nozzle-badge";
+import { entitiesContext, hassContext, showInfoBarContext } from "../../../utils/context";
 import { consume } from "@lit/context";
 
 @customElement("graphic-ams-card")
@@ -16,6 +17,9 @@ export class GraphicAmsCard extends LitElement {
   private hass; 
   @consume({ context: entitiesContext, subscribe: true })
   private _entities;
+
+  @consume({ context: showInfoBarContext, subscribe: true })
+  private _infoBar;
 
   static styles = styles;
   
@@ -35,6 +39,13 @@ export class GraphicAmsCard extends LitElement {
         <info-bar></info-bar>
         <div class="ams-container">
           <img src=${image} alt="" />
+          ${this._entities?.nozzle && !this._infoBar?.active
+            ? html`<bambu-lab-nozzle-badge
+                class="nozzle-badge"
+                .hass=${this.hass}
+                .entityId=${this._entities.nozzle}
+              ></bambu-lab-nozzle-badge>`
+            : nothing}
             ${this._entities?.spools.map(
               (spool, i) => html`
                 <ams-popup .entity_id=${spool.entity_id} .controlBlocked=${true}>
