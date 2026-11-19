@@ -10,6 +10,10 @@ import { AMS_GRAPHIC_CARD_NAME } from "./const";
 import { Slot, VARIANTS, variantFromModel, amsDeviceModel } from "./geo";
 import { renderSvg } from "./render";
 import { findTrayEntities } from "./trays";
+import {
+  connectedNozzleLabel,
+  findConnectedNozzleEntity,
+} from "../shared-components/nozzle-badge/nozzle-badge";
 
 registerCustomCard({
   type: AMS_GRAPHIC_CARD_NAME,
@@ -147,12 +151,14 @@ export class AmsGraphicCard extends LitElement {
       tempEntity: cfg.custom_temperature || "",
       humEntity: cfg.custom_humidity || "",
       deviceName: "",
+      nozzleEntity: undefined,
     };
     const dev = cfg.ams && hass && hass.devices ? hass.devices[cfg.ams] : null;
     if (dev) {
       r.variantKey = variantFromModel(amsDeviceModel(dev, hass));
       r.deviceName = dev.name_by_user || dev.name || "";
       r.geo = VARIANTS[r.variantKey] || VARIANTS.ams2pro;
+      r.nozzleEntity = findConnectedNozzleEntity(hass, cfg.ams);
       const ents = this._deviceEntities(cfg.ams);
       const trayEnts = findTrayEntities(hass, ents);
       if (trayEnts.length) r.trays = trayEnts;
@@ -250,10 +256,20 @@ export class AmsGraphicCard extends LitElement {
     };
     const t = cfg.show_info_bar === false ? nothing : chip(r.tempEntity, ICON_TEMP, "°C");
     const h = cfg.show_info_bar === false ? nothing : chip(r.humEntity, ICON_HUM, "%");
-    if (!showTitle && t === nothing && h === nothing) return nothing;
+    // Which nozzle this AMS feeds, on printers with two. Shown even without the info bar, as
+    // it says where the filament goes rather than how the AMS is doing.
+    const n = connectedNozzleLabel(this._hass, r.nozzleEntity)
+      ? html`<bambu-lab-nozzle-badge
+          .hass=${this._hass}
+          .entityId=${r.nozzleEntity}
+        ></bambu-lab-nozzle-badge>`
+      : nothing;
+    if (!showTitle && t === nothing && h === nothing && n === nothing) return nothing;
     return html`<div class="head ${r.variantKey === "ht" ? "center" : ""}">
       ${showTitle ? html`<div class="title">${cfg.subtitle}</div>` : nothing}
-      ${t === nothing && h === nothing ? nothing : html`<div class="info">${t}${h}</div>`}
+      ${t === nothing && h === nothing && n === nothing
+        ? nothing
+        : html`<div class="info">${n}${t}${h}</div>`}
     </div>`;
   }
 

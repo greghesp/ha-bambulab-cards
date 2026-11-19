@@ -169,4 +169,12 @@ export default css`
     gap: 5px;
     box-sizing: border-box;
   }
+
+  /* Which nozzle this AMS feeds (printers with two nozzles), in a row above the spools */
+  .nozzle-row {
+    display: flex;
+    justify-content: flex-end;
+    flex: none;
+    padding: 0 4px 4px;
+  }
 `;

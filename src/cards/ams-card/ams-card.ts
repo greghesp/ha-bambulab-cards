@@ -10,6 +10,7 @@ import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
 import { findAmsZones, findDryBoxZone, layoutAms3h } from "./zones";
+import { findConnectedNozzleEntity } from "../shared-components/nozzle-badge/nozzle-badge";
 import { entitiesContext, hassContext, showInfoBarContext, nodeRedContext } from "../../utils/context";
 
 registerCustomCard({
@@ -176,6 +177,8 @@ export class AMS_CARD extends LitElement {
         spools: this._trays.map((t) => t.spool),
         zones: [],
         type: this._hass.devices[this._deviceId].model.toUpperCase(),
+        // Which nozzle this AMS feeds, on printers with two
+        nozzle: findConnectedNozzleEntity(hass, this._deviceId),
       };
     }
 
