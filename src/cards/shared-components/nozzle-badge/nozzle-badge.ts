@@ -25,11 +25,29 @@ export function findConnectedNozzleEntity(hass, deviceId: string): string | unde
   return undefined;
 }
 
-/* The nozzle's name ("Left", "Right"), or undefined while the sensor has no value */
+/* Printers whose left nozzle takes the Vortek induction hotends from the rack */
+const INDUCTION_LEFT_NOZZLE_PRINTERS = ["H2C"];
+
+/* The model of the printer an AMS sensor's device hangs off */
+function printerModel(hass, entityId: string): string | undefined {
+  const deviceId = hass?.entities?.[entityId]?.device_id;
+  const printerId = hass?.devices?.[deviceId]?.via_device_id;
+  return printerId ? hass.devices[printerId]?.model : undefined;
+}
+
+/* Whether the AMS feeds the induction (Vortek) nozzle */
+export function feedsInductionNozzle(hass, entityId: string | undefined): boolean {
+  if (!entityId || hass?.states?.[entityId]?.state !== "left") return false;
+  return INDUCTION_LEFT_NOZZLE_PRINTERS.includes(printerModel(hass, entityId) ?? "");
+}
+
+/* The nozzle's name ("Left", "Right", "Left · Induction"), or undefined while the sensor has
+   no value */
 export function connectedNozzleLabel(hass, entityId: string | undefined): string | undefined {
   const stateObj = entityId ? hass?.states?.[entityId] : undefined;
   if (!stateObj || NO_VALUE.includes(stateObj.state)) return undefined;
-  return hass.formatEntityState ? hass.formatEntityState(stateObj) : String(stateObj.state);
+  const side = hass.formatEntityState ? hass.formatEntityState(stateObj) : String(stateObj.state);
+  return feedsInductionNozzle(hass, entityId) ? `${side} · Induction` : side;
 }
 
 /* A small chip saying which nozzle this AMS feeds; opens the sensor's more-info on click */
@@ -105,7 +123,10 @@ export class NozzleBadge extends LitElement {
         }
       }}
     >
-      <ha-icon icon="mdi:printer-3d-nozzle" aria-hidden="true"></ha-icon>
+      <ha-icon
+        icon=${feedsInductionNozzle(this.hass, this.entityId) ? "mdi:flash" : "mdi:printer-3d-nozzle"}
+        aria-hidden="true"
+      ></ha-icon>
       <span>${label}</span>
     </span>`;
   }
