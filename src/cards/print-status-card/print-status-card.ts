@@ -1,6 +1,7 @@
 import * as helpers from "../../utils/helpers";
 
-import { customElement, state, query } from "lit/decorators.js";
+import { state, query } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { html, PropertyValues } from "lit";
 import { provide } from "@lit/context";
 import styles from "./card.styles";

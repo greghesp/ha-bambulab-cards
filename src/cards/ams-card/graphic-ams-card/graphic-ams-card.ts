@@ -1,5 +1,6 @@
 import * as helpers from "../../../utils/helpers"
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 import { html, LitElement, nothing } from "lit";
 import styles from "./graphic-ams-card.styles";
 import AMSImage from "../../../images/ams.webp";

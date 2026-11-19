@@ -1,5 +1,6 @@
 import * as helpers from "../../../../utils/helpers"
-import { customElement, property, state } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
+import { customElement } from "../../../../utils/custom-element";
 import { html, LitElement, nothing } from "lit";
 import styles from "./info-bar.styles";
 import { consume } from "@lit/context";

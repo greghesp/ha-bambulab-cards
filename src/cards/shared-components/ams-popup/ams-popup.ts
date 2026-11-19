@@ -1,7 +1,8 @@
 import { LitElement } from "lit";
 import { html, nothing } from "lit-html";
 import { consume } from "@lit/context";
-import { customElement, property, state } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 import { hassContext } from "../../../utils/context";
 import {
   getContrastingTextColor,

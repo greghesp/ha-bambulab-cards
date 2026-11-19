@@ -1,6 +1,7 @@
 import "./ams3h-graphic";
 import { html, LitElement, nothing, TemplateResult } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { AMS_MODELS, MANUFACTURER } from "../../const";

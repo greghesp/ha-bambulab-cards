@@ -4,7 +4,8 @@
  * This is an isolated Lit view; no reference runtime is loaded.
  */
 import { LitElement, nothing } from "lit";
-import { property, customElement } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { esc } from "./geo";
 import * as helpers from "../../utils/helpers";
