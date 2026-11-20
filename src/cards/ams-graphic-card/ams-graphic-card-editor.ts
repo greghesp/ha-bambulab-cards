@@ -61,6 +61,11 @@ export class AmsGraphicCardEditor extends LitElement {
       selector: { entity: { domain: "sensor" } },
     },
     {
+      name: "show_remaining",
+      label: "Show remaining filament",
+      selector: { boolean: {} },
+    },
+    {
       name: "show_labels",
       label: "Show filament labels",
       selector: { boolean: {} },

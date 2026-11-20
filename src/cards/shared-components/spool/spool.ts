@@ -11,6 +11,7 @@ export class Spool extends LitElement {
   private hass;
 
   @property({ type: Boolean }) public show_type: boolean = false;
+  @property({ type: Boolean }) public show_remaining: boolean = true;
   @property({ type: Boolean }) public spool_anim_reflection: boolean = true;
   @property({ type: Boolean }) public spool_anim_wiggle: boolean = true;
   @property({ type: String })  public entity_id!: string;
@@ -133,8 +134,10 @@ export class Spool extends LitElement {
   // A custom remaining sensor (e.g. grams from Spoolman or Bambuddy) wins while it
   // has a numeric state; otherwise fall back to the tray's RFID remain percentage.
   // An empty tray never shows one: those sensors follow the spool, not the slot, so
-  // they keep reporting after it's pulled.
+  // they keep reporting after it's pulled. Turning show_remaining off hides the
+  // label but leaves the fill height alone.
   remainingLabel() {
+    if (!this.show_remaining) return nothing;
     if (this.hass.states[this.entity_id]?.attributes?.empty) return nothing;
     const custom = this.customRemaining();
     if (custom) {

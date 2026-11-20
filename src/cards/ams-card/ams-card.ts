@@ -48,6 +48,7 @@ export class AMS_CARD extends LitElement {
   @state() private _states;
   @state() private _style;
   @state() private _showType;
+  @state() private _showRemaining;
   @state() private _spoolAnimReflection;
   @state() private _spoolAnimWiggle;
   private _entityList: { [key: string]: helpers.Entity } = {};
@@ -110,6 +111,7 @@ export class AMS_CARD extends LitElement {
     this._deviceId = config.ams;
     this._style = config.style;
     this._showType = config.show_type ? true : false;
+    this._showRemaining = config.show_remaining !== false;
     this._spoolAnimReflection = (config.spool_anim_reflection == undefined) ? true : config.spool_anim_reflection;
     this._spoolAnimWiggle = (config.spool_anim_wiggle == undefined) ? true : config.spool_anim_wiggle;
     this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
@@ -218,6 +220,7 @@ export class AMS_CARD extends LitElement {
         <vector-ams-card
           .customRemaining=${customRemaining}
           .showType=${this._showType}
+          .showRemaining=${this._showRemaining}
           .spoolAnimReflection=${this._spoolAnimReflection}
           .spoolAnimWiggle=${this._spoolAnimWiggle}
         />

@@ -9,6 +9,7 @@ import { consume } from "@lit/context";
 @customElement("vector-ams-card")
 export class VectorAmsCard extends LitElement {
   @property() public showType;
+  @property() public showRemaining = true;
   @property() public spoolAnimReflection;
   @property() public spoolAnimWiggle;
   @property() public customRemaining: { [entity_id: string]: string } = {};
@@ -29,6 +30,7 @@ export class VectorAmsCard extends LitElement {
         .entity_id="${spool.entity_id}"
         .remaining_entity=${this.customRemaining?.[spool.entity_id]}
         .show_type=${this.showType}
+        .show_remaining=${this.showRemaining}
         .spool_anim_reflection=${this.spoolAnimReflection}
         .spool_anim_wiggle=${this.spoolAnimWiggle}
       ></ha-bambulab-spool>
@@ -124,6 +126,7 @@ export class VectorAmsCard extends LitElement {
                     .entity_id="${spool.entity_id}"
                     .remaining_entity=${this.customRemaining?.[spool.entity_id]}
                     .show_type=${this.showType}
+                    .show_remaining=${this.showRemaining}
                     .spool_anim_reflection=${this.spoolAnimReflection}
                     .spool_anim_wiggle=${this.spoolAnimWiggle}
                   ></ha-bambulab-spool>
