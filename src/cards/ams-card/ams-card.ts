@@ -153,6 +153,14 @@ export class AMS_CARD extends LitElement {
         this._entityList["ams_temp"] = this._entityList["temp"];
       }
 
+      // The AMS Lite has no humidity or temperature sensor, so any reading reported for it is not
+      // real. Leave them out; a custom sensor set in the card config is still shown.
+      const model = this._hass.devices[this._deviceId].model.toUpperCase();
+      if (model === "AMS LITE") {
+        const { humidity_index, ams_temp, ...rest } = this._entityList;
+        this._entityList = rest;
+      }
+
       // Set custom entities
       for (const key in hass.entities) {
         const value = hass.entities[key];
@@ -175,7 +183,7 @@ export class AMS_CARD extends LitElement {
         temperature: this._entityList["ams_temp"],
         spools: this._trays.map((t) => t.spool),
         zones: [],
-        type: this._hass.devices[this._deviceId].model.toUpperCase(),
+        type: model,
       };
     }
 
