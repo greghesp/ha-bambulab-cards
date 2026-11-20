@@ -6,7 +6,7 @@
 import { LitElement, nothing } from "lit";
 import { property, customElement } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
-import { esc } from "./geo";
+import { esc, isBlankColor, TRANSLUCENT_COLOR } from "./geo";
 import * as helpers from "../../utils/helpers";
 import { findAmsZones } from "../ams-card/zones";
 const A2P_MESSAGES = {
@@ -64,7 +64,7 @@ function ams3hSlotData(state, entity, number, hass) {
     (ams3hTrue(a.unknown) ||
       ams3hTrue(a.empty) ||
       a.type === "Empty" ||
-      String(a.color).toUpperCase() === "#00000000");
+      (isBlankColor(a.color) && !a.type));
   const remain = a.remain == null ? -1 : Number(a.remain);
   const amount =
     !Number.isFinite(remain) || remain < 0 ? 95 : 20 + Math.max(0, Math.min(100, remain)) * 0.75;
@@ -80,8 +80,17 @@ function ams3hSlotData(state, entity, number, hass) {
       : empty
         ? a2pText(hass, "emptySlot")
         : a.type || a2pText(hass, "unknownMaterial"),
-    color: ams3hValidColor(a.color) ? a.color : "#888888",
-    colors: Array.isArray(a.cols) ? a.cols.filter(ams3hValidColor).slice(0, 8) : [],
+    color: isBlankColor(a.color)
+      ? TRANSLUCENT_COLOR
+      : ams3hValidColor(a.color)
+        ? a.color
+        : "#888888",
+    colors: Array.isArray(a.cols)
+      ? a.cols
+          .filter(ams3hValidColor)
+          .map((c) => (isBlankColor(c) ? TRANSLUCENT_COLOR : c))
+          .slice(0, 8)
+      : [],
     remaining:
       Number.isFinite(remain) && remain >= 0
         ? `${Math.min(100, remain)}%`
