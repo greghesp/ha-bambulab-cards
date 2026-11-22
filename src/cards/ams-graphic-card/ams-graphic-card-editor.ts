@@ -1,5 +1,6 @@
 import { html, LitElement } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { amsDeviceModel, variantFromModel } from "./geo";
 import memoizeOne from "memoize-one";
 

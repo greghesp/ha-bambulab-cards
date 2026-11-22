@@ -1,5 +1,6 @@
 import * as helpers from "../../utils/helpers"
-import { customElement, property, state } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { SPOOL_CARD_EDITOR_NAME, SPOOL_CARD_NAME } from "./const";
 import { css, html, LitElement, nothing } from "lit";

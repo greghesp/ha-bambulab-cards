@@ -1,4 +1,5 @@
-import { customElement, property, state, query } from "lit/decorators.js";
+import { property, state, query } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 import { html, LitElement, nothing, TemplateResult } from "lit";
 import { hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
@@ -48,6 +49,7 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _selectedPrinter: string = "compatible";
   @state() private _allFiles: FileCacheFile[] = [];
   @state() private _allFilesSizeBytes: number = 0;
+  @state() private _deletingFiles = new Set<string>();
   @state() private _allTimelapseFiles: FileCacheFile[] = [];
   @state() private _allTimelapseFilesSizeBytes: number = 0;
 
@@ -234,6 +236,56 @@ export class PrintHistoryPopup extends LitElement {
     } finally {
       this._timelapseLoading = false;
       this.requestUpdate();
+    }
+  }
+
+  async #deletePrint(file: FileCacheFile) {
+    this._deletingFiles = new Set(this._deletingFiles).add(file.path);
+    this._error = null;
+
+    try {
+      const response = await fetch('/api/bambu_lab/print_history/delete', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this._hass.auth.data.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          serial: file.printer_serial,
+          path: file.path.slice(file.printer_serial.length + 1),
+        }),
+      });
+
+      const responseText = await response.text();
+      let result: any = {};
+      if (responseText) {
+        try {
+          result = JSON.parse(responseText);
+        } catch {
+          result = { error: responseText };
+        }
+      }
+      if (!response.ok) {
+        const detail = result?.error ?? response.statusText;
+        throw new Error(`Delete failed (${response.status}): ${detail}`);
+      }
+
+      this._allFiles = this._allFiles.filter((entry) => entry.path !== file.path);
+      this._files = this._files.filter((entry) => entry.path !== file.path);
+      this._allFilesSizeBytes = Math.max(0, this._allFilesSizeBytes - file.size);
+
+      if (file.thumbnail_path) {
+        const thumbnailUrl = this._thumbnailUrls.get(file.thumbnail_path);
+        if (thumbnailUrl) URL.revokeObjectURL(thumbnailUrl);
+        this._thumbnailUrls.delete(file.thumbnail_path);
+      }
+    } catch (error) {
+      console.error('[FileCachePopup] Failed to delete print:', error);
+      this._error = error instanceof Error ? error.message : String(error);
+    } finally {
+      const deletingFiles = new Set(this._deletingFiles);
+      deletingFiles.delete(file.path);
+      this._deletingFiles = deletingFiles;
     }
   }
 
@@ -427,6 +479,13 @@ export class PrintHistoryPopup extends LitElement {
                     ?disabled=${this.controlBlocked}>
                   <ha-icon icon="mdi:printer-3d"></ha-icon>
                   Print Again
+                </button>
+                <button
+                    class="print-history-delete-btn"
+                    @click=${() => this.#deletePrint(file)}
+                    ?disabled=${this._deletingFiles.has(file.path)}>
+                  <ha-icon icon="mdi:delete"></ha-icon>
+                  ${this._deletingFiles.has(file.path) ? 'Deleting…' : 'Delete'}
                 </button>
               </div>
             </div>

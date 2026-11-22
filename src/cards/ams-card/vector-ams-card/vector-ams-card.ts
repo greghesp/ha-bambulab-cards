@@ -1,5 +1,6 @@
 import * as helpers from "../../../utils/helpers";
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 import { html, LitElement, nothing } from "lit";
 import styles from "./vector-ams-card.styles";
 import "../components/info-bar/info-bar";
@@ -106,7 +107,10 @@ export class VectorAmsCard extends LitElement {
     const spoolCount = this._entities?.spools?.length ?? 4;
     // More than four spools (the AMS 3H's nine) are laid out in two rows
     const twoRows = spoolCount > 4;
-    const classType = (spoolCount === 1) ? "ha-bambulab-spool ht"
+    const isHt = spoolCount === 1;
+    // The AMS HT's card has no room for the drying time in the info bar, so its spool shows it
+    const dryingEntity = isHt ? this._entities?.dryingTime?.entity_id : undefined;
+    const classType = isHt ? "ha-bambulab-spool ht"
       : twoRows ? "ha-bambulab-spool two-rows"
       : "ha-bambulab-spool";
 
@@ -123,6 +127,7 @@ export class VectorAmsCard extends LitElement {
                     .key="${spool.entity_id}"
                     .entity_id="${spool.entity_id}"
                     .remaining_entity=${this.customRemaining?.[spool.entity_id]}
+                    .drying_entity=${dryingEntity}
                     .show_type=${this.showType}
                     .spool_anim_reflection=${this.spoolAnimReflection}
                     .spool_anim_wiggle=${this.spoolAnimWiggle}

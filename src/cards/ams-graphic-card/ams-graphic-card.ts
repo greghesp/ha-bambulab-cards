@@ -1,13 +1,21 @@
 import "./ams3h-graphic";
 import { html, LitElement, nothing, TemplateResult } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { AMS_MODELS, MANUFACTURER } from "../../const";
 import { registerCustomCard } from "../../utils/custom-cards";
 import styles from "./card.styles";
 import { AMS_GRAPHIC_CARD_NAME } from "./const";
-import { Slot, VARIANTS, variantFromModel, amsDeviceModel } from "./geo";
+import {
+  Slot,
+  VARIANTS,
+  variantFromModel,
+  amsDeviceModel,
+  isBlankColor,
+  TRANSLUCENT_COLOR,
+} from "./geo";
 import { renderSvg } from "./render";
 import { findTrayEntities } from "./trays";
 
@@ -193,20 +201,23 @@ export class AmsGraphicCard extends LitElement {
       };
     }
     const a = st.attributes || {};
-    const blank = (c: any) => {
-      if (!c) return true;
-      const s = String(c).toLowerCase().replace("#", "").trim();
-      return s === "" || s === "00000000" || s === "000000" || s === "none" || s === "nil";
-    };
-    const cols = Array.isArray(a.cols) ? a.cols.filter((c: any) => !blank(c)) : [];
+    const cols = Array.isArray(a.cols) ? a.cols.filter((c: any) => !isBlankColor(c)) : [];
     const rawColor = cols[0] || a.color || "";
+    const hasType = !!a.type && a.type !== "?" && a.type !== "Empty";
+    /* A blank colour alone does not mean empty: translucent filament reports 00000000 too.
+       Only treat it as empty when the tray also carries no filament type. */
     const empty =
       a.unknown === true ||
       a.empty === true ||
       a.type === "?" ||
-      blank(rawColor) ||
+      (isBlankColor(rawColor) && !hasType) ||
       st.state === "Empty" ||
       st.state === "empty";
+    const color = empty
+      ? "#000000"
+      : isBlankColor(rawColor)
+        ? TRANSLUCENT_COLOR
+        : String(rawColor).slice(0, 7);
     const remainNum = a.remain == null ? -1 : Number(a.remain);
     const label = empty
       ? ""
@@ -217,7 +228,7 @@ export class AmsGraphicCard extends LitElement {
           : "";
     return {
       empty,
-      color: empty ? "#000000" : String(rawColor).slice(0, 7),
+      color,
       remain: Number.isNaN(remainNum) ? -1 : remainNum,
       type: label || "?",
       name: a.name || st.state || "",
@@ -327,6 +338,9 @@ export class AmsGraphicCard extends LitElement {
       }
       (p as any).hass = this._hass;
       (p as any).entity_id = entityId;
+      // The popup only shows the filament editor and the Load / Unload buttons when this is
+      // true; the AMS card's spools default it to true, so match them.
+      (p as any).controlBlocked = true;
       if ((p as any).is_bambu_lab === undefined) (p as any).is_bambu_lab = true;
       // A popup created just now has not rendered its click target yet
       await (p as any).updateComplete;
