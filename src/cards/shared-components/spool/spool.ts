@@ -4,6 +4,7 @@ import { html, LitElement, nothing } from "lit";
 import styles from "./spool.styles";
 import { hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
+import { getFormattedTime } from "../../../utils/helpers";
 import "../ams-popup/ams-popup";
 
 @customElement("ha-bambulab-spool")
@@ -16,6 +17,7 @@ export class Spool extends LitElement {
   @property({ type: Boolean }) public spool_anim_wiggle: boolean = true;
   @property({ type: String })  public entity_id!: string;
   @property({ type: String })  public remaining_entity?: string;
+  @property({ type: String })  public drying_entity?: string;
   @property({ type: Number })  private remainHeight = 95;
   @property({ type: Boolean }) public controlBlocked: boolean = true;
   @property() private resizeObserver: ResizeObserver | null = null;
@@ -105,13 +107,7 @@ export class Spool extends LitElement {
                   this.spool_anim_reflection
                     ? html`<div class="v-reflection"></div>`
                     : nothing}
-                  ${this.remainingLabel() !== nothing
-                    ? html`
-                        <div class="remaining-percent">
-                          <p>${this.remainingLabel()}</p>
-                        </div>
-                      `
-                    : nothing}
+                  ${this.overlayLabel()}
                 </div>
               </div>
               <div class="ha-bambulab-spool-side"></div>
@@ -129,6 +125,33 @@ export class Spool extends LitElement {
         </div>
       </ams-popup>
     `;
+  }
+
+  // Drying and printing never overlap, so while the AMS dries its time left takes the
+  // remaining label's place.
+  overlayLabel() {
+    const drying = this.dryingLabel();
+    if (drying) {
+      return html`
+        <div class="remaining-percent drying" title="Drying time left: ${drying}">
+          <p><ha-icon icon="mdi:heat-wave" aria-hidden="true"></ha-icon>${drying}</p>
+        </div>
+      `;
+    }
+    const remaining = this.remainingLabel();
+    return remaining !== nothing
+      ? html`
+          <div class="remaining-percent">
+            <p>${remaining}</p>
+          </div>
+        `
+      : nothing;
+  }
+
+  dryingLabel(): string | undefined {
+    const stateObj = this.drying_entity ? this.hass.states[this.drying_entity] : undefined;
+    if (!(Number(stateObj?.state) > 0)) return undefined;
+    return getFormattedTime(this.hass, this.drying_entity);
   }
 
   // A custom remaining sensor (e.g. grams from Spoolman or Bambuddy) wins while it

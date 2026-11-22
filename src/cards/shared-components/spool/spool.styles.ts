@@ -138,6 +138,17 @@ export default css`
     color: white;
   }
 
+  .remaining-percent.drying p {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+  }
+
+  .remaining-percent.drying ha-icon {
+    --mdc-icon-size: 14px;
+  }
+
   @keyframes wiggle {
     0% {
       transform: skew(0deg, 0deg);
