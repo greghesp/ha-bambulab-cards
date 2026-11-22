@@ -1,4 +1,5 @@
-import { customElement, property, state, query } from "lit/decorators.js";
+import { property, state, query } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 import { html, LitElement, nothing, TemplateResult } from "lit";
 import { hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";

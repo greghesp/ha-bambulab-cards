@@ -1,5 +1,6 @@
 import { html, LitElement, nothing, TemplateResult, css, CSSResult } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 
 @customElement("confirmation-prompt")
 export class ConfirmationPrompt extends LitElement {

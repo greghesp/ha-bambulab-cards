@@ -1,5 +1,6 @@
 import * as helpers from "../../../utils/helpers";
-import { customElement, property, state, query } from "lit/decorators.js";
+import { property, state, query } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 import { html, LitElement, nothing } from "lit";
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import styles from "./a1-screen-styles";
