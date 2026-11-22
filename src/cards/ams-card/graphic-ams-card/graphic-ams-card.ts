@@ -6,6 +6,7 @@ import styles from "./graphic-ams-card.styles";
 import AMSImage from "../../../images/ams.webp";
 import AMS2Image from "../../../images/ams2.webp";
 import AMSHTImage from "../../../images/amsht.webp";
+import AMSLiteImage from "../../../images/amslite.svg";
 import "../components/info-bar/info-bar";
 import "../../shared-components/ams-popup/ams-popup";
 import { entitiesContext, hassContext } from "../../../utils/context";
@@ -29,6 +30,9 @@ export class GraphicAmsCard extends LitElement {
     } else if (this._entities.type === "AMS HT") {
       image = AMSHTImage;
       model = "ht"
+    } else if (this._entities.type === "AMS LITE") {
+      image = AMSLiteImage;
+      model = "lite"
     }
 
     return html` <ha-card class="card">
