@@ -1,6 +1,7 @@
 import { PRINT_STATUS_CARD_EDITOR_NAME } from "./const";
 import { MANUFACTURER, PRINTER_MODELS } from "../../const";
-import { customElement, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { LitElement, html } from "lit";
 
 const filterCombinations = PRINTER_MODELS.map((model) => ({

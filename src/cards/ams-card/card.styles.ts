@@ -1,6 +1,12 @@
 import { css } from "lit";
 
 export default css`
+  .unavailable {
+    padding: 16px;
+    text-align: center;
+    color: var(--secondary-text-color);
+  }
+
   .ams-container {
     height: 100%;
     width: 100%;

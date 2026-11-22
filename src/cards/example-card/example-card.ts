@@ -1,4 +1,5 @@
-import { customElement, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { registerCustomCard } from "../../utils/custom-cards";
 import { EXAMPLE_CARD_EDITOR_NAME, EXAMPLE_CARD_NAME } from "./const";
 import { html, nothing } from "lit";
