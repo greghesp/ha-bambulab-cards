@@ -88,11 +88,25 @@ function ams3hSlotData(state, entity, number, hass) {
         : a2pText(hass, "unknownRemaining"),
   };
 }
-// 按实体 ID、一基槽号、tray_N、slot 或唯一且非零的 tray_uuid 匹配。
-// 不按颜色/耗材名匹配，不借用各槽 active 标记，避免多个工具同时高亮。
+// The integration's active_tray sensor reports a 0-based tray_index within the active AMS.
+// It carries no AMS identity the card can resolve, so only trust it when this AMS's tray at
+// that index also reports active=true (the integration sets that flag on exactly one tray,
+// and only on the active AMS). Works for non-RFID spools, whose tray_uuid is all zeros.
+function ams3hActiveFromTrayIndex(state, cfg) {
+  const raw = state.attributes?.tray_index;
+  if (raw == null || raw === "") return 0;
+  const index = Number(raw);
+  if (!Number.isInteger(index) || index < 0 || index >= cfg.trays.length) return 0;
+  const tray = cfg.states?.[cfg.trays[index]];
+  return ams3hAvailable(tray) && ams3hTrue(tray.attributes?.active) ? index + 1 : 0;
+}
+// 按 tray_index（需该槽 active 确认）、实体 ID、一基槽号、tray_N、slot 或唯一且非零的 tray_uuid 匹配。
+// 不按颜色/耗材名匹配，不单独借用各槽 active 标记，避免多个工具同时高亮。
 function ams3hActiveNumber(state, cfg) {
-  if (!ams3hAvailable(state) || ["none", "", "?"].includes(String(state.state).toLowerCase()))
-    return 0;
+  if (!ams3hAvailable(state)) return 0;
+  const fromTrayIndex = ams3hActiveFromTrayIndex(state, cfg);
+  if (fromTrayIndex) return fromTrayIndex;
+  if (["none", "", "?"].includes(String(state.state).toLowerCase())) return 0;
   const value = String(state.state);
   const entityIndex = cfg.trays.indexOf(value);
   if (entityIndex >= 0) return entityIndex + 1;
