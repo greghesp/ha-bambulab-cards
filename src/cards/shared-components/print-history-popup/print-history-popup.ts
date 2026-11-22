@@ -8,6 +8,9 @@ import * as helpers from "../../../utils/helpers";
 import { css } from "lit";
 import { PrintSettingsPopup } from './print-settings-popup';
 
+// How long a signed timelapse URL stays valid. Long enough to watch or download one video.
+const SIGNED_PATH_EXPIRY_SECONDS = 3600;
+
 interface FileCacheFile {
   filename: string;
   type: string;
@@ -46,6 +49,7 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _timelapseLoading: boolean = false;
   @state() private _timelapseError: string | null = null;
   @state() private _openTimelapseVideo: string | null = null;
+  @state() private _openTimelapseVideoUrl: string | null = null;
   @state() private _selectedPrinter: string = "compatible";
   @state() private _allFiles: FileCacheFile[] = [];
   @state() private _allFilesSizeBytes: number = 0;
@@ -94,7 +98,7 @@ export class PrintHistoryPopup extends LitElement {
 
   hide() {
     this._show = false;
-    this._openTimelapseVideo = null;
+    this.#closeTimelapse();
     document.body.style.overflow = '';
   }
 
@@ -353,6 +357,50 @@ export class PrintHistoryPopup extends LitElement {
     }
   }
 
+  // Cached files are only served by the authenticated file_cache API. A <video> or
+  // download link can't send an Authorization header, so give it a signed path.
+  async #signFileCachePath(file: FileCacheFile): Promise<string> {
+    const path = file.path.split('/').map(encodeURIComponent).join('/');
+    const result = await this._hass.callWS({
+      type: 'auth/sign_path',
+      path: `/api/bambu_lab/file_cache/${path}`,
+      expires: SIGNED_PATH_EXPIRY_SECONDS,
+    });
+    return result.path;
+  }
+
+  #closeTimelapse() {
+    this._openTimelapseVideo = null;
+    this._openTimelapseVideoUrl = null;
+  }
+
+  async #openTimelapse(file: FileCacheFile) {
+    this._openTimelapseVideo = file.filename;
+    this._openTimelapseVideoUrl = null;
+    try {
+      const url = await this.#signFileCachePath(file);
+      if (this._openTimelapseVideo === file.filename) {
+        this._openTimelapseVideoUrl = url;
+      }
+    } catch (e) {
+      console.error('Error signing timelapse path:', e);
+      this._timelapseError = 'Failed to load timelapse video';
+      this.#closeTimelapse();
+    }
+  }
+
+  async #downloadTimelapse(file: FileCacheFile) {
+    try {
+      const link = document.createElement('a');
+      link.href = await this.#signFileCachePath(file);
+      link.download = file.filename;
+      link.click();
+    } catch (e) {
+      console.error('Error signing timelapse path:', e);
+      this._timelapseError = 'Failed to download timelapse video';
+    }
+  }
+
   _getFileIcon(type: string) {
     const icons = {
       '3mf': '📦',
@@ -375,7 +423,7 @@ export class PrintHistoryPopup extends LitElement {
 
   #changeTab(index) {
     this._activeTab = index;
-    this._openTimelapseVideo = null;
+    this.#closeTimelapse();
     if (index == 0) {
       this._refreshFiles();
     } else if (index == 1) {
@@ -522,7 +570,6 @@ export class PrintHistoryPopup extends LitElement {
             ${this._timelapseFiles.map(file => {
               const isOpen = this._openTimelapseVideo === file.filename;
               const isAvi = file.filename.toLowerCase().endsWith('.avi');
-              const videoUrl = `/local/media/ha-bambulab/${file.path}`;
               return html`
                 <div class="print-history-card" style="position:relative;">
                   <div class="print-history-thumbnail" style="position:relative;">
@@ -543,16 +590,18 @@ export class PrintHistoryPopup extends LitElement {
                           </div>
                         `
                       : isOpen
-                        ? html`<video controls width="100%" src="${videoUrl}" style="border-radius:8px;max-width:100%;max-height:210px;background:#000;"></video>`
+                        ? this._openTimelapseVideoUrl
+                          ? html`<video controls width="100%" src="${this._openTimelapseVideoUrl}" style="border-radius:8px;max-width:100%;max-height:210px;background:#000;"></video>`
+                          : html`<div class="print-history-loading">Loading video...</div>`
                         : html`
                             ${(() => {
                               const cacheKey = file.thumbnail_path ?? "";
                               const thumbnailUrl = this._thumbnailUrls.get(cacheKey);
                               if (thumbnailUrl) {
-                                return html`<img src="${thumbnailUrl}" alt="${file.filename}" style="cursor:pointer;" @click=${() => { this._openTimelapseVideo = file.filename; this.requestUpdate(); }} @error=${(e) => e.target.style.display = 'none'}>`;
+                                return html`<img src="${thumbnailUrl}" alt="${file.filename}" style="cursor:pointer;" @click=${() => this.#openTimelapse(file)} @error=${(e) => e.target.style.display = 'none'}>`;
                               } else {
                                 this._getThumbnailUrl(file); // Start loading
-                                return html`<div class="print-history-placeholder" style="cursor:pointer;" @click=${() => { this._openTimelapseVideo = file.filename; this.requestUpdate(); }}>${this._getFileIcon(file.type)}</div>`;
+                                return html`<div class="print-history-placeholder" style="cursor:pointer;" @click=${() => this.#openTimelapse(file)}>${this._getFileIcon(file.type)}</div>`;
                               }
                             })()}
                             <div class="timelapse-overlay">
@@ -561,7 +610,7 @@ export class PrintHistoryPopup extends LitElement {
                           `
                     }
                   </div>
-                  <a class="timelapse-download-btn" href="${videoUrl}" download target="_blank" title="Download video">
+                  <a class="timelapse-download-btn" href="#" title="Download video" @click=${(e: Event) => { e.preventDefault(); this.#downloadTimelapse(file); }}>
                     ⬇ Download
                   </a>
                   ${file.printer_name ? html`<div class="printer-info">${file.printer_name}</div>` : nothing}
