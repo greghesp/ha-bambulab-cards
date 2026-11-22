@@ -1,4 +1,5 @@
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 import { html, LitElement, nothing } from "lit";
 import styles from "./spool.styles";
 import { hassContext } from "../../../utils/context";

@@ -1,5 +1,6 @@
 import * as helpers from "../../../utils/helpers";
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 import { html, LitElement, nothing } from "lit";
 import styles from "./vector-ams-card.styles";
 import "../components/info-bar/info-bar";

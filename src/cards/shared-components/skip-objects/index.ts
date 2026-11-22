@@ -1,6 +1,7 @@
 import { html, LitElement, nothing } from "lit";
 import { consume } from "@lit/context";
-import { customElement, property, state } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 import styles from "./card.styles";
 import * as helpers from "../../../utils/helpers";
 import { css } from "lit";
