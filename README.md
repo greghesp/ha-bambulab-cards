@@ -109,7 +109,6 @@ style: vector             # vector or graphic
 show_info_bar: true       # humidity and temperature bar
 subtitle: AMS 1
 show_type: true           # filament type on each spool
-show_remaining: true      # remaining filament (% or custom sensor) on each spool
 spool_anim_reflection: true
 spool_anim_wiggle: true
 # Optional overrides
@@ -135,7 +134,6 @@ subtitle: AMS 2 Pro
 show_labels: true
 label_mode: type          # type (e.g. PLA) or name (spool name)
 show_empty_label: false
-show_remaining: true      # remaining-percentage chip on each spool
 custom_temperature: sensor.my_ams_temperature
 custom_humidity: sensor.my_ams_humidity
 ```
@@ -153,7 +151,6 @@ tray: 1                   # 1 to 4 for an AMS, 1 to 9 for an AMS 3H
 show_info_bar: true
 subtitle: External spool
 show_type: true
-show_remaining: true
 spool_anim_reflection: true
 spool_anim_wiggle: true
 ```

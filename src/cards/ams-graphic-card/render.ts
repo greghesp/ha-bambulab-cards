@@ -32,7 +32,7 @@ function gradientStops(): string {
 }
 
 /* A single spool: flange -> filament band (with hatching) -> remaining-percentage chip */
-function spoolSvg(cx: number, s: Slot, geo: VariantGeo, showRemaining: boolean): string {
+function spoolSvg(cx: number, s: Slot, geo: VariantGeo): string {
   const { spW, spH, spY, flangeFrac, bandCY, matCap } = geo;
   const x0 = cx - spW / 2;
   const x1 = cx + spW / 2;
@@ -56,7 +56,7 @@ function spoolSvg(cx: number, s: Slot, geo: VariantGeo, showRemaining: boolean):
   o += `<rect x="${f(rx0)}" y="${f(by)}" width="${f(rw)}" height="${f(bh)}" fill="${esc(s.color)}"/>`;
   o += `<rect x="${f(rx0)}" y="${f(by)}" width="${f(rw)}" height="${f(bh)}" fill="url(#a2p-hatch)"/>`;
 
-  if (showRemaining && !s.empty && s.remain > 0) {
+  if (!s.empty && s.remain > 0) {
     const txt = `${Math.round(s.remain)}%`;
     const bcx = rx0 + rw / 2;
     let bcy = by + bh / 2;
@@ -136,7 +136,6 @@ export interface RenderOpts {
   showLabels: boolean;
   labelMode: string;
   showEmptyLabel: boolean;
-  showRemaining: boolean;
   hum: string;
   temp: string;
 }
@@ -175,7 +174,7 @@ export function renderSvg(o: RenderOpts): string {
   else if (geo.clipY != null) svg += '<g clip-path="url(#a2p-clip)">';
   else svg += "<g>";
   slots.forEach((s, i) => {
-    if (!s.empty && geo.centers[i] != null) svg += spoolSvg(geo.centers[i] + vbx, s, geo, o.showRemaining);
+    if (!s.empty && geo.centers[i] != null) svg += spoolSvg(geo.centers[i] + vbx, s, geo);
   });
   svg += "</g>";
 

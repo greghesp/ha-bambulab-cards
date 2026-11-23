@@ -54,12 +54,6 @@ export class AmsCardEditor extends LitElement {
         }
       }, 
       {
-        name: "show_remaining",
-        label: "Show Remaining Filament",
-        selector: { boolean: true },
-        default: true,
-      },
-      {
         name: "spool_anim_reflection",
         label: "Active spool animation: Light Reflection",
         selector: { boolean: true },

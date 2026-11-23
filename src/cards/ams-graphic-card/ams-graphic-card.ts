@@ -60,7 +60,6 @@ export class AmsGraphicCard extends LitElement {
       show_labels: true,
       label_mode: "type",
       show_empty_label: false,
-      show_remaining: true,
       ...config,
       trays,
     };
@@ -293,7 +292,6 @@ export class AmsGraphicCard extends LitElement {
       showLabels: cfg.show_labels !== false,
       labelMode: cfg.label_mode || "type",
       showEmptyLabel: cfg.show_empty_label === true,
-      showRemaining: cfg.show_remaining !== false,
       hum: hum === "" ? "--" : `${hum}${this._unit(r.humEntity) === "%" ? "%" : ""}`,
       temp: temp === "" ? "--" : `${temp}°`,
     });

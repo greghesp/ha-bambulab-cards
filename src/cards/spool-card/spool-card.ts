@@ -27,7 +27,6 @@ export class SpoolCard extends LitElement {
   @property() public states;
   @property() public _spoolEntityId;
   @property() public _showType;
-  @property() public _showRemaining;
   @property() public _spoolAnimReflection;
   @property() public _spoolAnimWiggle;
 
@@ -67,7 +66,6 @@ export class SpoolCard extends LitElement {
     this._spool = config.spool;
     this._tray = config.tray ?? 1;
     this._showType = config.show_type;
-    this._showRemaining = config.show_remaining !== false;
     this._spoolAnimReflection = (config.spool_anim_reflection == undefined) ? true : config.spool_anim_reflection;
     this._spoolAnimWiggle = (config.spool_anim_wiggle == undefined) ? true : config.spool_anim_wiggle;
 
@@ -92,7 +90,6 @@ export class SpoolCard extends LitElement {
                 .key="${this._spoolEntityId}"
                 .entity_id="${this._spoolEntityId}"
                 .show_type=${this._showType}
-                .show_remaining=${this._showRemaining}
                 .spool_anim_reflection=${this._spoolAnimReflection}
                 .spool_anim_wiggle=${this._spoolAnimWiggle}
               ></ha-bambulab-spool>
