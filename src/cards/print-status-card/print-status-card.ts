@@ -292,6 +292,7 @@ export class PrintStatusCard extends EntityProvider {
   private _show_cover: boolean = false
   private _show_camera_feed: boolean = false
   private _cover_progress: boolean = false
+  private _hide_controls: boolean = false
   private _cover_position: "left" | "right" = "left"
   private _camera_position: "left" | "right" = "right"
 
@@ -388,6 +389,7 @@ export class PrintStatusCard extends EntityProvider {
     this._show_cover = !!config.show_cover;
     this._show_camera_feed = !!config.show_camera_feed;
     this._cover_progress = !!config.cover_progress;
+    this._hide_controls = !!config.hide_controls;
     this._cover_position = (config.cover_position === "right" ? "right" : "left");
     this._camera_position = (config.camera_position === "left" ? "left" : "right");
     this._device_id = config.printer;
@@ -473,6 +475,7 @@ export class PrintStatusCard extends EntityProvider {
           .coverImage=${this._coverImageUrl}
           .coverProgress=${this._cover_progress}
           .showVideoFeed=${this._default_to_camera}
+          .hideControls=${this._hide_controls}
           _device_id=${this._device_id}
           @video-toggled=${this._onVideoToggled}
         ></a1-screen-card>

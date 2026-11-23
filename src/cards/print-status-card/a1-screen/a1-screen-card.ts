@@ -53,6 +53,7 @@ export class A1ScreenCard extends LitElement {
   @property({ type: Boolean }) public showCover = false;
   @property({ type: Boolean }) public showCameraFeed = false;
   @property({ type: Boolean }) public coverProgress = false;
+  @property({ type: Boolean }) public hideControls = false;
   @property() public showCoverPosition: "left" | "right" = "left";
   @property() public showCameraPosition: "left" | "right" = "right";
   @state() private processedImage: string | null = null;
@@ -389,9 +390,10 @@ export class A1ScreenCard extends LitElement {
   }
 
   #clickEntity(key: string, force: boolean = false, fallbackKey?: string) {
-    if (!force && this.#isMqttEncryptionEnabled()) {
-      if (fallbackKey) {
-        this.#clickEntity(fallbackKey, force);
+    if (!force && (this.hideControls || this.#isMqttEncryptionEnabled())) {
+      if (fallbackKey && this._deviceEntities[fallbackKey]) {
+        // The fallback is a read-only sensor, so always allow it.
+        this.#clickEntity(fallbackKey, true);
       }
       return;
     }
@@ -679,9 +681,8 @@ export class A1ScreenCard extends LitElement {
         : html`
             <ha-card class="ha-bambulab-ssc">
               <div class="ha-bambulab-ssc-screen-container">
-                ${this.page === Page.Main ? this.#renderFrontPage() :
-                  this.page === Page.Controls ? this.#renderControlsPage() :
-                  this.page === Page.Ams ? this.#renderAmsPage() : ''}
+                ${this.page === Page.Controls && !this.hideControls ? this.#renderControlsPage() :
+                  this.page === Page.Ams ? this.#renderAmsPage() : this.#renderFrontPage()}
               </div>
             </ha-card>
             <print-history-popup
@@ -841,6 +842,11 @@ export class A1ScreenCard extends LitElement {
             <button class="video-toggle-button" @click="${this.#toggleVideoFeed}" title="${this.showVideoFeed ? 'Return to cover image' : 'Show video feed'}">
               <ha-icon icon="${this.showVideoFeed ? 'mdi:camera' : 'mdi:video'}"></ha-icon>
             </button>
+            ${this.hideControls ? html`
+            <button class="sensor-toggle-button" @click="${this.#toggleExtraControls}" title="Show other sensors">
+              <ha-icon icon="mdi:swap-horizontal"></ha-icon>
+            </button>
+            ` : nothing}
             `}
             ${this.showVideoFeed
               ? html `
@@ -906,7 +912,7 @@ export class A1ScreenCard extends LitElement {
           </div>
           `}
         </div>
-        ${this.videoMaximized ? nothing : this.showExtraControls ? this.#renderExtraControlsColumn() : this.#renderMainControlsColumn()}
+        ${this.videoMaximized || this.hideControls ? nothing : this.showExtraControls ? this.#renderExtraControlsColumn() : this.#renderMainControlsColumn()}
       </div>
       ${this.videoMaximized ? nothing : this.showExtraControls ? this.#renderExtraSensorColumn() : this.#renderMainSensorColumn()}
     `;
@@ -1159,7 +1165,7 @@ export class A1ScreenCard extends LitElement {
               .show_type=${true}
               .spool_anim_reflection=${false}
               .spool_anim_wiggle=${false}
-              .controlBlocked=${!this.#isMqttEncryptionEnabled()}
+              .controlBlocked=${!this.hideControls && !this.#isMqttEncryptionEnabled()}
             ></ha-bambulab-spool>
           `
         )}
