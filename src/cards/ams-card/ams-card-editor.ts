@@ -1,5 +1,5 @@
 import { AMS_CARD_EDITOR_NAME } from "./const";
-import { MANUFACTURER, AMS_MODELS, AMS_3H_MODEL } from "../../const";
+import { MANUFACTURER, AMS_MODELS, AMS_3H_MODEL, AMS_LITE_MODEL } from "../../const";
 import { state } from "lit/decorators.js";
 import { customElement } from "../../utils/custom-element";
 import { LitElement, html, nothing } from "lit";
@@ -21,7 +21,7 @@ export class AmsCardEditor extends LitElement {
   }
 
   // The AMS 3H has nine trays and only the vector style
-  private _schema = memoizeOne((showInfoBar: boolean, style: string, isAms3h: boolean) => [
+  private _schema = memoizeOne((showInfoBar: boolean, style: string, isAms3h: boolean, isAmsLite: boolean) => [
     { 
       name: "show_info_bar",
       label: "Show Info Bar",
@@ -35,6 +35,12 @@ export class AmsCardEditor extends LitElement {
           label: "Subtitle",
           selector: { text: {} },
         },
+        // The AMS Lite has no humidity sensor, and the AMS 3H already shows percentages
+        ...(isAms3h || isAmsLite ? [] : [{
+          name: "show_humidity_percentage",
+          label: "Show Humidity as Percentage",
+          selector: { boolean: {} },
+        }]),
         {
           name: "custom_humidity",
           label: "Custom Humidity Sensor",
@@ -97,8 +103,13 @@ export class AmsCardEditor extends LitElement {
 
 
   render() {
-    const isAms3h = this.hass?.devices?.[this._config?.ams]?.model === AMS_3H_MODEL;
-    const schema = this._schema(this._config?.show_info_bar, this._config?.style, isAms3h);
+    const model = this.hass?.devices?.[this._config?.ams]?.model;
+    const schema = this._schema(
+      this._config?.show_info_bar,
+      this._config?.style,
+      model === AMS_3H_MODEL,
+      model === AMS_LITE_MODEL
+    );
 
     return html`
       <div>

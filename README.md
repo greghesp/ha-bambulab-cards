@@ -109,6 +109,7 @@ type: custom:ha-bambulab-ams-card
 ams: <AMS device id>
 style: vector             # vector or graphic
 show_info_bar: true       # humidity and temperature bar
+show_humidity_percentage: true   # humidity in % instead of the 1 to 5 index
 subtitle: AMS 1
 show_type: true           # filament type on each spool
 spool_anim_reflection: true
