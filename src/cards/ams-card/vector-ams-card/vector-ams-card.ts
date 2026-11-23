@@ -96,10 +96,13 @@ export class VectorAmsCard extends LitElement {
     `;
   }
 
-  /* Which nozzle this AMS feeds, on printers with two. The info bar shows it when it's on;
-     otherwise it gets a row of its own above the spools, which shrink to make room. */
+  /* Which nozzle this AMS feeds, on printers with two. The info bar shows it when it's on
+     (unless this is the narrow AMS HT); otherwise it gets a row of its own above the spools,
+     which shrink to make room. */
   #renderNozzleBadge() {
-    if (!this._entities?.nozzle || this._infoBar?.active) return nothing;
+    if (!this._entities?.nozzle) return nothing;
+    const isHt = this._entities.spools?.length === 1;
+    if (this._infoBar?.active && !isHt) return nothing;
     return html`<div class="nozzle-row">
       <bambu-lab-nozzle-badge
         .hass=${this.hass}

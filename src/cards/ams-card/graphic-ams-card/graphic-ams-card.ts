@@ -44,7 +44,7 @@ export class GraphicAmsCard extends LitElement {
         <info-bar></info-bar>
         <div class="ams-container">
           <img src=${image} alt="" />
-          ${this._entities?.nozzle && !this._infoBar?.active
+          ${this._entities?.nozzle && (!this._infoBar?.active || this._entities.spools?.length === 1)
             ? html`<bambu-lab-nozzle-badge
                 class="nozzle-badge"
                 .hass=${this.hass}

@@ -145,9 +145,10 @@ export class InfoBar extends LitElement {
     return (this._entities?.zones ?? []).filter((zone) => zone.zone !== dryBoxZone);
   }
 
-  /* Which nozzle this AMS feeds, on printers with two */
+  /* Which nozzle this AMS feeds, on printers with two. The AMS HT's card has no room for it
+     beside the readings, so the card shows it outside the info bar instead. */
   #renderNozzle() {
-    if (!this._entities?.nozzle) return nothing;
+    if (!this._entities?.nozzle || this._entities.spools?.length === 1) return nothing;
     return html`<div class="info nozzle">
       <bambu-lab-nozzle-badge .hass=${this.hass} .entityId=${this._entities.nozzle}></bambu-lab-nozzle-badge>
     </div>`;
