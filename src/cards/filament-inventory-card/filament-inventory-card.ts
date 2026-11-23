@@ -24,6 +24,7 @@ export class FilamentInventoryCard extends LitElement {
   @state() private _printer = "";
   @state() private _brand = "";
   @state() private _type = "";
+  @state() private _expanded = false;
   @state() private _collapsed = new Set<string>();
   private _sensorVersion = "";
   private _request = 0;
@@ -110,10 +111,9 @@ export class FilamentInventoryCard extends LitElement {
     const colorLabel = /^#[0-9a-f]{6}ff$/i.test(spool.color || "") ? spool.color!.slice(0, 7) : spool.color;
     const remaining = weight(spool.netWeight);
     const total = weight(spool.totalNetWeight);
-    const weightLabel = `${remaining === undefined ? "Unknown" : remaining}${total !== undefined ? `/${total}g` : remaining !== undefined ? "g" : ""}`;
     const location = locations.map((item) => [item.printerName, item.deviceName, item.slot == null ? "" : item.slot].filter(Boolean).join(" · ")).join(", ");
     const meta = [spool.displayName, spool.filamentType, colorLabel, location, spool.note].filter(Boolean).join(" · ");
-    return html`<div class="row" style=${`--weight-label-space: ${Math.max(10, weightLabel.length)}ch`}>
+    return html`<div class="row">
       <div class="swatch" style=${`background-color: ${color}`} aria-label=${`Color ${colorLabel || "unknown"}`}></div>
       <div class="name">${this._spoolName(spool)}</div>
       <div class="meta">${meta}</div>
@@ -144,17 +144,19 @@ export class FilamentInventoryCard extends LitElement {
     return html`<ha-card>
       <div class="header"><h2>Filament Inventory</h2><span class="count">${filtered.length} ${filtered.length === 1 ? "spool" : "spools"}</span></div>
       <div class="toolbar">
-        <input type="search" aria-label="Search filament" placeholder="Search filament" .value=${this._search} @input=${(event) => this._search = event.target.value}>
-        <select aria-label="Filter by printer" .value=${this._printer} @change=${(event) => this._printer = event.target.value}>
+        <input type="search" aria-label="Search filament" placeholder="Search filament" .value=${this._search} @input=${(event) => { this._search = event.target.value; this._expanded = true; }}>
+        <select aria-label="Filter by printer" .value=${this._printer} @change=${(event) => { this._printer = event.target.value; this._expanded = true; }}>
           <option value="">All locations</option><option value="__loaded__">In a printer</option>
           ${[...printers].sort((first, second) => first[1].localeCompare(second[1])).map(([id, name]) => html`<option value=${id}>${name}</option>`)}
         </select>
-        <select aria-label="Filter by brand" .value=${this._brand} @change=${(event) => this._brand = event.target.value}><option value="">All brands</option>${brands.map((brand) => html`<option value=${brand}>${brand}</option>`)}</select>
-        <select aria-label="Filter by material type" .value=${this._type} @change=${(event) => this._type = event.target.value}><option value="">All materials</option>${types.map((type) => html`<option value=${type}>${type}</option>`)}</select>
-        <button class="icon-button" title="Refresh inventory" aria-label="Refresh inventory" @click=${this._refresh} ?disabled=${this._loading || !this._config.inventory}><ha-icon icon="mdi:refresh"></ha-icon></button>
+        <select aria-label="Filter by brand" .value=${this._brand} @change=${(event) => { this._brand = event.target.value; this._expanded = true; }}><option value="">All brands</option>${brands.map((brand) => html`<option value=${brand}>${brand}</option>`)}</select>
+        <select aria-label="Filter by material type" .value=${this._type} @change=${(event) => { this._type = event.target.value; this._expanded = true; }}><option value="">All materials</option>${types.map((type) => html`<option value=${type}>${type}</option>`)}</select>
+        <button class="action-button show-button" aria-expanded=${this._expanded} aria-controls="inventory-list" @click=${() => { this._expanded = true; if (this._error && !this._loading && this._config.inventory && this._hass) this._refresh(); }} ?disabled=${this._expanded}>Show</button>
+        ${this._expanded ? html`<button class="action-button collapse-button" title="Collapse inventory" aria-label="Collapse inventory" @click=${() => this._expanded = false}><ha-icon icon="mdi:chevron-up"></ha-icon></button>` : nothing}
       </div>
       ${!this._config.inventory ? html`<div class="message">Select a filament inventory device in the card editor.</div>` : nothing}
       ${this._error ? html`<div class="message error" role="alert">${this._error}</div>` : nothing}
+      ${this._expanded ? html`<div class="inventory-list" id="inventory-list" role="region" aria-label="Filament inventory" tabindex="0">
       ${this._config.inventory && this._loading && !this._spools.length ? html`<div class="message">Loading inventory...</div>` : nothing}
       ${this._config.inventory && !this._loading && !this._error && !filtered.length ? html`<div class="message">${this._spools.length ? "No filaments match the selected filters." : "No filaments in this inventory."}</div>` : nothing}
       ${[...groups].sort((first, second) => first[0].localeCompare(second[0])).map(([name, spools]) => {
@@ -165,6 +167,7 @@ export class FilamentInventoryCard extends LitElement {
           <ha-icon icon=${collapsed ? "mdi:chevron-right" : "mdi:chevron-down"}></ha-icon><span class="group-name">${name}</span><span class="group-meta">${spools.length} · ${weights.length ? `${total.toLocaleString()} g${weights.length < spools.length ? " + unknown" : ""}` : "Unknown weight"}</span>
         </button>${collapsed ? nothing : spools.map((spool) => this._renderSpool(spool, spoolLocations(spool, locations)))}</div>`;
       })}
+      </div>` : nothing}
     </ha-card>`;
   }
 }
