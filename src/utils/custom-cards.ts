@@ -11,6 +11,14 @@ export function registerCustomCard(params: RegisterCardParams) {
   };
   windowWithCards.customCards = windowWithCards.customCards || [];
 
+  // The bundle may be loaded twice (integration + HACS copy); don't list the card twice.
+  const alreadyRegistered = windowWithCards.customCards.some(
+    (card) => (card as { type?: string })?.type === params.type
+  );
+  if (alreadyRegistered) {
+    return;
+  }
+
   const cardPage = params.type.replace("-card", "").replace("ha-bambulab-", "");
   windowWithCards.customCards.push({
     ...params,

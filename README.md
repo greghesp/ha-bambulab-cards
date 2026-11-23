@@ -42,6 +42,8 @@ For questions and help, join us on [Discord](https://discord.gg/rsUHAW3DKz).
 | [AMS Graphic](#ams-graphic-card) | `custom:ha-bambulab-ams-graphic-card` | The AMS drawn with fill levels and labels |
 | [Spool](#spool-card) | `custom:ha-bambulab-spool-card` | A single spool: the external spool or one AMS slot |
 | [Print Control](#print-control-card) | `custom:ha-bambulab-print_control-card` | Speed, pause, resume, stop and skip objects |
+| [Error](#error-card) | `custom:ha-bambulab-error-card` | The printer's HMS and print errors, each with a link to its Bambu Lab wiki page |
+| [Skip Objects](#skip-objects-card) | `custom:ha-bambulab-skip_objects-card` | A single button that opens the skip objects dialog |
 
 Every option is in the card's visual editor. The YAML below is for reference.
 
@@ -165,6 +167,41 @@ plate mid-print.
 ```yaml
 type: custom:ha-bambulab-print_control-card
 printer: <printer device id>
+```
+
+### Error card
+
+The printer's current errors: the print error, if there is one, then each HMS
+error, most severe first. Fatal errors show red, serious ones amber and the
+rest blue. Each HMS error links to its page on the Bambu Lab wiki.
+
+Turn off **Show the card when there are no errors** to have the card appear
+only while the printer has an error. It stays visible while you edit the
+dashboard so you can still find it.
+
+```yaml
+type: custom:ha-bambulab-error-card
+printer: <printer device id>
+title: Printer errors     # optional
+show_when_clear: true     # false hides the card while there are no errors
+show_codes: true          # show the HMS or print error code under each message
+```
+
+### Skip Objects card
+
+Just the **skip objects** button from the Print Control card, as its own
+small card. Use it to put skip objects into your own dashboard layout. It
+fits in a single grid cell, and you can restyle it with card-mod. Tap it to
+open the same skip objects dialog. The button is greyed out when skipping
+isn't possible: no print running, fewer than two objects on the plate, or
+MQTT encryption on without LAN developer mode.
+
+```yaml
+type: custom:ha-bambulab-skip_objects-card
+printer: <printer device id>
+name: Skip Objects          # optional
+icon: mdi:debug-step-over   # optional
+show_name: true             # optional, false for an icon-only button
 ```
 
 ---

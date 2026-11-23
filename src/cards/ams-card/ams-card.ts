@@ -1,5 +1,6 @@
 import * as helpers from "../../utils/helpers";
-import { customElement, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { html, LitElement, nothing } from "lit";
 import { provide } from "@lit/context";
 
@@ -35,6 +36,7 @@ const ENTITYLIST: string[] = [
   "tray_7",
   "tray_8",
   "tray_9",
+  "remaining_drying_time", // AMS 2 Pro and AMS HT; the AMS 3H's are per zone
 ];
 
 // The most trays any AMS has (the AMS 3H)
@@ -54,6 +56,9 @@ export class AMS_CARD extends LitElement {
   private _entityList: { [key: string]: helpers.Entity } = {};
   private _trays: { tray: number; spool: helpers.Entity }[] = [];
   private _zonesKey?: string;
+  // The AMS device the entity list was built for. Cleared when the device disappears (e.g. the
+  // AMS is disconnected and removed from the registry) so it's rebuilt when the device returns.
+  private _builtForDeviceId?: string;
 
   @provide({ context: hassContext })
   @state()
@@ -75,8 +80,12 @@ export class AMS_CARD extends LitElement {
 
   static styles = styles;
 
+  private _device() {
+    return this._hass?.devices?.[this._deviceId];
+  }
+
   private _isAms3h(): boolean {
-    return this._hass?.devices?.[this._deviceId]?.model === AMS_3H_MODEL;
+    return this._device()?.model === AMS_3H_MODEL;
   }
 
   public getLayoutOptions() {
@@ -88,7 +97,7 @@ export class AMS_CARD extends LitElement {
     }
 
     var columns = 4;
-    if (this._hass.devices[this._deviceId].model === "AMS HT") {
+    if (this._device()?.model === "AMS HT") {
       columns = 1;
     }
 
@@ -124,7 +133,7 @@ export class AMS_CARD extends LitElement {
   }
 
   set hass(hass) {
-    const firstTime = hass && !this._hass;
+    if (!hass) return;
 
     this._hass = hass;
     this._states = hass.states;
@@ -141,7 +150,17 @@ export class AMS_CARD extends LitElement {
       });
     }
 
-    if (firstTime) {
+    // The configured AMS may not exist (yet), e.g. after it was disconnected from the printer.
+    // Don't throw: an error here makes Home Assistant drop the whole dashboard section.
+    const device = this._device();
+    if (!device) {
+      this._builtForDeviceId = undefined;
+      return;
+    }
+
+    if (this._builtForDeviceId !== this._deviceId) {
+      this._builtForDeviceId = this._deviceId;
+      this._zonesKey = undefined;
       this._entityList = helpers.getBambuDeviceEntities(hass, this._deviceId, ENTITYLIST);
       if (this._entityList["tray_0"]) {
         // This is a Node-RED integration so adjust the entity list to match.
@@ -152,6 +171,14 @@ export class AMS_CARD extends LitElement {
         this._entityList["tray_1"] = this._entityList["tray_0"];
         this._entityList["humidity_index"] = this._entityList["humidity_level"];
         this._entityList["ams_temp"] = this._entityList["temp"];
+      }
+
+      // The AMS Lite has no humidity or temperature sensor, so any reading reported for it is not
+      // real. Leave them out; a custom sensor set in the card config is still shown.
+      const model = this._hass.devices[this._deviceId].model.toUpperCase();
+      if (model === "AMS LITE") {
+        const { humidity_index, ams_temp, ...rest } = this._entityList;
+        this._entityList = rest;
       }
 
       // Set custom entities
@@ -176,7 +203,8 @@ export class AMS_CARD extends LitElement {
         temperature: this._entityList["ams_temp"],
         spools: this._trays.map((t) => t.spool),
         zones: [],
-        type: this._hass.devices[this._deviceId].model.toUpperCase(),
+        dryingTime: this._isAms3h() ? undefined : this._entityList["remaining_drying_time"],
+        type: device.model?.toUpperCase() ?? "",
         // Which nozzle this AMS feeds, on printers with two
         nozzle: findConnectedNozzleEntity(hass, this._deviceId),
       };
@@ -206,6 +234,14 @@ export class AMS_CARD extends LitElement {
   }
 
   render() {
+    if (!this._device()) {
+      return html`
+        <ha-card class="ha-bambulab-ams-card-unavailable">
+          <div class="unavailable">AMS not available</div>
+        </ha-card>
+      `;
+    }
+
     if (this._style == "graphic" && !this._isAms3h()) {
       return html` <graphic-ams-card /> `;
     } else {

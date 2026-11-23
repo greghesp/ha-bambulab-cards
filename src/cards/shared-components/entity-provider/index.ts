@@ -1,6 +1,7 @@
 import { provide } from "@lit/context";
 import { html, LitElement, nothing } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 import { PRINTER_MODELS } from "~/const";
 import { MANUFACTURER } from "~/const";
 import { entitiesContext, hassContext } from "~/utils/context";
@@ -33,6 +34,7 @@ const ENTITIES: string[] = [
   "pause",
   "pick_image", // Node red does not have
   "power",
+  "p1s_upgrade_installed",
   "print_progress",
   "print_status",
   "printable_objects",

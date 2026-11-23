@@ -9,6 +9,9 @@
 export const LABEL_FONT = 20; // filament label font size
 export const PCT_FONT = 21; // remaining-percentage font size
 export const EMPTY_LABEL = "Empty"; // text drawn on an empty slot (only when show_empty_label is on)
+/* Bambu reports translucent/clear filament with colour 00000000, the same value an empty tray
+   has. Such a loaded tray is drawn in this pale "glass" tint instead of as an empty slot. */
+export const TRANSLUCENT_COLOR = "#dfe8ec";
 
 export const FONT_STACK =
   'var(--ha-font-family-body, "Segoe UI", Roboto, "Helvetica Neue", "Microsoft YaHei", sans-serif)';

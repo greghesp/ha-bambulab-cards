@@ -1,5 +1,6 @@
 import { css, html, LitElement, nothing } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
+import { customElement } from "../../../utils/custom-element";
 
 export const NOZZLE_BADGE_NAME = "bambu-lab-nozzle-badge";
 

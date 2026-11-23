@@ -282,6 +282,38 @@ export default css`
     --mdc-icon-size: 16px;
   }
 
+  .print-history-delete-btn {
+    margin-top: 8px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background: var(--error-color, #db4437);
+    color: var(--text-primary-color, white);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background-color 0.2s;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .print-history-delete-btn:hover:not(:disabled) {
+    background: var(--error-color, #c62828);
+    filter: brightness(0.9);
+  }
+
+  .print-history-delete-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .print-history-delete-btn ha-icon {
+    --mdc-icon-size: 16px;
+  }
+
   .print-history-type {
     display: inline-block;
     padding: 2px 6px;
