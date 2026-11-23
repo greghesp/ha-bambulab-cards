@@ -1,7 +1,8 @@
 import * as helpers from "../../utils/helpers";
 import "~/cards/shared-components/panda-accessories/panda-accessories";
 
-import { customElement, state, query } from "lit/decorators.js";
+import { state, query } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { html, PropertyValues } from "lit";
 import { provide } from "@lit/context";
 import styles from "./card.styles";
@@ -291,6 +292,7 @@ export class PrintStatusCard extends EntityProvider {
   private _show_printer_name: boolean = false
   private _show_cover: boolean = false
   private _show_camera_feed: boolean = false
+  private _cover_progress: boolean = false
   private _cover_position: "left" | "right" = "left"
   private _camera_position: "left" | "right" = "right"
 
@@ -311,7 +313,30 @@ export class PrintStatusCard extends EntityProvider {
       if (this._model == "A1 MINI") {
         this._model = "A1MINI";
       }
-      this._entityUX = this.EntityUX[this._model];
+    }
+    this._applyP1SUpgradeKit();
+    this._entityUX = this.EntityUX[this._model];
+  }
+
+  // A P1P fitted with the P1S upgrade kit is still reported as a P1P, but looks
+  // and behaves like a P1S, so show the P1S image and layout. The flag can arrive
+  // after the card first renders, so this is re-checked on every hass update.
+  private _applyP1SUpgradeKit() {
+    if (this._model != "P1P" && this._model != "P1S") {
+      return;
+    }
+    const deviceModel = this._hass.devices[this._device_id!]?.model?.toUpperCase();
+    if (deviceModel != "P1P") {
+      return;
+    }
+    const upgradeEntity = this._deviceEntities?.["p1s_upgrade_installed"];
+    const isUpgraded = upgradeEntity
+      ? this._hass.states[upgradeEntity.entity_id]?.state == "on"
+      : false;
+    const model = isUpgraded ? "P1S" : "P1P";
+    if (model != this._model) {
+      this._model = model;
+      this._entityUX = this.EntityUX[model];
     }
   }
 
@@ -347,6 +372,8 @@ export class PrintStatusCard extends EntityProvider {
     super.hass = hass;
     if (firstTime) {
       this._initializeModelAndUX()
+    } else {
+      this._applyP1SUpgradeKit();
     }
   }
 
@@ -361,6 +388,7 @@ export class PrintStatusCard extends EntityProvider {
     this._show_printer_name = !!config.show_printer_name;
     this._show_cover = !!config.show_cover;
     this._show_camera_feed = !!config.show_camera_feed;
+    this._cover_progress = !!config.cover_progress;
     this._cover_position = (config.cover_position === "right" ? "right" : "left");
     this._camera_position = (config.camera_position === "left" ? "left" : "right");
     this._device_id = config.printer;
@@ -444,6 +472,7 @@ export class PrintStatusCard extends EntityProvider {
       return html`
         <a1-screen-card
           .coverImage=${this._coverImageUrl}
+          .coverProgress=${this._cover_progress}
           .showVideoFeed=${this._default_to_camera}
           _device_id=${this._device_id}
           @video-toggled=${this._onVideoToggled}
@@ -454,6 +483,7 @@ export class PrintStatusCard extends EntityProvider {
         <a1-screen-card
           .minimal=${true}
           .coverImage=${this._coverImageUrl}
+          .coverProgress=${this._cover_progress}
           .showPrinterName=${this._show_printer_name}
           .showCover=${this._show_cover}
           .showCameraFeed=${this._show_camera_feed}

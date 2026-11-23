@@ -42,6 +42,8 @@ For questions and help, join us on [Discord](https://discord.gg/rsUHAW3DKz).
 | [AMS Graphic](#ams-graphic-card) | `custom:ha-bambulab-ams-graphic-card` | The AMS drawn with fill levels and labels |
 | [Spool](#spool-card) | `custom:ha-bambulab-spool-card` | A single spool: the external spool or one AMS slot |
 | [Print Control](#print-control-card) | `custom:ha-bambulab-print_control-card` | Speed, pause, resume, stop and skip objects |
+| [Error](#error-card) | `custom:ha-bambulab-error-card` | The printer's HMS and print errors, each with a link to its Bambu Lab wiki page |
+| [Skip Objects](#skip-objects-card) | `custom:ha-bambulab-skip_objects-card` | A single button that opens the skip objects dialog |
 
 Every option is in the card's visual editor. The YAML below is for reference.
 
@@ -82,6 +84,8 @@ custom_humidity: sensor.my_chamber_humidity
 custom_light: light.my_printer_light
 custom_power: switch.my_printer_plug
 custom_camera: camera.my_printer_camera
+# Simple and minimal styles: fill the cover image from the bottom up as layers print
+cover_progress: false
 # Minimal style only
 show_printer_name: true
 show_cover: true
@@ -96,13 +100,19 @@ One AMS unit. The active slot is highlighted and animated, and remaining
 filament shows when it's enabled in the slicer for a Bambu spool. Tap a
 spool to see its details or change its filament.
 
-**AMS 3H (H3C).** The same card shows the AMS 3H's nine spools in two rows,
-five over four. The AMS 3H has no single humidity or temperature reading, so
-the info bar shows each drying zone instead: its humidity, temperature and,
-while it's drying, the time left. Hover a zone to see which trays it holds,
-and tap a reading to open it. The AMS 3H always uses the vector style.
+**AMS 3H (H3C).** The same card lays the AMS 3H out like the unit. The back
+row has two spools beside the **dry box**, outlined with its two spools, and
+the five front spools are below. The dry box shows its temperature and
+humidity above its spools, plus the time left while it's drying, when its
+outline turns orange. The AMS 3H has no single humidity or temperature
+reading, so the info bar shows the other zone's instead. Tap a reading to
+open it. The AMS 3H always uses the vector style.
 
 ![AMS card in vector style with info bar](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-vector.png)
+
+| AMS 3H, dry box drying | AMS 3H, dry box idle |
+|---|---|
+| ![AMS 3H in the AMS card while its dry box is drying](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-ams3h-drying.png) | ![AMS 3H in the AMS card with its dry box idle](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-ams3h-idle.png) |
 
 ```yaml
 type: custom:ha-bambulab-ams-card
@@ -175,6 +185,41 @@ plate mid-print.
 ```yaml
 type: custom:ha-bambulab-print_control-card
 printer: <printer device id>
+```
+
+### Error card
+
+The printer's current errors: the print error, if there is one, then each HMS
+error, most severe first. Fatal errors show red, serious ones amber and the
+rest blue. Each HMS error links to its page on the Bambu Lab wiki.
+
+Turn off **Show the card when there are no errors** to have the card appear
+only while the printer has an error. It stays visible while you edit the
+dashboard so you can still find it.
+
+```yaml
+type: custom:ha-bambulab-error-card
+printer: <printer device id>
+title: Printer errors     # optional
+show_when_clear: true     # false hides the card while there are no errors
+show_codes: true          # show the HMS or print error code under each message
+```
+
+### Skip Objects card
+
+Just the **skip objects** button from the Print Control card, as its own
+small card. Use it to put skip objects into your own dashboard layout. It
+fits in a single grid cell, and you can restyle it with card-mod. Tap it to
+open the same skip objects dialog. The button is greyed out when skipping
+isn't possible: no print running, fewer than two objects on the plate, or
+MQTT encryption on without LAN developer mode.
+
+```yaml
+type: custom:ha-bambulab-skip_objects-card
+printer: <printer device id>
+name: Skip Objects          # optional
+icon: mdi:debug-step-over   # optional
+show_name: true             # optional, false for an icon-only button
 ```
 
 ---

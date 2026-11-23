@@ -1,5 +1,6 @@
 import * as helpers from "../../../../utils/helpers"
-import { customElement, property, state } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
+import { customElement } from "../../../../utils/custom-element";
 import { html, LitElement, nothing } from "lit";
 import styles from "./info-bar.styles";
 import { consume } from "@lit/context";
@@ -128,12 +129,22 @@ export class InfoBar extends LitElement {
     const stateObj = entity ? this.hass.states[entity.entity_id] : undefined;
     if (!stateObj || ["unavailable", "unknown", ""].includes(stateObj.state)) return nothing;
     const value = this.hass.formatEntityState(stateObj);
+    const open = () => helpers.showEntityMoreInfo(this, entity!);
     return html`<span
       class="zone-reading"
+      role="button"
+      tabindex="0"
       title="${label}: ${value}"
-      @click="${() => helpers.showEntityMoreInfo(this, entity!)}"
+      aria-label="${label}: ${value}"
+      @click=${open}
+      @keydown=${(ev: KeyboardEvent) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          open();
+        }
+      }}
     >
-      ${this._showIcons ? html`<ha-icon icon=${icon} />` : nothing}
+      ${this._showIcons ? html`<ha-icon icon=${icon} aria-hidden="true" />` : nothing}
       <span>${value}</span>
     </span>`;
   }
@@ -141,7 +152,7 @@ export class InfoBar extends LitElement {
   /* The AMS 3H has no cabinet humidity or temperature, so each drying zone shows its own, plus
      the time left while it is drying. The tooltip says which trays the zone holds. */
   #renderZones() {
-    return this._entities.zones.map((zone) => {
+    return this.#infoBarZones().map((zone) => {
       const dryingState = zone.dryingTime ? this.hass.states[zone.dryingTime.entity_id]?.state : undefined;
       const name = `Zone ${zone.zone}`;
       const trays = zone.slots.length ? ` (trays ${zone.slots.join(", ")})` : "";
@@ -156,13 +167,19 @@ export class InfoBar extends LitElement {
     });
   }
 
+  /* The zones shown here. The AMS 3H's dry box shows its own readings above its spools. */
+  #infoBarZones() {
+    const dryBoxZone = this._entities?.ams3hLayout?.dryBox?.zone?.zone;
+    return (this._entities?.zones ?? []).filter((zone) => zone.zone !== dryBoxZone);
+  }
+
   render() {
     if (!this._infoBar.active) return nothing;
 
     // If this is an AMS HT model, we need to hide the title (even if enabled) and give 100% width to the info slots
     const isAmsHtModel = this._entities?.spools?.length === 1;
 
-    if (this._entities?.zones?.length) {
+    if (this.#infoBarZones().length) {
       return html`
         <div class="extra-info">
           <div class="title zones-title">${this._infoBar.title}</div>
@@ -199,9 +216,27 @@ export class InfoBar extends LitElement {
                 </span>
               </div>`
             : nothing}
+          ${!isAmsHtModel ? this.#renderDryingTime() : nothing}
           ${this.#renderHeater()}
         </div>
       </div>
     `;
+  }
+
+  /* The time left while the AMS dries; the AMS HT shows it on its spool instead */
+  #renderDryingTime() {
+    const entity = this._entities?.dryingTime;
+    if (!entity || !(Number(this.hass.states[entity.entity_id]?.state) > 0)) return nothing;
+    const value = helpers.getFormattedTime(this.hass, entity.entity_id);
+    return html`<div
+      class="info"
+      title="Drying time left: ${value}"
+      @click="${() => helpers.showEntityMoreInfo(this, entity)}"
+    >
+      ${this._showIcons
+        ? html`<span><ha-icon icon="mdi:heat-wave" /></span>`
+        : nothing}
+      <span>${value}</span>
+    </div>`;
   }
 }

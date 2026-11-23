@@ -115,6 +115,23 @@ export default css`
     left: 71.5%;
   }
 
+  /* Matches the spool centres drawn in images/amslite.svg */
+  .slot-1-lite {
+    left: 14.43%;
+  }
+
+  .slot-2-lite {
+    left: 33.48%;
+  }
+
+  .slot-3-lite {
+    left: 52.52%;
+  }
+
+  .slot-4-lite {
+    left: 71.57%;
+  }
+
   .ams-container .spool-type {
     color: white;
     text-align: center;

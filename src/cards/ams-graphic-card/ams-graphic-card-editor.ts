@@ -1,13 +1,14 @@
 import { html, LitElement } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
+import { amsDeviceModel, variantFromModel } from "./geo";
 import memoizeOne from "memoize-one";
 
-import { AMS_3H_MODEL, AMS_MODELS, MANUFACTURER } from "../../const";
+import { AMS_MODELS, MANUFACTURER } from "../../const";
 import { AMS_GRAPHIC_CARD_EDITOR_NAME } from "./const";
 
-/* AMS Lite and AMS 3H have no body art yet, so they are filtered out of the device picker
-   rather than showing a notice once selected (the AMS card shows the AMS 3H) */
-const AMS_FILTER = AMS_MODELS.filter((m) => m !== "AMS Lite" && m !== AMS_3H_MODEL).map((model) => ({
+/* AMS-3H uses vector geometry; only AMS Lite lacks a supported view. */
+const AMS_FILTER = AMS_MODELS.filter((m) => m !== "AMS Lite").map((model) => ({
   manufacturer: MANUFACTURER,
   model,
 }));
@@ -21,7 +22,7 @@ export class AmsGraphicCardEditor extends LitElement {
     this._config = config;
   }
 
-  private _schema = memoizeOne((showTitle: boolean, showLabels: boolean): any[] => [
+  private _schema = memoizeOne((showTitle: boolean, showLabels: boolean, ams3h: boolean): any[] => [
     {
       name: "ams",
       label: "AMS",
@@ -32,12 +33,16 @@ export class AmsGraphicCardEditor extends LitElement {
       label: "Show info bar",
       selector: { boolean: {} },
     },
-    {
-      name: "show_title",
-      label: "Show title",
-      selector: { boolean: {} },
-    },
-    ...(showTitle
+    ...(!ams3h
+      ? [
+          {
+            name: "show_title",
+            label: "Show title",
+            selector: { boolean: {} },
+          },
+        ]
+      : []),
+    ...(!ams3h && showTitle
       ? [
           {
             name: "subtitle",
@@ -61,7 +66,7 @@ export class AmsGraphicCardEditor extends LitElement {
       label: "Show filament labels",
       selector: { boolean: {} },
     },
-    ...(showLabels
+    ...(!ams3h && showLabels
       ? [
           {
             name: "label_mode",
@@ -82,12 +87,42 @@ export class AmsGraphicCardEditor extends LitElement {
           },
         ]
       : []),
+    ...(ams3h
+      ? [
+          {
+            name: "active_tray_entity",
+            label: "Active tray sensor",
+            selector: { entity: { domain: "sensor" } },
+          },
+          ...([] as any[]).concat(
+            ...[1, 2].map((zone) =>
+              ["temperature", "humidity"].map((key) => ({
+                name: `zone_${zone}_${key}_entity`,
+                label: `${zone === 1 ? "Right drying zone" : "Left chamber"}: ${key}`,
+                selector: { entity: { domain: "sensor" } },
+              }))
+            )
+          ),
+          {
+            name: "ams3h_trays",
+            label: "Slots 1–9 (use an empty string for automatic matching)",
+            selector: { object: {} },
+          },
+          {
+            name: "show_empty_label",
+            label: "Show label on empty slots",
+            selector: { boolean: {} },
+          },
+        ]
+      : []),
   ]);
 
   protected render() {
     const schema = this._schema(
       this._config?.show_title !== false,
-      this._config?.show_labels !== false
+      this._config?.show_labels !== false,
+      variantFromModel(amsDeviceModel(this.hass?.devices?.[this._config?.ams], this.hass)) ===
+        "ams3h"
     );
 
     return html`

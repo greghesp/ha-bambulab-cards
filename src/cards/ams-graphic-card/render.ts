@@ -88,12 +88,33 @@ function labelsSvg(
     const pw = chipWidth(txt, fs, 26, 0.78);
     const ph = fs + 16;
     const eid = trayEntities[i] || "";
-    o += `<g class="slotlabel" data-tray-entity="${esc(eid)}">`;
+    o += `<g class="slotlabel${s.active && !s.empty ? " active" : ""}" data-tray-entity="${esc(eid)}">`;
     o += `<rect x="${Number((cx - pw / 2).toFixed(2))}" y="${Number((geo.labelY - ph / 2).toFixed(2))}" width="${Number(pw.toFixed(2))}" height="${ph}" rx="6" fill="#000000" fill-opacity="0.45"/>`;
     o += `<text x="${cx}" y="${geo.labelY}" font-size="${fs}" font-weight="500" fill="#ffffff" text-anchor="middle" dominant-baseline="central">${esc(txt)}</text>`;
     o += "</g>";
   });
   return o;
+}
+
+/* Frame around the spool that is currently feeding the printer (mirrors the primary-colour
+   border the classic AMS card draws). Drawn above the fade mask and the mechanism layers so it
+   stays fully visible. It encloses the filament label too, except on models whose spool is
+   occluded below clipY (AMS HT), where it would cross the sensor panel; there it frames the
+   spool window and the label keeps its own active border. */
+const ACTIVE_PAD = 6;
+
+function activeSvg(slots: Slot[], geo: VariantGeo): string {
+  const i = slots.findIndex((s) => s.active && !s.empty);
+  if (i < 0 || geo.centers[i] == null) return "";
+  const f = (v: number) => Number(v.toFixed(2));
+  const cx = geo.centers[i] + geo.vb[0];
+  const x = cx - geo.spW / 2 - ACTIVE_PAD;
+  const y = geo.spY - ACTIVE_PAD;
+  const bottom = geo.clipY != null ? geo.clipY : geo.labelY + (LABEL_FONT + 16) / 2 + ACTIVE_PAD;
+  return (
+    `<rect class="active-frame" x="${f(x)}" y="${f(y)}" width="${f(geo.spW + 2 * ACTIVE_PAD)}"` +
+    ` height="${f(bottom - y)}" rx="10" fill="none" stroke-width="3" style="pointer-events:none"/>`
+  );
 }
 
 /* AMS HT panel: drawn from live sensors (the digits baked into the base image were erased) */
@@ -176,7 +197,8 @@ export function renderSvg(o: RenderOpts): string {
     svg += `<image href="${esc(BRAND_IMAGES[geo.brand])}" x="0" y="0" width="${IMG_W}" height="${IMG_H}" preserveAspectRatio="none" style="pointer-events:none"/>`;
   }
 
-  /* (5) filament labels + panel */
+  /* (5) active-spool frame, filament labels + panel */
+  svg += activeSvg(slots, geo);
   if (o.showLabels) svg += labelsSvg(slots, trayEntities, geo, o.showEmptyLabel, o.labelMode);
   if (geo.lcd) svg += lcdSvg(geo, o.hum, o.temp);
 

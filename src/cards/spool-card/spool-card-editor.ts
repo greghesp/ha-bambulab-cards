@@ -1,6 +1,7 @@
 import { SPOOL_CARD_EDITOR_NAME } from "./const";
 import { MANUFACTURER, AMS_MODELS_WITH_EXTERNAL_SPOOL, AMS_3H_MODEL } from "../../const";
-import { customElement, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { LitElement, html } from "lit";
 import memoizeOne from "memoize-one";
 
