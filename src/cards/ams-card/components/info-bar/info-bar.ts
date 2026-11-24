@@ -49,7 +49,7 @@ export class InfoBar extends LitElement {
   }
 
   getHumidityColor() {
-    switch (this.hass.states[this._entities.humidity.entity_id].state) {
+    switch (this.hass.states[this._entities.humidityIndex?.entity_id]?.state) {
       case "1":
         return "#e0f7fa"; // very light blue
       case "2":

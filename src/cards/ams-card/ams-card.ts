@@ -23,6 +23,7 @@ const ENTITYLIST: string[] = [
   "ams_temp",
   "temp",             // Node-RED only
   "custom_humidity",
+  "humidity",         // Percentage; not every printer firmware reports it
   "humidity_index",
   "humidity_level",   // Node-RED only
   "tray_0",           // Node-RED only
@@ -73,6 +74,7 @@ export class AMS_CARD extends LitElement {
   @provide({ context: nodeRedContext })
   private _nodeRed: boolean = false;
 
+  private _showHumidityPercentage = true;
   private _customHumidity;
   private _customTemperature;
   @state() private _customRemaining: (string | undefined)[] = [];
@@ -121,11 +123,14 @@ export class AMS_CARD extends LitElement {
     this._showType = config.show_type ? true : false;
     this._spoolAnimReflection = (config.spool_anim_reflection == undefined) ? true : config.spool_anim_reflection;
     this._spoolAnimWiggle = (config.spool_anim_wiggle == undefined) ? true : config.spool_anim_wiggle;
+    this._showHumidityPercentage = (config.show_humidity_percentage == undefined) ? true : config.show_humidity_percentage;
     this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
     this._customTemperature =
       config.custom_temperature === "" ? nothing : config.custom_temperature;
     this._customRemaining = TRAY_NUMBERS.map((n) => config[`custom_remaining_${n}`] || undefined);
 
+    // The entity list depends on the config, so rebuild it to show a change made in the editor.
+    this._builtForDeviceId = undefined;
     if (this._hass) {
       this.hass = this._hass;
     }
@@ -176,7 +181,7 @@ export class AMS_CARD extends LitElement {
       // real. Leave them out; a custom sensor set in the card config is still shown.
       const model = this._hass.devices[this._deviceId].model.toUpperCase();
       if (model === "AMS LITE") {
-        const { humidity_index, ams_temp, ...rest } = this._entityList;
+        const { humidity, humidity_index, ams_temp, ...rest } = this._entityList;
         this._entityList = rest;
       }
 
@@ -187,7 +192,9 @@ export class AMS_CARD extends LitElement {
           this._entityList["ams_temp"] = value; // Replace normal temp sensor, if present.
         }
         if (value.entity_id === this._customHumidity) {
-          this._entityList["humidity_index"] = value; // Replace normal humidity_index sensor.
+          // Replace both normal humidity sensors.
+          this._entityList["humidity_index"] = value;
+          this._entityList["humidity"] = value;
         }
       }
 
@@ -198,7 +205,11 @@ export class AMS_CARD extends LitElement {
 
       // Convert data to form rest of the cards are expecting.
       this._entities = {
-        humidity: this._entityList["humidity_index"],
+        humidity:
+          (this._showHumidityPercentage && this._entityList["humidity"]) ||
+          this._entityList["humidity_index"],
+        // Sets the humidity icon's colour, also while the percentage is shown.
+        humidityIndex: this._entityList["humidity_index"],
         temperature: this._entityList["ams_temp"],
         spools: this._trays.map((t) => t.spool),
         zones: [],
