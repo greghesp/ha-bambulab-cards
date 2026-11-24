@@ -104,6 +104,9 @@ export class PrintStatusCard extends EntityProvider {
     print_progress: { x: 85, y: 81,   width: 25,  height: 0 },
     remaining_time: { x: 85, y: 85,   width: 100, height: 0 },
     stage:          { x: 46, y: 92.5, width: 300, height: 0 },
+    end_time:       { x: 85, y: 94.5, width: 100, height: 0 },
+    second_light:   { x: 62, y: 30, width: 20, height: 0 },
+    power_usage:    { x: 85, y: 70, width: 25, height: 0 },
   };
 
   private A1MiniEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -115,6 +118,9 @@ export class PrintStatusCard extends EntityProvider {
     print_progress: { x: 74, y: 89, width: 25,  height: 0 },
     remaining_time: { x: 74, y: 93, width: 100, height: 0 },
     stage:          { x: 41, y: 93, width: 300, height: 0 },
+    end_time:       { x: 74, y: 79, width: 100, height: 0 },
+    second_light:   { x: 88, y: 40, width: 20, height: 0 },
+    power_usage:    { x: 74, y: 69, width: 25, height: 0 },
   };
 
   private A2LEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -126,6 +132,9 @@ export class PrintStatusCard extends EntityProvider {
     print_progress: { x: 85, y: 81,   width: 25,  height: 0 },
     remaining_time: { x: 85, y: 85,   width: 100, height: 0 },
     stage:          { x: 46, y: 92.5, width: 300, height: 0 },
+    end_time:       { x: 85, y: 94.5, width: 100, height: 0 },
+    second_light:   { x: 62, y: 30, width: 20, height: 0 },
+    power_usage:    { x: 85, y: 70, width: 25, height: 0 },
   };
 
   private H2CEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -142,6 +151,9 @@ export class PrintStatusCard extends EntityProvider {
     bed_temp:       { x: 50,   y: 88, width: 25,  height: 0, click_target: "target_bed_temperature" },
     stage:          { x: 50,   y: 94, width: 300, height: 0 },
     door_open:      { x: 86,   y: 60, width: 20,  height: 0 },
+    end_time:       { x: 57, y: 9, width: 100, height: 0 },
+    second_light:   { x: 13, y: 35, width: 20, height: 0 },
+    power_usage:    { x: 13, y: 85, width: 25, height: 0 },
   };
 
   private H2DEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -158,6 +170,9 @@ export class PrintStatusCard extends EntityProvider {
     bed_temp:       { x: 50,   y: 88, width: 25,  height: 0, click_target: "target_bed_temperature" },
     stage:          { x: 50,   y: 94, width: 300, height: 0 },
     door_open:      { x: 86,   y: 60, width: 20,  height: 0 },
+    end_time:       { x: 57, y: 9, width: 100, height: 0 },
+    second_light:   { x: 13, y: 35, width: 20, height: 0 },
+    power_usage:    { x: 13, y: 85, width: 25, height: 0 },
   };
 
   private H2SEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -174,6 +189,9 @@ export class PrintStatusCard extends EntityProvider {
     bed_temp:       { x: 50,   y: 88, width: 25,  height: 0, click_target: "target_bed_temperature" },
     stage:          { x: 50,   y: 94, width: 300, height: 0 },
     door_open:      { x: 86,   y: 60, width: 20,  height: 0 },
+    end_time:       { x: 57, y: 9, width: 100, height: 0 },
+    second_light:   { x: 13, y: 35, width: 20, height: 0 },
+    power_usage:    { x: 13, y: 85, width: 25, height: 0 },
   };
 
   private H3CEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -190,6 +208,9 @@ export class PrintStatusCard extends EntityProvider {
     bed_temp:       { x: 50,   y: 83, width: 25,  height: 0, click_target: "target_bed_temperature" },
     stage:          { x: 50,   y: 94, width: 300, height: 0 },
     door_open:      { x: 84,   y: 80, width: 20,  height: 0 },
+    end_time:       { x: 57, y: 47, width: 100, height: 0 },
+    second_light:   { x: 17, y: 61, width: 20, height: 0 },
+    power_usage:    { x: 17, y: 80, width: 25, height: 0 },
   };
 
   private X2DEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -206,6 +227,9 @@ export class PrintStatusCard extends EntityProvider {
     bed_temp:       { x: 50,   y: 88, width: 25,  height: 0, click_target: "target_bed_temperature" },
     stage:          { x: 50,   y: 94, width: 300, height: 0 },
     door_open:      { x: 86,   y: 60, width: 20,  height: 0 },
+    end_time:       { x: 57, y: 9, width: 100, height: 0 },
+    second_light:   { x: 13, y: 35, width: 20, height: 0 },
+    power_usage:    { x: 13, y: 85, width: 25, height: 0 },
   };
 
   private P1PEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -220,6 +244,9 @@ export class PrintStatusCard extends EntityProvider {
     cover_image:    { x: 50, y: 60,  width: 50,  height: 50 },
     bed_temp:       { x: 50, y: 86,  width: 25,  height: 0, click_target: "target_bed_temperature" },
     stage:          { x: 50, y: 94,  width: 300, height: 0 },
+    end_time:       { x: 59, y: 14.5, width: 100, height: 0 },
+    second_light:   { x: 12, y: 31, width: 20, height: 0 },
+    power_usage:    { x: 12, y: 85, width: 25, height: 0 },
   };
 
   private P1SEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -235,6 +262,9 @@ export class PrintStatusCard extends EntityProvider {
     cover_image:    { x: 50, y: 60,  width: 50,  height: 50 },
     bed_temp:       { x: 50, y: 88,  width: 25,  height: 0, click_target: "target_bed_temperature" },
     stage:          { x: 50, y: 95,  width: 300, height: 0 },
+    end_time:       { x: 59, y: 14.5, width: 100, height: 0 },
+    second_light:   { x: 13, y: 33, width: 20, height: 0 },
+    power_usage:    { x: 13, y: 85, width: 25, height: 0 },
   };
 
   private P2SEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -251,6 +281,9 @@ export class PrintStatusCard extends EntityProvider {
     bed_temp:          { x: 50,   y: 88, width: 25,  height: 0, click_target: "target_bed_temperature" },
     stage:             { x: 50,   y: 95, width: 300, height: 0 },
     door_open:         { x: 86,   y: 60, width: 20,  height: 0 },
+    end_time:       { x: 57, y: 11, width: 100, height: 0 },
+    second_light:   { x: 13, y: 35, width: 20, height: 0 },
+    power_usage:    { x: 13, y: 85, width: 25, height: 0 },
   };
 
   private X1CEntityUX: { [key: string]: EntityUX | undefined } = {
@@ -267,6 +300,9 @@ export class PrintStatusCard extends EntityProvider {
     bed_temp:          { x: 50,   y: 88, width: 25,  height: 0, click_target: "target_bed_temperature" },
     stage:             { x: 50,   y: 95, width: 300, height: 0 },
     door_open:         { x: 86,   y: 60, width: 20,  height: 0 },
+    end_time:       { x: 57, y: 11, width: 100, height: 0 },
+    second_light:   { x: 13, y: 35, width: 20, height: 0 },
+    power_usage:    { x: 13, y: 85, width: 25, height: 0 },
   };
 
   private EntityUX: { [key: string]: any } = {
@@ -293,6 +329,8 @@ export class PrintStatusCard extends EntityProvider {
   private _show_camera_feed: boolean = false
   private _cover_progress: boolean = false
   private _hide_controls: boolean = false
+  private _show_end_time: boolean = false
+  private _show_percentage: boolean = false
   private _cover_position: "left" | "right" = "left"
   private _camera_position: "left" | "right" = "right"
 
@@ -390,6 +428,8 @@ export class PrintStatusCard extends EntityProvider {
     this._show_camera_feed = !!config.show_camera_feed;
     this._cover_progress = !!config.cover_progress;
     this._hide_controls = !!config.hide_controls;
+    this._show_end_time = !!config.show_end_time;
+    this._show_percentage = !!config.show_percentage;
     this._cover_position = (config.cover_position === "right" ? "right" : "left");
     this._camera_position = (config.camera_position === "left" ? "left" : "right");
     this._device_id = config.printer;
@@ -398,6 +438,8 @@ export class PrintStatusCard extends EntityProvider {
       humidity: config.custom_humidity,
       power: config.custom_power,
       chamber_light: config.custom_light,
+      second_light: config.custom_light_2,
+      power_usage: config.custom_power_usage,
       camera: config.custom_camera
     };
   }
@@ -476,6 +518,8 @@ export class PrintStatusCard extends EntityProvider {
           .coverProgress=${this._cover_progress}
           .showVideoFeed=${this._default_to_camera}
           .hideControls=${this._hide_controls}
+          .showEndTime=${this._show_end_time}
+          .showPercentage=${this._show_percentage}
           _device_id=${this._device_id}
           @video-toggled=${this._onVideoToggled}
         ></a1-screen-card>
@@ -489,6 +533,8 @@ export class PrintStatusCard extends EntityProvider {
           .showPrinterName=${this._show_printer_name}
           .showCover=${this._show_cover}
           .showCameraFeed=${this._show_camera_feed}
+          .showEndTime=${this._show_end_time}
+          .showPercentage=${this._show_percentage}
           .showCoverPosition=${this._cover_position}
           .showCameraPosition=${this._camera_position}
           _device_id=${this._device_id}
@@ -629,6 +675,19 @@ export class PrintStatusCard extends EntityProvider {
             </ha-icon>`;
           }
 
+        case "second_light":
+          if (text == "on") {
+            style = `${style} color: rgb(255,165,0); background-color: rgba(255,165,0,0.2); box-shadow: 0 0 24px rgba(255,165,0,0.5);`;
+          }
+          return html`<ha-icon
+            id="${key}"
+            class="entity"
+            icon="mdi:lamp"
+            title="${helpers.getEntityAttribute(this._hass, this._deviceEntities[key].entity_id, "friendly_name") ?? "Second light"}"
+            @click="${() => helpers.toggleLight(this._hass, this._deviceEntities[key])}"
+            style="${style}"
+          ></ha-icon>`;
+
         case "cover_image":
           style = `left:${left}px; top:${top}px; width:auto; height:${e.height}%;`;
           if (
@@ -693,8 +752,34 @@ export class PrintStatusCard extends EntityProvider {
           return html` <div id="${key}" class="entity" style="${style}">${text}%</div>`;
 
         case "remaining_time":
-          return html` <div id="${key}" class="entity" style="${style}">
+          return html` <div id="${key}" class="entity" style="${style} white-space: nowrap;">
             ${helpers.getFormattedTime(this._hass, this._deviceEntities['remaining_time'].entity_id)}
+          </div>`;
+
+        case "end_time":
+          const endTime = this._show_end_time
+            ? helpers.getFormattedEndTime(this._hass, this._deviceEntities)
+            : "";
+          if (!endTime) {
+            return html``;
+          }
+          return html` <div
+            id="${key}"
+            class="entity"
+            style="${style} white-space: nowrap;"
+            @click="${() => this._clickEntity(clickTarget)}"
+          >
+            ${endTime}
+          </div>`;
+
+        case "power_usage":
+          return html` <div
+            id="${key}"
+            class="entity"
+            style="${style}"
+            @click="${() => this._clickEntity(clickTarget)}"
+          >
+            ${helpers.getFormattedPower(this._hass, this._deviceEntities[key])}
           </div>`;
 
         case "door_open":

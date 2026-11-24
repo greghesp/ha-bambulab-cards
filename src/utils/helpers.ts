@@ -302,7 +302,9 @@ export function toggleLight(hass, entity) {
   };
   const lightOn = getEntityState(hass, entity) == "on";
   const service = lightOn ? "turn_off" : "turn_on";
-  hass.callService("light", service, data);
+  // A custom light can be a switch, such as a lamp on a smart plug.
+  const domain = entity.entity_id.split(".")[0];
+  hass.callService(domain, service, data);
 }
 
 export function clickButton(hass: any, entity: Entity) {
@@ -445,6 +447,54 @@ export function getFormattedTime(hass, entity_id) {
         seconds: seconds,
       });
     }
+}
+
+// When the print will end, as a clock time in the user's format. Adds the weekday if that's not
+// today, or the date if it's six or more days away. Returns "" when it's not known or nothing is
+// printing: the end time isn't updated while a print is paused and is left over once it's done.
+export function getFormattedEndTime(hass, deviceEntities): string {
+  if (hass.states[deviceEntities.print_status?.entity_id]?.state !== "running") {
+    return "";
+  }
+  const end = new Date(hass.states[deviceEntities.end_time?.entity_id]?.state);
+  if (isNaN(end.getTime())) {
+    return "";
+  }
+
+  // Follow the time format and time zone set in the user's Home Assistant profile
+  const timeFormat = hass.locale?.time_format;
+  const language = timeFormat === "system" ? undefined : hass.locale?.language;
+  const options: Intl.DateTimeFormatOptions & { hourCycle?: string } = {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: hass.locale?.time_zone === "server" ? hass.config?.time_zone : undefined,
+  };
+  if (timeFormat === "12" || timeFormat === "24") {
+    options.hourCycle = timeFormat === "12" ? "h12" : "h23";
+  }
+
+  const now = new Date();
+  const dayOf = (date: Date) => date.toLocaleDateString("en-CA", { timeZone: options.timeZone });
+  if (dayOf(end) !== dayOf(now)) {
+    if (Math.abs(end.getTime() - now.getTime()) < 6 * 24 * 60 * 60 * 1000) {
+      options.weekday = "short";
+    } else {
+      options.month = "short";
+      options.day = "numeric";
+    }
+  }
+  return new Intl.DateTimeFormat(language, options).format(end);
+}
+
+// A power sensor in whole watts
+export function getFormattedPower(hass, entity: Entity): string {
+  const stateObj = hass.states[entity?.entity_id];
+  const value = parseFloat(stateObj?.state);
+  if (isNaN(value)) {
+    return "--";
+  }
+  const isKilowatts = stateObj.attributes.unit_of_measurement === "kW";
+  return `${Math.round(isKilowatts ? value * 1000 : value)}W`;
 }
 
 // Helper to check if two models are compatible (P1P, P1S, X1C, X1E are equivalent)

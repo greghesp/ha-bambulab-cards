@@ -55,6 +55,8 @@ export class A1ScreenCard extends LitElement {
   @property({ type: Boolean }) public showCameraFeed = false;
   @property({ type: Boolean }) public coverProgress = false;
   @property({ type: Boolean }) public hideControls = false;
+  @property({ type: Boolean }) public showEndTime = false;
+  @property({ type: Boolean }) public showPercentage = false;
   @property() public showCoverPosition: "left" | "right" = "left";
   @property() public showCameraPosition: "left" | "right" = "right";
   @state() private processedImage: string | null = null;
@@ -461,6 +463,24 @@ export class A1ScreenCard extends LitElement {
     return "var(--accent-color)";
   }
 
+  // Print progress for the status text, or "" when the option is off or nothing is printing.
+  #getPercentageText(): string {
+    const stateOf = (key: string) => this._hass.states[this._deviceEntities?.[key]?.entity_id]?.state;
+    const progress = parseFloat(stateOf("print_progress"));
+    if (
+      !this.showPercentage ||
+      isNaN(progress) ||
+      !["running", "pause", "paused", "pausing"].includes(stateOf("print_status"))
+    ) {
+      return "";
+    }
+    return `${progress}%`;
+  }
+
+  #getStatusText(): string {
+    return [this.#getPercentageText(), this.#getPrintStatusText()].filter(Boolean).join(" · ");
+  }
+
   #getPrintStatusText() {
     const printStatusRef = this._deviceEntities?.["print_status"];
     const stageRef = this._deviceEntities?.["stage"];
@@ -498,7 +518,9 @@ export class A1ScreenCard extends LitElement {
     } else if (!this._hass.states[this._deviceEntities['remaining_time']?.entity_id]) {
       return nothing;
     } else {
-      return `-${helpers.getFormattedTime(this._hass, this._deviceEntities['remaining_time'].entity_id)}`;
+      const remaining = `-${helpers.getFormattedTime(this._hass, this._deviceEntities['remaining_time'].entity_id)}`;
+      const endTime = this.showEndTime ? helpers.getFormattedEndTime(this._hass, this._deviceEntities) : "";
+      return endTime ? `${remaining} (${endTime})` : remaining;
     }
   }
 
@@ -759,7 +781,7 @@ export class A1ScreenCard extends LitElement {
                   ></div>
                 </div>
                 <div class="ha-bambulab-ssc-status-bar minimal">
-                  <div class="ha-bambulab-ssc-status-text">${this.#getPrintStatusText()}</div>
+                  <div class="ha-bambulab-ssc-status-text">${this.#getStatusText()}</div>
                   <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
                 </div>
               </div>
@@ -921,7 +943,7 @@ export class A1ScreenCard extends LitElement {
                 ></div>
               </div>
               <div class="ha-bambulab-ssc-status-bar">
-                <div class="ha-bambulab-ssc-status-text">${this.#getPrintStatusText()}</div>
+                <div class="ha-bambulab-ssc-status-text">${this.#getStatusText()}</div>
                 <div class="ha-bambulab-ssc-status-time">${this.#getRemainingTime()}</div>
               </div>
             </div>
@@ -936,6 +958,7 @@ export class A1ScreenCard extends LitElement {
 
   #renderMainControlsColumn() {
     const hasLight = !!this._deviceEntities["chamber_light"]?.entity_id;
+    const secondLight = this._deviceEntities["second_light"];
     return html`
       <div class="ha-bambulab-ssc-control-buttons">
         ${hasLight ? html`
@@ -946,6 +969,14 @@ export class A1ScreenCard extends LitElement {
         ` : html`
           <button class="ha-bambulab-ssc-control-button invisible-placeholder" aria-hidden="true" tabindex="-1"></button>
         `}
+        ${secondLight ? html`
+          <button class="ha-bambulab-ssc-control-button ${this.#state("second_light")}"
+            title="${this.#attribute("second_light", "friendly_name") ?? "Second light"}"
+            ?disabled="${helpers.isEntityUnavailable(this._hass, secondLight)}"
+            @click="${() => helpers.toggleLight(this._hass, secondLight)}">
+            <ha-icon icon="mdi:lamp"></ha-icon>
+          </button>
+        ` : nothing}
         <button class="ha-bambulab-ssc-control-button" @click="${this.#showFileCache}" title="Show print history/timelapse">
           <ha-icon icon="mdi:list-box-outline"></ha-icon>
         </button>
@@ -1067,9 +1098,10 @@ export class A1ScreenCard extends LitElement {
     if (this._deviceEntities["humidity"]) count++;
     if (this._deviceEntities["chamber_fan"] || this._deviceEntities["chamber_fan_speed"]) count++;
     count++; // cooling fan always present
-    const placeholders = Array.from({ length: 4 - count });
+    if (this._deviceEntities["power_usage"]) count++;
+    const placeholders = Array.from({ length: Math.max(0, 4 - count) });
     return html`
-      <div class="ha-bambulab-ssc-sensors">
+      <div class="ha-bambulab-ssc-sensors ${count > 4 ? "compact" : ""}">
         ${this._deviceEntities["chamber_temp"] ? html`
           <div class="sensor" @click="${() => this.#clickEntity("target_chamber_temperature", false, "chamber_temp")}">
             ${this._deviceEntities["target_chamber_temp"] ? html`
@@ -1121,6 +1153,12 @@ export class A1ScreenCard extends LitElement {
           </div>
           <span class="sensor-value">${this.#state("cooling_fan_speed") ?? '--'}%</span>
         </div>
+        ${this._deviceEntities["power_usage"] ? html`
+          <div class="sensor power-usage" @click="${() => this.#clickEntity("power_usage", true)}">
+            <ha-icon icon="mdi:flash"></ha-icon>
+            <span class="sensor-value">${helpers.getFormattedPower(this._hass, this._deviceEntities["power_usage"])}</span>
+          </div>
+        ` : nothing}
         ${placeholders.map(() => html`
           <div class="sensor invisible-placeholder" aria-hidden="true">
             <div class="twoicons">

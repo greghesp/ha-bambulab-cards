@@ -74,6 +74,13 @@ custom_humidity: sensor.my_chamber_humidity
 custom_light: light.my_printer_light
 custom_power: switch.my_printer_plug
 custom_camera: camera.my_printer_camera
+# Graphic and simple styles: a second light or switch, and your own power sensor (such as a smart plug's)
+custom_light_2: light.my_room_light
+custom_power_usage: sensor.my_printer_plug_power
+# All styles: show when the print will end
+show_end_time: false
+# Simple and minimal styles: show the progress percentage
+show_percentage: false
 # Simple and minimal styles: fill the cover image from the bottom up as layers print
 cover_progress: false
 # Simple style only: hide the buttons and make the card read-only

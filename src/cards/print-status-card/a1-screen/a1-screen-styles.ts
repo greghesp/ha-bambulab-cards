@@ -365,6 +365,11 @@ export default css`
     border-bottom: 1px solid var(--divider-color);
   }
 
+  /* Five sensors instead of four */
+  .ha-bambulab-ssc-sensors.compact .sensor {
+    gap: 0;
+  }
+
   .sensor:last-child {
     border-bottom: none;
   }
