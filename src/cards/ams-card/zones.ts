@@ -1,8 +1,8 @@
 /*
- * AMS card — the AMS 3H's drying zones
+ * AMS card — the zones of the AMS 3H and AMS 3P
  *
- * The AMS 3H has no cabinet-wide humidity or temperature. Each of its drying zones reports its
- * own, plus the remaining drying time, and their sensors carry `zone` (1-based) and `slots` (the
+ * They have no cabinet-wide humidity or temperature. Each of their zones reports its
+ * own, plus the AMS 3H's remaining drying time, and the sensors carry `zone` (1-based) and `slots` (the
  * 1-based tray numbers in the zone) attributes. They are found by the integration's
  * translation_key, never by entity id, which follows the Home Assistant language.
  */
@@ -88,9 +88,9 @@ export function findDryBoxZone(zones: AmsZone[]): AmsZone | undefined {
     : undefined;
 }
 
-export interface Ams3hLayout<T> {
+export interface RackAmsLayout<T> {
   back: T[];
-  dryBox: { zone: AmsZone; spools: T[] };
+  dryBox?: { zone: AmsZone; spools: T[] };
   front: T[];
 }
 
@@ -102,12 +102,20 @@ export interface Ams3hLayout<T> {
 export function layoutAms3h<T>(
   trays: { tray: number; spool: T }[],
   dryBox: AmsZone
-): Ams3hLayout<T> {
+): RackAmsLayout<T> {
   const inBox = trays.filter((t) => dryBox.slots.includes(t.tray));
   const rest = trays.filter((t) => !dryBox.slots.includes(t.tray));
   return {
     back: rest.filter((t) => t.tray % 2 === 0).map((t) => t.spool),
     dryBox: { zone: dryBox, spools: inBox.map((t) => t.spool) },
     front: rest.filter((t) => t.tray % 2 === 1).map((t) => t.spool),
+  };
+}
+
+/** Splits trays into the AMS 3P rows: trays 2, 4 and 6 in back and 1, 3, 5 and 7 in front. */
+export function layoutAms3p<T>(trays: { tray: number; spool: T }[]): RackAmsLayout<T> {
+  return {
+    back: trays.filter((t) => t.tray % 2 === 0).map((t) => t.spool),
+    front: trays.filter((t) => t.tray % 2 === 1).map((t) => t.spool),
   };
 }

@@ -36,8 +36,9 @@ export default css`
     row-gap: 8px;
   }
 
-  /* AMS 3H: back row with the dry box, then the front row (spools sized as five per row) */
-  .ams3h-layout {
+  /* AMS 3H: back row with the dry box, then the front row (spools sized as five per row).
+     AMS 3P: back row of three, then the front row of four. */
+  .rack-ams-layout {
     width: 100%;
     /* Keep the full front row off the card's edges, as the four-spool layout does */
     box-sizing: border-box;
@@ -48,7 +49,7 @@ export default css`
     gap: 8px;
   }
 
-  .ams3h-row {
+  .rack-ams-row {
     display: flex;
     justify-content: center;
     align-items: flex-end;
@@ -59,6 +60,12 @@ export default css`
     width: calc(20% - 4px);
     min-width: calc(20% - 4px);
     max-width: calc(20% - 4px);
+  }
+
+  .ha-bambulab-spool.ams3p {
+    width: calc(25% - 4px);
+    min-width: calc(25% - 4px);
+    max-width: calc(25% - 4px);
   }
 
   .dry-box {

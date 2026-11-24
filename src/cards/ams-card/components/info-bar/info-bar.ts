@@ -140,7 +140,7 @@ export class InfoBar extends LitElement {
 
   /* The zones shown here. The AMS 3H's dry box shows its own readings above its spools. */
   #infoBarZones() {
-    const dryBoxZone = this._entities?.ams3hLayout?.dryBox?.zone?.zone;
+    const dryBoxZone = this._entities?.rackAmsLayout?.dryBox?.zone?.zone;
     return (this._entities?.zones ?? []).filter((zone) => zone.zone !== dryBoxZone);
   }
 

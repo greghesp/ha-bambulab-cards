@@ -5,12 +5,12 @@ import { html, LitElement, nothing } from "lit";
 import { provide } from "@lit/context";
 
 import { registerCustomCard } from "../../utils/custom-cards";
-import { INTEGRATION_DOMAIN, MANUFACTURER, AMS_MODELS, AMS_3H_MODEL } from "../../const";
+import { INTEGRATION_DOMAIN, MANUFACTURER, AMS_MODELS, AMS_3P_MODEL, RACK_AMS_TRAYS } from "../../const";
 import { AMS_CARD_EDITOR_NAME, AMS_CARD_NAME } from "./const";
 import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
-import { findAmsZones, findDryBoxZone, layoutAms3h } from "./zones";
+import { AmsZone, findAmsZones, findDryBoxZone, layoutAms3h, layoutAms3p } from "./zones";
 import { entitiesContext, hassContext, showInfoBarContext, nodeRedContext } from "../../utils/context";
 
 registerCustomCard({
@@ -30,7 +30,7 @@ const ENTITYLIST: string[] = [
   "tray_2",
   "tray_3",
   "tray_4",
-  "tray_5",           // AMS 3H only, as are trays 6-9
+  "tray_5",           // AMS 3H and AMS 3P only, as are trays 6-9
   "tray_6",
   "tray_7",
   "tray_8",
@@ -83,14 +83,15 @@ export class AMS_CARD extends LitElement {
     return this._hass?.devices?.[this._deviceId];
   }
 
-  private _isAms3h(): boolean {
-    return this._device()?.model === AMS_3H_MODEL;
+  /* The AMS 3H or AMS 3P, which are laid out like the unit */
+  private _isRackAms(): boolean {
+    return this._device()?.model in RACK_AMS_TRAYS;
   }
 
   public getLayoutOptions() {
-    // The AMS 3H shows its nine spools in two rows (taller with the filament names under them)
-    // plus the dry box's readings, and has no graphic style
-    var rows = this._isAms3h() ? (this._showType ? 7 : 5) : (this._style === "graphic") ? 4 : 3;
+    // The AMS 3H and AMS 3P show their spools in two rows (taller with the filament names under
+    // them), plus the AMS 3H's dry box readings, and have no graphic style
+    var rows = this._isRackAms() ? (this._showType ? 7 : 5) : (this._style === "graphic") ? 4 : 3;
     if (this._showInfoBar.active) {
       rows++;
     }
@@ -202,32 +203,33 @@ export class AMS_CARD extends LitElement {
         temperature: this._entityList["ams_temp"],
         spools: this._trays.map((t) => t.spool),
         zones: [],
-        dryingTime: this._isAms3h() ? undefined : this._entityList["remaining_drying_time"],
+        dryingTime: this._isRackAms() ? undefined : this._entityList["remaining_drying_time"],
         type: device.model?.toUpperCase() ?? "",
       };
     }
 
-    if (this._isAms3h()) {
-      this.#updateAms3hZones(hass);
+    if (this._isRackAms()) {
+      this.#updateRackAmsZones(hass);
     }
   }
 
-  /* The AMS 3H's drying zones stand in for the cabinet humidity and temperature, and the dry box
+  /* The zones stand in for the cabinet humidity and temperature, and the AMS 3H's dry box
      (the smaller zone) is drawn with its spools. The zones' trays come from the printer and can
      change, or be missing while it's offline, so they're re-read on every update and the layout
      is rebuilt only when they change. */
-  #updateAms3hZones(hass) {
+  #updateRackAmsZones(hass) {
     const zones = findAmsZones(hass, this._deviceId);
     const key = JSON.stringify(zones.map((z) => [z.zone, z.slots, z.humidity?.entity_id, z.temperature?.entity_id, z.dryingTime?.entity_id]));
     if (key === this._zonesKey) return;
     this._zonesKey = key;
+    this._entities = { ...this._entities, zones, rackAmsLayout: this.#rackAmsLayout(zones) };
+  }
+
+  /* The back row, the AMS 3H's dry box and the front row, laid out like the unit */
+  #rackAmsLayout(zones: AmsZone[]) {
+    if (this._device()?.model === AMS_3P_MODEL) return layoutAms3p(this._trays);
     const dryBox = findDryBoxZone(zones);
-    this._entities = {
-      ...this._entities,
-      zones,
-      // AMS 3H: the back row, the dry box and the front row, laid out like the unit
-      ams3hLayout: dryBox ? layoutAms3h(this._trays, dryBox) : undefined,
-    };
+    return dryBox ? layoutAms3h(this._trays, dryBox) : undefined;
   }
 
   render() {
@@ -239,7 +241,7 @@ export class AMS_CARD extends LitElement {
       `;
     }
 
-    if (this._style == "graphic" && !this._isAms3h()) {
+    if (this._style == "graphic" && !this._isRackAms()) {
       return html` <graphic-ams-card /> `;
     } else {
       // Custom remaining sensors are configured per tray; key them by the tray's entity.

@@ -60,32 +60,40 @@ export class VectorAmsCard extends LitElement {
     </span>`;
   }
 
-  /* AMS 3H: the back row of two spools beside the dry box, whose drying time left, temperature
-     and humidity sit above its two spools, then the front row of five */
-  #renderAms3h(layout) {
-    const zone = layout.dryBox.zone;
+  /* The AMS 3H's dry box, whose drying time left, temperature and humidity sit above its two
+     spools */
+  #renderDryBox(dryBox, spoolClass: string) {
+    const zone = dryBox.zone;
     const drying = Number(this.hass?.states?.[zone.dryingTime?.entity_id]?.state) > 0;
-    const spoolClass = "ha-bambulab-spool ams3h";
     return html`
-      <div class="ams3h-layout">
-        <div class="ams3h-row back">
-          ${layout.back.map((spool) => this.#renderSpool(spool, spoolClass))}
-          <div class="dry-box ${drying ? "drying" : ""}" title="Dry box (zone ${zone.zone})">
-            <div class="dry-box-head">
-              ${drying
-                ? this.#renderDryBoxReading(zone.dryingTime, "mdi:heat-wave", "Drying time left")
-                : html`<span class="dry-box-name">Dry box</span>`}
-              <span class="dry-box-readings">
-                ${this.#renderDryBoxReading(zone.temperature, "mdi:thermometer", "Dry box temperature")}
-                ${this.#renderDryBoxReading(zone.humidity, "mdi:water", "Dry box humidity")}
-              </span>
-            </div>
-            <div class="dry-box-spools">
-              ${layout.dryBox.spools.map((spool) => this.#renderSpool(spool, spoolClass))}
-            </div>
-          </div>
+      <div class="dry-box ${drying ? "drying" : ""}" title="Dry box (zone ${zone.zone})">
+        <div class="dry-box-head">
+          ${drying
+            ? this.#renderDryBoxReading(zone.dryingTime, "mdi:heat-wave", "Drying time left")
+            : html`<span class="dry-box-name">Dry box</span>`}
+          <span class="dry-box-readings">
+            ${this.#renderDryBoxReading(zone.temperature, "mdi:thermometer", "Dry box temperature")}
+            ${this.#renderDryBoxReading(zone.humidity, "mdi:water", "Dry box humidity")}
+          </span>
         </div>
-        <div class="ams3h-row front">
+        <div class="dry-box-spools">
+          ${dryBox.spools.map((spool) => this.#renderSpool(spool, spoolClass))}
+        </div>
+      </div>
+    `;
+  }
+
+  /* AMS 3H: the back row of two spools beside the dry box, then the front row of five.
+     AMS 3P: three spools in back and four in front. */
+  #renderRackAms(layout) {
+    const spoolClass = `ha-bambulab-spool ${layout.dryBox ? "ams3h" : "ams3p"}`;
+    return html`
+      <div class="rack-ams-layout">
+        <div class="rack-ams-row back">
+          ${layout.back.map((spool) => this.#renderSpool(spool, spoolClass))}
+          ${layout.dryBox ? this.#renderDryBox(layout.dryBox, spoolClass) : nothing}
+        </div>
+        <div class="rack-ams-row front">
           ${layout.front.map((spool) => this.#renderSpool(spool, spoolClass))}
         </div>
       </div>
@@ -93,12 +101,12 @@ export class VectorAmsCard extends LitElement {
   }
 
   render() {
-    if (this._entities?.ams3hLayout) {
+    if (this._entities?.rackAmsLayout) {
       return html`
         <ha-card class="ha-bambulab-vector-ams-card">
           <div class="v-wrapper">
             <info-bar></info-bar>
-            <div class="v-ams-container">${this.#renderAms3h(this._entities.ams3hLayout)}</div>
+            <div class="v-ams-container">${this.#renderRackAms(this._entities.rackAmsLayout)}</div>
           </div>
         </ha-card>
       `;
