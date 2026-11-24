@@ -76,6 +76,11 @@ export class PrintControlCardEditor extends LitElement {
         label: "Custom camera",
         selector: { entity: { domain: "camera" } },
       });
+      schema.push({
+        name: "hide_controls",
+        label: "Hide controls",
+        selector: { boolean: true },
+      });
     }
 
     if (this._config?.style === "minimal") {

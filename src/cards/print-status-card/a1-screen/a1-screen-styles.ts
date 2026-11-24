@@ -716,7 +716,8 @@ export default css`
     pointer-events: none;
   }
 
-  .video-toggle-button {
+  .video-toggle-button,
+  .sensor-toggle-button {
     position: absolute;
     top: 1px;
     left: 1px;
@@ -732,7 +733,13 @@ export default css`
     transition: background 0.2s;
   }
 
-  .video-toggle-button ha-icon {
+  .sensor-toggle-button {
+    left: auto;
+    right: 1px;
+  }
+
+  .video-toggle-button ha-icon,
+  .sensor-toggle-button ha-icon {
     --mdc-icon-size: 22px;
     filter:
       drop-shadow(0 0 0.5px #000)
