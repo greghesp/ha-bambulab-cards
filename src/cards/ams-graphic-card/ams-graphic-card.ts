@@ -356,9 +356,6 @@ export class AmsGraphicCard extends LitElement {
       }
       (p as any).hass = this._hass;
       (p as any).entity_id = entityId;
-      // The popup only shows the filament editor and the Load / Unload buttons when this is
-      // true; the AMS card's spools default it to true, so match them.
-      (p as any).controlBlocked = true;
       if ((p as any).is_bambu_lab === undefined) (p as any).is_bambu_lab = true;
       // A popup created just now has not rendered its click target yet
       await (p as any).updateComplete;

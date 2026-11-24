@@ -10,6 +10,7 @@ import {
   getEmptyTrayLabel,
   getFilamentData,
   getTrayText,
+  isTrayMqttEncryptionEnabled,
   setFilament,
   refreshRFID,
   loadFilament,
@@ -40,7 +41,7 @@ interface FilamentData {
 @customElement("ams-popup")
 export class AMSPopup extends LitElement {
   @property({ type: String }) entity_id;
-  @property({ type: Boolean }) controlBlocked;
+  @property({ type: Boolean }) hideControls: boolean = false;
 
   @consume({ context: hassContext, subscribe: true })
   private hass;
@@ -146,6 +147,16 @@ export class AMSPopup extends LitElement {
     const typeMatches = this.selectedFilament.filament_type == this.hass.states[this.entity_id].attributes.type;
     const idMatches = this.tray_info_idx == this.hass.states[this.entity_id].attributes.filament_id;
     return !(colorMatches && minTempMatches && maxTempMatches && typeMatches && idMatches);
+  }
+
+  #areControlsShown(): boolean {
+    // Node-RED has no services to call, and the printer rejects them all if it needs signed
+    // MQTT commands. hideControls is the print status card's hide_controls option.
+    return (
+      this.is_bambu_lab &&
+      !this.hideControls &&
+      !isTrayMqttEncryptionEnabled(this.hass, this.entity_id)
+    );
   }
 
   #isLoadButtonEnabled() {
@@ -335,7 +346,7 @@ export class AMSPopup extends LitElement {
   }
 
   #populateFilamentInfo() {
-    if (this.is_bambu_lab && this.controlBlocked) {
+    if (this.#areControlsShown()) {
       return html`
         <div class="filament-title section-title">Filament Information</div>
         <div class="filament-type item-title">Filament Type</div>
@@ -382,8 +393,8 @@ export class AMSPopup extends LitElement {
   }
 
   #populateActionButtons() {
-    // This is the node red integration so we need to show the close button
-    if (!this.is_bambu_lab || !this.controlBlocked) {
+    // There's nothing to control so we need to show the close button
+    if (!this.#areControlsShown()) {
       return html`
         <div class="action-buttons">
           <mwc-button id="close" class="action-button" @click=${this.#closePopup}>

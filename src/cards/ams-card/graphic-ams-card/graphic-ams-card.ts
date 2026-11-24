@@ -53,7 +53,7 @@ export class GraphicAmsCard extends LitElement {
             : nothing}
             ${this._entities?.spools.map(
               (spool, i) => html`
-                <ams-popup .entity_id=${spool.entity_id} .controlBlocked=${true}>
+                <ams-popup .entity_id=${spool.entity_id}>
                   <div class="spool slot-${i + 1}-${model}">
                     <div class="spool-info">
                       <span
