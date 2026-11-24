@@ -18,9 +18,10 @@ export const PRINTER_MODELS = [
     "X2D"
 ];
 export const AMS_3H_MODEL = "AMS 3H";
+export const AMS_LITE_MODEL = "AMS Lite";
 export const AMS_MODELS = [
     "AMS",
-    "AMS Lite",
+    AMS_LITE_MODEL,
     "AMS 2 Pro",
     AMS_3H_MODEL,
     "AMS HT"
