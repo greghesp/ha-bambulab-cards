@@ -5,6 +5,7 @@ import { html, LitElement, nothing } from "lit";
 import styles from "./info-bar.styles";
 import { consume } from "@lit/context";
 import { showInfoBarContext, hassContext, entitiesContext } from "../../../../utils/context";
+import "../../../shared-components/nozzle-badge/nozzle-badge";
 
 @customElement("info-bar")
 export class InfoBar extends LitElement {
@@ -144,6 +145,15 @@ export class InfoBar extends LitElement {
     return (this._entities?.zones ?? []).filter((zone) => zone.zone !== dryBoxZone);
   }
 
+  /* Which nozzle this AMS feeds, on printers with two. The AMS HT's card has no room for it
+     beside the readings, so the card shows it outside the info bar instead. */
+  #renderNozzle() {
+    if (!this._entities?.nozzle || this._entities.spools?.length === 1) return nothing;
+    return html`<div class="info nozzle">
+      <bambu-lab-nozzle-badge .hass=${this.hass} .entityId=${this._entities.nozzle}></bambu-lab-nozzle-badge>
+    </div>`;
+  }
+
   render() {
     if (!this._infoBar.active) return nothing;
 
@@ -155,7 +165,7 @@ export class InfoBar extends LitElement {
       return html`
         <div class="extra-info">
           <div class="title zones-title">${this._infoBar.title}</div>
-          <div class="info-slots zones">${this.#renderZones()}</div>
+          <div class="info-slots zones">${this.#renderNozzle()}${this.#renderZones()}</div>
         </div>
       `;
     }
@@ -164,6 +174,7 @@ export class InfoBar extends LitElement {
       <div class="extra-info ${isAmsHtModel ? "ht" : ""}">
         ${isAmsHtModel ? this.#renderHtTitle() : html`<div class="title">${this._infoBar.title}</div>`}
         <div class="info-slots">
+          ${this.#renderNozzle()}
           ${this._entities?.humidity
             ? html`<div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.humidity)}">
                 ${this._showIcons

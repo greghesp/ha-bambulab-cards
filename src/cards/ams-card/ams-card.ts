@@ -11,6 +11,7 @@ import styles from "./card.styles";
 import "./vector-ams-card/vector-ams-card";
 import "./graphic-ams-card/graphic-ams-card";
 import { findAmsZones, findDryBoxZone, layoutAms3h } from "./zones";
+import { findConnectedNozzleEntity } from "../shared-components/nozzle-badge/nozzle-badge";
 import { entitiesContext, hassContext, showInfoBarContext, nodeRedContext } from "../../utils/context";
 
 registerCustomCard({
@@ -215,6 +216,8 @@ export class AMS_CARD extends LitElement {
         zones: [],
         dryingTime: this._isAms3h() ? undefined : this._entityList["remaining_drying_time"],
         type: device.model?.toUpperCase() ?? "",
+        // Which nozzle this AMS feeds, on printers with two
+        nozzle: findConnectedNozzleEntity(hass, this._deviceId),
       };
     }
 

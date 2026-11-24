@@ -3,13 +3,17 @@
  * Keep design coordinates, theme fallbacks and responsive humidity sizing in sync.
  * This is an isolated Lit view; no reference runtime is loaded.
  */
-import { LitElement, nothing } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { customElement } from "../../utils/custom-element";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { esc, isBlankColor, TRANSLUCENT_COLOR } from "./geo";
 import * as helpers from "../../utils/helpers";
 import { findAmsZones } from "../ams-card/zones";
+import {
+  connectedNozzleLabel,
+  findConnectedNozzleEntity,
+} from "../shared-components/nozzle-badge/nozzle-badge";
 const A2P_MESSAGES = {
   dryingZone: {
     zh: "干燥区",
@@ -172,7 +176,18 @@ export class Ams3hGraphic extends LitElement {
         ? ams3hActiveNumber(states[r.activeEntity], { trays: r.trays, states })
         : 0;
     if (active && (slots[active - 1].offline || slots[active - 1].empty)) active = 0;
-    return unsafeHTML(this._renderAms3h(r, slots, active));
+    return html`${unsafeHTML(this._renderAms3h(r, slots, active))}${this._renderNozzleBadge()}`;
+  }
+
+  /* Which nozzle this AMS feeds, on printers with two: top right, above the zone reading */
+  private _renderNozzleBadge() {
+    const entityId = findConnectedNozzleEntity(this._hass, this._config.ams);
+    if (!connectedNozzleLabel(this._hass, entityId)) return nothing;
+    return html`<bambu-lab-nozzle-badge
+      class="nozzle-badge"
+      .hass=${this._hass}
+      .entityId=${entityId}
+    ></bambu-lab-nozzle-badge>`;
   }
   constructor() {
     super();
@@ -373,7 +388,7 @@ export class Ams3hGraphic extends LitElement {
     };
     const drying = this._ams3hDrying(dryingZone);
     return `<style>
-      :host{display:block;height:100%;
+      :host{display:block;height:100%;position:relative;
         --a2p-panel:var(--ha-card-background,var(--card-background-color,#242424));
         --a2p-slot-outline:color-mix(in srgb,var(--secondary-text-color,#888) 72%,var(--a2p-panel));
         --a2p-text:var(--primary-text-color,#ddd);
@@ -398,6 +413,7 @@ export class Ams3hGraphic extends LitElement {
       @keyframes a2pDrying{0%,100%{stroke-opacity:.7;animation-timing-function:ease-out}25%{stroke-opacity:1;animation-timing-function:ease-in}50%{stroke-opacity:.7;animation-timing-function:ease-out}75%{stroke-opacity:.4;animation-timing-function:ease-in}}
       @media(prefers-reduced-motion:reduce){.drying-frame{animation:none}}
       .slot:focus-visible{outline:3px solid var(--a2p-accent)}
+      .nozzle-badge{position:absolute;top:10px;right:14px;z-index:2}
       </style><ha-card><svg class="art ams3h-art" viewBox="152 64 1096 532" xmlns="http://www.w3.org/2000/svg" aria-label="AMS-3H${a2pText(this?._hass, "spoolStatus")}">
       <defs><linearGradient id="spool-shade" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#000" stop-opacity=".16"/></linearGradient></defs>
       <rect x="152" y="64" width="1096" height="532" rx="18" fill="var(--a2p-panel)"/>

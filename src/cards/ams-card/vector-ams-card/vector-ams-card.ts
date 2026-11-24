@@ -4,7 +4,8 @@ import { customElement } from "../../../utils/custom-element";
 import { html, LitElement, nothing } from "lit";
 import styles from "./vector-ams-card.styles";
 import "../components/info-bar/info-bar";
-import { entitiesContext, hassContext } from "../../../utils/context";
+import "../../shared-components/nozzle-badge/nozzle-badge";
+import { entitiesContext, hassContext, showInfoBarContext } from "../../../utils/context";
 import { consume } from "@lit/context";
 
 @customElement("vector-ams-card")
@@ -19,6 +20,9 @@ export class VectorAmsCard extends LitElement {
 
   @consume({ context: hassContext, subscribe: true })
   private hass;
+
+  @consume({ context: showInfoBarContext, subscribe: true })
+  private _infoBar;
 
   static styles = styles;
 
@@ -92,12 +96,28 @@ export class VectorAmsCard extends LitElement {
     `;
   }
 
+  /* Which nozzle this AMS feeds, on printers with two. The info bar shows it when it's on
+     (unless this is the narrow AMS HT); otherwise it gets a row of its own above the spools,
+     which shrink to make room. */
+  #renderNozzleBadge() {
+    if (!this._entities?.nozzle) return nothing;
+    const isHt = this._entities.spools?.length === 1;
+    if (this._infoBar?.active && !isHt) return nothing;
+    return html`<div class="nozzle-row">
+      <bambu-lab-nozzle-badge
+        .hass=${this.hass}
+        .entityId=${this._entities.nozzle}
+      ></bambu-lab-nozzle-badge>
+    </div>`;
+  }
+
   render() {
     if (this._entities?.ams3hLayout) {
       return html`
         <ha-card class="ha-bambulab-vector-ams-card">
           <div class="v-wrapper">
             <info-bar></info-bar>
+            ${this.#renderNozzleBadge()}
             <div class="v-ams-container">${this.#renderAms3h(this._entities.ams3hLayout)}</div>
           </div>
         </ha-card>
@@ -118,6 +138,7 @@ export class VectorAmsCard extends LitElement {
       <ha-card class="ha-bambulab-vector-ams-card">
         <div class="v-wrapper">
           <info-bar></info-bar>
+          ${this.#renderNozzleBadge()}
           <div class="v-ams-container">
             <div class="v-spools-wrapper ${twoRows ? "two-rows" : ""}">
               ${this._entities?.spools?.map(

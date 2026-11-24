@@ -38,6 +38,12 @@ export default css`
     --mdc-icon-size: 16px;
   }
 
+  /* The nozzle badge is its own chip */
+  .info.nozzle {
+    padding: 0;
+    background: none;
+  }
+
   /* AMS 3H: one chip per drying zone, which needs more room than the title */
   .title.zones-title {
     width: auto;

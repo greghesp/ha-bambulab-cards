@@ -45,6 +45,14 @@ export default css`
     flex: 0 0 auto;
   }
 
+  /* A one-column AMS HT can't fit the nozzle badge and both readings on one line */
+  .head.center .info {
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 12px;
+  }
+
   .info .chip {
     display: inline-flex;
     align-items: center;
