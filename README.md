@@ -76,6 +76,8 @@ custom_power: switch.my_printer_plug
 custom_camera: camera.my_printer_camera
 # Simple and minimal styles: fill the cover image from the bottom up as layers print
 cover_progress: false
+# Simple style only: hide the buttons and make the card read-only
+hide_controls: false
 # Minimal style only
 show_printer_name: true
 show_cover: true
@@ -109,6 +111,7 @@ type: custom:ha-bambulab-ams-card
 ams: <AMS device id>
 style: vector             # vector or graphic
 show_info_bar: true       # humidity and temperature bar
+show_humidity_percentage: true   # false shows the 1 to 5 index instead
 subtitle: AMS 1
 show_type: true           # filament type on each spool
 spool_anim_reflection: true

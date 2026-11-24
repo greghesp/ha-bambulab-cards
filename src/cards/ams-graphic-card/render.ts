@@ -9,7 +9,6 @@
 import { BASE_IMAGES, BRAND_IMAGES, MECH_IMAGE } from "./assets";
 import {
   chipWidth,
-  EMPTY_LABEL,
   esc,
   FADE_STOPS,
   LABEL_FONT,
@@ -75,6 +74,7 @@ function labelsSvg(
   trayEntities: string[],
   geo: VariantGeo,
   showEmptyLabel: boolean,
+  emptyLabels: string[],
   labelMode: string
 ): string {
   const fs = LABEL_FONT;
@@ -83,7 +83,7 @@ function labelsSvg(
   slots.forEach((s, i) => {
     if (geo.centers[i] == null) return;
     if (s.empty && !showEmptyLabel) return;
-    const txt = s.empty ? EMPTY_LABEL : labelMode === "name" ? s.name || s.type : s.type;
+    const txt = s.empty ? emptyLabels[i] : labelMode === "name" ? s.name || s.type : s.type;
     const cx = geo.centers[i] + vx;
     const pw = chipWidth(txt, fs, 26, 0.78);
     const ph = fs + 16;
@@ -136,6 +136,7 @@ export interface RenderOpts {
   showLabels: boolean;
   labelMode: string;
   showEmptyLabel: boolean;
+  emptyLabels: string[]; // text drawn on each slot when empty (only when showEmptyLabel is on)
   hum: string;
   temp: string;
 }
@@ -199,7 +200,8 @@ export function renderSvg(o: RenderOpts): string {
 
   /* (5) active-spool frame, filament labels + panel */
   svg += activeSvg(slots, geo);
-  if (o.showLabels) svg += labelsSvg(slots, trayEntities, geo, o.showEmptyLabel, o.labelMode);
+  if (o.showLabels)
+    svg += labelsSvg(slots, trayEntities, geo, o.showEmptyLabel, o.emptyLabels, o.labelMode);
   if (geo.lcd) svg += lcdSvg(geo, o.hum, o.temp);
 
   svg += "</svg>";

@@ -6,6 +6,7 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { AMS_MODELS, MANUFACTURER } from "../../const";
 import { registerCustomCard } from "../../utils/custom-cards";
+import { getEmptyTrayLabel } from "../../utils/helpers";
 import styles from "./card.styles";
 import { AMS_GRAPHIC_CARD_NAME } from "./const";
 import {
@@ -319,6 +320,7 @@ export class AmsGraphicCard extends LitElement {
       showLabels: cfg.show_labels !== false,
       labelMode: cfg.label_mode || "type",
       showEmptyLabel: cfg.show_empty_label === true,
+      emptyLabels: r.trays.map((id: string) => getEmptyTrayLabel(this._hass, id)),
       hum: hum === "" ? "--" : `${hum}${this._unit(r.humEntity) === "%" ? "%" : ""}`,
       temp: temp === "" ? "--" : `${temp}°`,
     });

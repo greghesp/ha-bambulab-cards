@@ -79,7 +79,7 @@ export class GraphicAmsCard extends LitElement {
                         this.hass.states[spool.entity_id]?.attributes.in_use
                           ? `2px solid var(--primary-color)`
                           : `2px solid rgba(255, 255, 255, 0)`};"
-                        >${this.hass.states[spool.entity_id]?.attributes.type}</span
+                        >${helpers.getTrayText(this.hass, spool.entity_id, "type")}</span
                       >
                     </div>
                   </div>

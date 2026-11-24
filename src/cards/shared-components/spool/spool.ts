@@ -2,9 +2,10 @@ import { property } from "lit/decorators.js";
 import { customElement } from "../../../utils/custom-element";
 import { html, LitElement, nothing } from "lit";
 import styles from "./spool.styles";
+import { AMS_LITE_MODEL } from "../../../const";
 import { hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
-import { getFormattedTime } from "../../../utils/helpers";
+import { getFormattedTime, getTrayText } from "../../../utils/helpers";
 import "../ams-popup/ams-popup";
 
 @customElement("ha-bambulab-spool")
@@ -117,7 +118,7 @@ export class Spool extends LitElement {
             ? html` <div class="ha-bambulab-spool-info-container">
                 <div class="ha-bambulab-spool-info-wrapper">
                   <div class="ha-bambulab-spool-info">
-                    ${this.hass.states[this.entity_id]?.attributes.name}
+                    ${getTrayText(this.hass, this.entity_id, "name")}
                   </div>
                 </div>
               </div>`
@@ -157,7 +158,8 @@ export class Spool extends LitElement {
   // A custom remaining sensor (e.g. grams from Spoolman or Bambuddy) wins while it
   // has a numeric state; otherwise fall back to the tray's RFID remain percentage.
   // An empty tray never shows one: those sensors follow the spool, not the slot, so
-  // they keep reporting after it's pulled.
+  // they keep reporting after it's pulled. The AMS Lite doesn't measure remaining
+  // filament (it reports 100%), so only a custom sensor is shown there.
   remainingLabel() {
     if (this.hass.states[this.entity_id]?.attributes?.empty) return nothing;
     const custom = this.customRemaining();
@@ -165,8 +167,16 @@ export class Spool extends LitElement {
       const value = custom.unit === "kg" ? custom.value.toFixed(1) : Math.round(custom.value);
       return `${value}${custom.unit ? ` ${custom.unit}` : ""}`;
     }
+    if (this.isAmsLite()) return nothing;
     const remain = this.hass.states[this.entity_id]?.attributes?.remain;
     return remain > 0 ? `${remain}%` : nothing;
+  }
+
+  // Checked by model: remain_enabled follows the printer's firmware and settings, not the
+  // AMS it's attached to, so it can be true for an AMS Lite.
+  isAmsLite(): boolean {
+    const deviceId = this.hass.entities?.[this.entity_id]?.device_id;
+    return this.hass.devices?.[deviceId]?.model === AMS_LITE_MODEL;
   }
 
   customRemaining(): { value: number; unit?: string } | undefined {

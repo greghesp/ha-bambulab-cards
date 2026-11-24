@@ -11,6 +11,8 @@ import "./cards/print-status-card/print-status-card";
 console.info("🐼 Loaded: Print Status Card");
 import "./cards/spool-card/spool-card";
 console.info("🐼 Loaded: Spool Card");
+import "./cards/filament-inventory-card/filament-inventory-card";
+console.info("🐼 Loaded: Filament Inventory Card");
 import "./cards/skip-objects-card/skip-objects-card";
 console.info("🐼 Loaded: Skip Objects Card");
 // import "./cards/example-card/example-card";

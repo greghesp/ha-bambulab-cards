@@ -82,13 +82,21 @@ export default class EntityProvider extends LitElement {
   @state() public _deviceEntities!: { [key: string]: helpers.Entity } | Object;
 
   set hass(hass) {
-    if (this._hass) {
-      this._hass = hass;
-      return
-    }
-    
+    const previous = this._hass;
     this._hass = hass;
 
+    if (!previous) {
+      this._resolveMockDevice();
+    }
+
+    // hass.entities is only replaced when the entity registry changes, such as when an entity is
+    // disabled or enabled, so that's the only time the entities have to be looked up again.
+    if (!previous || previous.entities !== hass.entities) {
+      this._deviceEntities = this._resolveDeviceEntities();
+    }
+  }
+
+  private _resolveMockDevice() {
     if (this._device_id == "MOCK") {
       Object.keys(this._hass.devices).forEach((key) => {
         const device = this._hass.devices[key];
@@ -99,25 +107,33 @@ export default class EntityProvider extends LitElement {
         }
       });
     }
+  }
 
-    let entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
-    this._deviceEntities = helpers.getBambuDeviceEntities(hass, this._device_id, entityList);
+  private _resolveDeviceEntities(): { [key: string]: helpers.Entity } {
+    const entityList = ENTITIES.concat(Object.keys(NODEREDENTITIES));
+    const entities = helpers.getBambuDeviceEntities(this._hass, this._device_id, entityList);
 
     // Override the entity list with the Node-RED entities if configured.
     for (const e in NODEREDENTITIES) {
       const target = NODEREDENTITIES[e];
-      if (this._deviceEntities[e]) {
-        this._deviceEntities[target] = this._deviceEntities[e];
+      if (entities[e]) {
+        entities[target] = entities[e];
       }
     }
 
     // Override the entity list with the custom entities if configured.
     if (this._customEntities) {
       for (const [key, entityId] of Object.entries(this._customEntities)) {
-        if (entityId && this._hass.states[entityId]) {
-          this._deviceEntities[key] = this._hass.states[entityId];
+        // Keep an override that was already found if it has no state right now.
+        const known = this._deviceEntities?.[key];
+        const custom =
+          this._hass.states[entityId] ?? (known?.entity_id === entityId ? known : undefined);
+        if (entityId && custom) {
+          entities[key] = custom;
         }
       }
     }
+
+    return entities;
   }
 }

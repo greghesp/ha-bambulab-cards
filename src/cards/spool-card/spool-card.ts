@@ -90,10 +90,9 @@ export class SpoolCard extends LitElement {
               <ha-bambulab-spool
                 .key="${this._spoolEntityId}"
                 .entity_id="${this._spoolEntityId}"
-                .tag_uid=${0} // Force it to be 'unknown' to not show the remaining percentage
                 .show_type=${this._showType}
-                .spoolAnimReflection=${this._spoolAnimReflection}
-                .spoolAnimWiggle=${this._spoolAnimWiggle}
+                .spool_anim_reflection=${this._spoolAnimReflection}
+                .spool_anim_wiggle=${this._spoolAnimWiggle}
               ></ha-bambulab-spool>
             </div>
           </div>

@@ -133,7 +133,29 @@ export function isEntityUnavailable(hass, entity: Entity): boolean {
   if (!entity?.entity_id) {
     return true;
   }
-  return hass.states[entity.entity_id].state == "unavailable";
+  // An entity has no state while it's being disabled, or until it's loaded again after being enabled.
+  const state = hass.states[entity.entity_id]?.state;
+  return state == undefined || state == "unavailable";
+}
+
+// What the integration reports as the name and type of a tray with no spool in it
+export const EMPTY_TRAY = "Empty";
+
+// Home Assistant can't translate attribute values, but it does translate attribute names, so
+// the name of the tray's "empty" attribute is the translated word for it.
+export function getEmptyTrayLabel(hass, entity_id: string): string {
+  const domain = entity_id?.split(".")[0];
+  const translationKey = hass.entities?.[entity_id]?.translation_key;
+  // Example localization key:
+  // "component.bambu_lab.entity.sensor.tray.state_attributes.empty.name"
+  const key = `component.bambu_lab.entity.${domain}.${translationKey}.state_attributes.empty.name`;
+  return hass.localize?.(key) || EMPTY_TRAY;
+}
+
+// A tray's "name" or "type" attribute for display
+export function getTrayText(hass, entity_id: string, attribute: "name" | "type") {
+  const value = hass.states[entity_id]?.attributes[attribute];
+  return value === EMPTY_TRAY ? getEmptyTrayLabel(hass, entity_id) : value;
 }
 
 export function getLocalizedEntityState(hass, entity: Entity) {
