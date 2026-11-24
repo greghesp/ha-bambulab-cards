@@ -409,7 +409,8 @@ export class A1ScreenCard extends LitElement {
   }
 
   #formattedState(key: string) {
-    return helpers.getFormattedEntityState(this._hass, this._deviceEntities[key].entity_id);
+    const entityId = this._deviceEntities[key]?.entity_id;
+    return this._hass.states[entityId] ? helpers.getFormattedEntityState(this._hass, entityId) : '--';
   }
 
   #formattedTemperatureState(key: string) {
