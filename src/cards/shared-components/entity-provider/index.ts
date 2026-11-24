@@ -25,6 +25,8 @@ const ENTITIES: string[] = [
   "developer_lan_mode",
   "door_open",
   "end_time",
+  "exhaust_fan",
+  "exhaust_fan_speed",
   "humidity",
   "hybrid_mode_blocks_control",
   "image|p1p_camera",
@@ -32,6 +34,8 @@ const ENTITIES: string[] = [
   "mqtt_encryption",
   "model_download_percentage", // Node red does not have
   "nozzle_temp",
+  "part_fan",
+  "part_fan_speed",
   "pause",
   "pick_image", // Node red does not have
   "power",
@@ -42,6 +46,8 @@ const ENTITIES: string[] = [
   "printing_speed", // Select - note the unique id is inconsistent as '..._Speed'
   "remaining_time",
   "resume",
+  "right_aux_fan",
+  "right_aux_fan_speed",
   "skipped_objects", // Node red does not have
   "speed_profile", // Sensor
   "stage",
@@ -71,6 +77,19 @@ const NODEREDENTITIES: { [key: string]: string } = {
   "^select.*_speed$": "printing_speed",
   "^sensor.*_speed$": "speed_profile",
   stop_print: "stop",
+};
+
+// Models whose fans the integration names as the printer does. The cards show them as the fans
+// they know.
+const FAN_ALIASES: { [model: string]: { [entity: string]: string } } = {
+  P3C: {
+    part_fan: "cooling_fan",
+    part_fan_speed: "cooling_fan_speed",
+    right_aux_fan: "aux_fan",
+    right_aux_fan_speed: "aux_fan_speed",
+    exhaust_fan: "chamber_fan",
+    exhaust_fan_speed: "chamber_fan_speed",
+  },
 };
 
 export default class EntityProvider extends LitElement {
@@ -119,6 +138,13 @@ export default class EntityProvider extends LitElement {
       const target = NODEREDENTITIES[e];
       if (entities[e]) {
         entities[target] = entities[e];
+      }
+    }
+
+    const fanAliases = FAN_ALIASES[this._hass.devices?.[this._device_id!]?.model] ?? {};
+    for (const [entity, alias] of Object.entries(fanAliases)) {
+      if (entities[entity]) {
+        entities[alias] = entities[entity];
       }
     }
 

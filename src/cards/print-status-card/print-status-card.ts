@@ -20,6 +20,7 @@ import H3C_IMAGE from "../../images/H3C.webp";
 import P1P_IMAGE from "../../images/P1P.webp";
 import P1S_IMAGE from "../../images/P1S.webp";
 import P2S_IMAGE from "../../images/P2S.webp";
+import P3C_IMAGE from "../../images/P3C.webp";
 import X1C_IMAGE from "../../images/X1C.webp";
 import X1E_IMAGE from "../../images/X1E.webp";
 import X2D_IMAGE from "../../images/X2D.webp";
@@ -53,6 +54,7 @@ const _images: { [key: string]: any } = {
   P1P: P1P_IMAGE,
   P1S: P1S_IMAGE,
   P2S: P2S_IMAGE,
+  P3C: P3C_IMAGE, // Drawing, replace with a render of the front
   X1C: X1C_IMAGE,
   X1E: X1E_IMAGE,
   X2D: X2D_IMAGE,
@@ -286,6 +288,22 @@ export class PrintStatusCard extends EntityProvider {
     power_usage:    { x: 13, y: 85, width: 25, height: 0 },
   };
 
+  private P3CEntityUX: { [key: string]: EntityUX | undefined } = {
+    power:             { x: 94,   y: 42, width: 20,  height: 0 },
+    print_progress:    { x: 56,   y: 41.5, width: 25,  height: 0 },
+    remaining_time:    { x: 56,   y: 46, width: 100, height: 0 },
+    chamber_light:     { x: 18,   y: 52, width: 20,  height: 0 },
+    chamber_fan_speed: { x: 82,   y: 52, width: 70,  height: 0, click_target: "chamber_fan" },
+    nozzle_temp:       { x: 50,   y: 57, width: 25,  height: 0, click_target: "target_nozzle_temperature" },
+    chamber_temp:      { x: 18,   y: 67, width: 20,  height: 0 },
+    humidity:          { x: 18,   y: 72, width: 20,  height: 0 },
+    aux_fan_speed:     { x: 82,   y: 65, width: 70,  height: 0, click_target: "aux_fan" },
+    cover_image:       { x: 50,   y: 69, width: 50,  height: 50 },
+    bed_temp:          { x: 50,   y: 83, width: 25,  height: 0, click_target: "target_bed_temperature" },
+    stage:             { x: 50,   y: 94, width: 300, height: 0 },
+    door_open:         { x: 82,   y: 78, width: 20,  height: 0 },
+  };
+
   private X1CEntityUX: { [key: string]: EntityUX | undefined } = {
     power:             { x: 95.5, y: 10, width: 20,  height: 0 },
     print_progress:    { x: 29,   y: 6,  width: 25,  height: 0 },
@@ -317,6 +335,7 @@ export class PrintStatusCard extends EntityProvider {
     P1P: this.P1PEntityUX,
     P1S: this.P1SEntityUX,
     P2S: this.P2SEntityUX,
+    P3C: this.P3CEntityUX,
     X1:  this.X1CEntityUX,
     X1C: this.X1CEntityUX,
     X1E: this.X1CEntityUX,

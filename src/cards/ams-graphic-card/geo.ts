@@ -91,6 +91,23 @@ const AMS_LIKE: Pick<
   mech: true,
 };
 
+/* Units without a drawing */
+const UNSUPPORTED_GEO: VariantGeo = {
+  name: "",
+  base: "ams2",
+  centers: [],
+  spW: 0,
+  spH: 0,
+  spY: 0,
+  flangeFrac: 0,
+  bandCY: 0,
+  matCap: 0,
+  labelY: 0,
+  fade: "none",
+  vb: VB_DEFAULT,
+  unsupported: true,
+};
+
 export const VARIANTS: { [key: string]: VariantGeo } = {
   ams2pro: {
     name: "AMS 2 PRO",
@@ -137,21 +154,7 @@ export const VARIANTS: { [key: string]: VariantGeo } = {
     lcdLabelFont: 8,
     lcdValueFont: 14,
   },
-  lite: {
-    name: "AMS Lite",
-    base: "ams2",
-    centers: [],
-    spW: 0,
-    spH: 0,
-    spY: 0,
-    flangeFrac: 0,
-    bandCY: 0,
-    matCap: 0,
-    labelY: 0,
-    fade: "none",
-    vb: VB_DEFAULT,
-    unsupported: true,
-  },
+  lite: { ...UNSUPPORTED_GEO, name: "AMS Lite" },
 };
 
 /* Vertical opacity of the spool: fully visible on top, fading into the dark housing below */

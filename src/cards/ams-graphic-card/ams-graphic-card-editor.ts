@@ -8,7 +8,7 @@ import { AMS_MODELS, MANUFACTURER } from "../../const";
 import { AMS_GRAPHIC_CARD_EDITOR_NAME } from "./const";
 
 /* AMS-3H uses vector geometry; only AMS Lite lacks a supported view. */
-const AMS_FILTER = [...AMS_MODELS, "AMS 3P"]
+const AMS_FILTER = [...new Set([...AMS_MODELS, "AMS 3P"])]
   .filter((m) => m !== "AMS Lite")
   .map((model) => ({
     manufacturer: MANUFACTURER,
