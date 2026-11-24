@@ -147,7 +147,8 @@ export class InfoBar extends LitElement {
   render() {
     if (!this._infoBar.active) return nothing;
 
-    // If this is an AMS HT model, we need to hide the title (even if enabled) and give 100% width to the info slots
+    // The AMS HT's card is usually too narrow for the title beside the readings, so there it moves
+    // to a line of its own above them
     const isAmsHtModel = this._entities?.spools?.length === 1;
 
     if (this.#infoBarZones().length) {
@@ -160,9 +161,9 @@ export class InfoBar extends LitElement {
     }
 
     return html`
-      <div class="extra-info">
-        ${!isAmsHtModel ? html`<div class="title">${this._infoBar.title}</div>` : nothing}
-        <div class="info-slots" style="${isAmsHtModel ? 'width: 100%' : ''}">
+      <div class="extra-info ${isAmsHtModel ? "ht" : ""}">
+        ${isAmsHtModel ? this.#renderHtTitle() : html`<div class="title">${this._infoBar.title}</div>`}
+        <div class="info-slots">
           ${this._entities?.humidity
             ? html`<div class="info" @click="${() => helpers.showEntityMoreInfo(this, this._entities.humidity)}">
                 ${this._showIcons
@@ -191,6 +192,13 @@ export class InfoBar extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  /* The AMS HT's title. Left out when blank so it doesn't take a line from the readings. */
+  #renderHtTitle() {
+    const title = this._infoBar.title;
+    if (typeof title !== "string" || !title.trim()) return nothing;
+    return html`<div class="title" title=${title}>${title}</div>`;
   }
 
   /* The time left while the AMS dries; the AMS HT shows it on its spool instead */
