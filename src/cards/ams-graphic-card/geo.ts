@@ -231,9 +231,11 @@ export function measureText(text: any, size: number, weight?: number): number {
 export function chipWidth(text: any, size: number, extra?: number, perChar?: number): number {
   const t = String(text);
   const w = measureText(t, size);
+  // Combining marks (e.g. Thai tone marks) sit on another character and take no width
+  const chars = t.replace(/\p{M}/gu, "").length;
   return Math.max(
     w + (extra == null ? 18 : extra),
-    t.length * size * (perChar == null ? 0.72 : perChar)
+    chars * size * (perChar == null ? 0.72 : perChar)
   );
 }
 
