@@ -41,7 +41,7 @@ interface FilamentData {
 @customElement("ams-popup")
 export class AMSPopup extends LitElement {
   @property({ type: String }) entity_id;
-  @property({ type: Boolean }) controlBlocked;
+  @property({ type: Boolean }) hideControls: boolean = false;
 
   @consume({ context: hassContext, subscribe: true })
   private hass;
@@ -150,11 +150,11 @@ export class AMSPopup extends LitElement {
   }
 
   #areControlsShown(): boolean {
-    // Node-RED has no services to call, the print status card leaves controlBlocked unset to
-    // hide the controls, and the printer rejects them all if it needs signed MQTT commands.
+    // Node-RED has no services to call, and the printer rejects them all if it needs signed
+    // MQTT commands. hideControls is the print status card's hide_controls option.
     return (
       this.is_bambu_lab &&
-      this.controlBlocked &&
+      !this.hideControls &&
       !isTrayMqttEncryptionEnabled(this.hass, this.entity_id)
     );
   }

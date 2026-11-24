@@ -1166,7 +1166,7 @@ export class A1ScreenCard extends LitElement {
               .show_type=${true}
               .spool_anim_reflection=${false}
               .spool_anim_wiggle=${false}
-              .controlBlocked=${!this.hideControls && !this.#isMqttEncryptionEnabled()}
+              .hideControls=${this.hideControls}
             ></ha-bambulab-spool>
           `
         )}
