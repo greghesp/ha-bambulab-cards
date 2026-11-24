@@ -5,8 +5,11 @@ import { property, state } from "lit/decorators.js";
 import { customElement } from "../../../utils/custom-element";
 import { hassContext } from "../../../utils/context";
 import {
+  EMPTY_TRAY,
   getContrastingTextColor,
+  getEmptyTrayLabel,
   getFilamentData,
+  getTrayText,
   setFilament,
   refreshRFID,
   loadFilament,
@@ -120,7 +123,7 @@ export class AMSPopup extends LitElement {
     return filaments.map(
       (filament) => html`
         <option value="${filament}" ?selected=${filament === this.selectedFilament.filament_type}>
-          ${filament}
+          ${filament === EMPTY_TRAY ? getEmptyTrayLabel(this.hass, this.entity_id) : filament}
         </option>
       `
     );
@@ -358,11 +361,11 @@ export class AMSPopup extends LitElement {
         <div class="filament-title section-title">Filament Information</div>
         <div class="filament-type item-title">Filament Type</div>
         <div class="filament-type item-value">
-          ${this.hass.states[this.entity_id].attributes.type}
+          ${getTrayText(this.hass, this.entity_id, "type")}
         </div>
         <div class="filament-name item-title">Filament</div>
         <div class="filament-name item-value">
-          ${this.hass.states[this.entity_id].attributes.name}
+          ${getTrayText(this.hass, this.entity_id, "name")}
         </div>
         <div class="div4 item-title">Color</div>
         <div class="div4 item-value">
