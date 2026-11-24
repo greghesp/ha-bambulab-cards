@@ -1,5 +1,6 @@
 import { html, LitElement } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
+import { customElement } from "../../utils/custom-element";
 import { MANUFACTURER, PRINTER_MODELS } from "../../const";
 import { ERROR_CARD_EDITOR_NAME } from "./const";
 
