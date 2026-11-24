@@ -4,11 +4,11 @@ import { customElement } from "../../utils/custom-element";
 import { amsDeviceModel, variantFromModel } from "./geo";
 import memoizeOne from "memoize-one";
 
-import { AMS_MODELS, MANUFACTURER } from "../../const";
+import { AMS_3P_MODEL, AMS_LITE_MODEL, AMS_MODELS, MANUFACTURER } from "../../const";
 import { AMS_GRAPHIC_CARD_EDITOR_NAME } from "./const";
 
-/* AMS-3H uses vector geometry; only AMS Lite lacks a supported view. */
-const AMS_FILTER = AMS_MODELS.filter((m) => m !== "AMS Lite").map((model) => ({
+/* AMS-3H uses vector geometry; only AMS Lite and AMS 3P lack a supported view. */
+const AMS_FILTER = AMS_MODELS.filter((m) => m !== AMS_LITE_MODEL && m !== AMS_3P_MODEL).map((model) => ({
   manufacturer: MANUFACTURER,
   model,
 }));

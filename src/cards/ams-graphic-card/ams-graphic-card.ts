@@ -131,7 +131,8 @@ export class AmsGraphicCard extends LitElement {
     const devices = this._hass?.devices || {};
     for (const key of Object.keys(devices)) {
       const d = devices[key];
-      if (d.manufacturer === MANUFACTURER && AMS_MODELS.includes(d.model)) return key;
+      const isAms = d.manufacturer === MANUFACTURER && AMS_MODELS.includes(d.model);
+      if (isAms && !VARIANTS[variantFromModel(d.model)]?.unsupported) return key;
     }
     return "";
   }
@@ -283,7 +284,7 @@ export class AmsGraphicCard extends LitElement {
     if (r.geo.unsupported) {
       return html`<ha-card>
         <div class="notice">
-          ${r.geo.name} is not supported yet — supported models: AMS / AMS 2 PRO / AMS HT.
+          ${r.geo.name} is not supported yet — supported models: AMS / AMS 2 PRO / AMS HT / AMS-3H.
         </div>
       </ha-card>`;
     }

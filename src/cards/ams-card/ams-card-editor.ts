@@ -1,5 +1,5 @@
 import { AMS_CARD_EDITOR_NAME } from "./const";
-import { MANUFACTURER, AMS_MODELS, AMS_3H_MODEL } from "../../const";
+import { MANUFACTURER, AMS_MODELS, RACK_AMS_TRAYS } from "../../const";
 import { state } from "lit/decorators.js";
 import { customElement } from "../../utils/custom-element";
 import { LitElement, html, nothing } from "lit";
@@ -20,8 +20,8 @@ export class AmsCardEditor extends LitElement {
     this._config = config;
   }
 
-  // The AMS 3H has nine trays and only the vector style
-  private _schema = memoizeOne((showInfoBar: boolean, style: string, isAms3h: boolean) => [
+  // The AMS 3H and AMS 3P have more than four trays and only the vector style
+  private _schema = memoizeOne((showInfoBar: boolean, style: string, rackAmsTrays?: number) => [
     { 
       name: "show_info_bar",
       label: "Show Info Bar",
@@ -46,7 +46,7 @@ export class AmsCardEditor extends LitElement {
           selector: { entity: { domain: "sensor" } },
         }
       ] : ""),
-    ...(style === "vector" || isAms3h ? [
+    ...(style === "vector" || rackAmsTrays ? [
       {
         name: "show_type",
         label: "Show Filament Types",
@@ -66,7 +66,7 @@ export class AmsCardEditor extends LitElement {
         selector: { boolean: true },
         default: true,
       },
-      ...Array.from({ length: isAms3h ? 9 : 4 }, (_, i) => i + 1).map((n) => ({
+      ...Array.from({ length: rackAmsTrays ?? 4 }, (_, i) => i + 1).map((n) => ({
         name: `custom_remaining_${n}`,
         label: `Custom Remaining Sensor (Tray ${n})`,
         selector: { entity: { domain: "sensor" } },
@@ -81,7 +81,7 @@ export class AmsCardEditor extends LitElement {
         }
       },
     },
-    ...(isAms3h ? [] : [{
+    ...(rackAmsTrays ? [] : [{
       name: "style",
       label: "Card Style",
       selector: {
@@ -97,8 +97,8 @@ export class AmsCardEditor extends LitElement {
 
 
   render() {
-    const isAms3h = this.hass?.devices?.[this._config?.ams]?.model === AMS_3H_MODEL;
-    const schema = this._schema(this._config?.show_info_bar, this._config?.style, isAms3h);
+    const rackAmsTrays = RACK_AMS_TRAYS[this.hass?.devices?.[this._config?.ams]?.model];
+    const schema = this._schema(this._config?.show_info_bar, this._config?.style, rackAmsTrays);
 
     return html`
       <div>

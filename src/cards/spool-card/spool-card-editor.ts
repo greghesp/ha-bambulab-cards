@@ -1,5 +1,5 @@
 import { SPOOL_CARD_EDITOR_NAME } from "./const";
-import { MANUFACTURER, AMS_MODELS_WITH_EXTERNAL_SPOOL, AMS_3H_MODEL } from "../../const";
+import { MANUFACTURER, AMS_MODELS_WITH_EXTERNAL_SPOOL, RACK_AMS_TRAYS } from "../../const";
 import { state } from "lit/decorators.js";
 import { customElement } from "../../utils/custom-element";
 import { LitElement, html } from "lit";
@@ -20,7 +20,7 @@ export class SpoolCardEditor extends LitElement {
     this._config = config;
   }
 
-  // The AMS 3H has nine trays, every other AMS four
+  // The AMS 3H has nine trays and the AMS 3P seven, every other AMS four
   private _schema = memoizeOne((showInfoBar: boolean, trayCount: number) => [
     {
       name: "spool",
@@ -70,8 +70,8 @@ export class SpoolCardEditor extends LitElement {
   ]);
 
   render() {
-    const isAms3h = this.hass?.devices?.[this._config?.spool]?.model === AMS_3H_MODEL;
-    const schema = this._schema(this._config?.show_info_bar, isAms3h ? 9 : 4);
+    const trays = RACK_AMS_TRAYS[this.hass?.devices?.[this._config?.spool]?.model] ?? 4;
+    const schema = this._schema(this._config?.show_info_bar, trays);
     
     return html`
       <div>
