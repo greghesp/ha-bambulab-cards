@@ -10,10 +10,11 @@ import "~/cards/shared-components/confirmation-prompt/confirmation-prompt";
 import "~/cards/shared-components/skip-objects";
 import "~/cards/ams-card/vector-ams-card/vector-ams-card";
 import "~/cards/shared-components/print-history-popup";
+import { isMoveAxisWarningConfirmed, setMoveAxisWarningConfirmed } from "./move-axis-warning";
 
 type ConfirmationState = {
   show: boolean;
-  action: "stop" | "pause" | "resume" | "home" | null;
+  action: "stop" | "pause" | "resume" | "home" | "move" | null;
   title: string;
   body: string;
 };
@@ -89,6 +90,9 @@ export class A1ScreenCard extends LitElement {
     title: "",
     body: "",
   };
+
+  // The move waiting for the move axis warning to be confirmed.
+  #pendingMove: { axis: MoveAxis; distance: number } | null = null;
 
   @state() private showSkipObjects = false;
 
@@ -554,7 +558,11 @@ export class A1ScreenCard extends LitElement {
       home: {
         title: "Home Printer",
         body: "This will bring the heat bed to the nozzle. If there is a model on the heat bed it will collide possibly resulting in damage to the model or the printer.",
-      }
+      },
+      move: {
+        title: "Move Printer Axes",
+        body: "Moving an axis does not home the printer first. If it has not been homed since it was turned on, it doesn't know where its axes are and the heat bed or toolhead can collide with something, possibly resulting in damage. Move the axes at your own risk. Once confirmed, this warning will not be shown again in this browser.",
+      },
     };
 
     this.confirmation = {
@@ -578,11 +586,18 @@ export class A1ScreenCard extends LitElement {
       case "home":
         this.#moveAxis(MoveAxis.HOME, 0);
         break;
+      case "move":
+        setMoveAxisWarningConfirmed();
+        if (this.#pendingMove) {
+          this.#moveAxis(this.#pendingMove.axis, this.#pendingMove.distance);
+        }
+        break;
     }
     this.#handleDismiss();
   }
 
   #handleDismiss() {
+    this.#pendingMove = null;
     this.confirmation = { ...this.confirmation, show: false, action: null, title: "", body: "" };
   }
 
@@ -1297,6 +1312,15 @@ export class A1ScreenCard extends LitElement {
     return amsList;
   }
 
+  #requestMoveAxis(axis: MoveAxis, distance: number) {
+    if (isMoveAxisWarningConfirmed()) {
+      this.#moveAxis(axis, distance);
+      return;
+    }
+    this.#pendingMove = { axis, distance };
+    this.#showConfirmation("move");
+  }
+
   #moveAxis(axis: MoveAxis, distance: Number) {
     const data = { device_id: this._device_id, axis: '', distance: distance }
     if (axis == MoveAxis.X) {
@@ -1334,7 +1358,7 @@ export class A1ScreenCard extends LitElement {
           A25 25 0 0 0 100 125
           Z"
           transform="rotate(45, 100, 100)"
-          @click=${() => this.#moveAxis(MoveAxis.X, -1)} />
+          @click=${() => this.#requestMoveAxis(MoveAxis.X, -1)} />
 
         <!-- Outer Slice Left -->
         <path class="outer-slice" d="
@@ -1345,7 +1369,7 @@ export class A1ScreenCard extends LitElement {
           A60 60 0 0 0 100 160
           Z"
           transform="rotate(45, 100, 100)"
-          @click=${() => this.#moveAxis(MoveAxis.X, -10)} />
+          @click=${() => this.#requestMoveAxis(MoveAxis.X, -10)} />
 
         <!-- Inner Slice Right -->
         <path class="inner-slice" d="
@@ -1356,7 +1380,7 @@ export class A1ScreenCard extends LitElement {
           A25 25 0 0 0 100 75
           Z"
           transform="rotate(45, 100, 100)"
-          @click=${() => this.#moveAxis(MoveAxis.X, 1)} />
+          @click=${() => this.#requestMoveAxis(MoveAxis.X, 1)} />
 
         <!-- Outer Slice Right -->
         <path class="outer-slice" d="
@@ -1367,7 +1391,7 @@ export class A1ScreenCard extends LitElement {
           A60 60 0 0 0 100 40
           Z"
           transform="rotate(45, 100, 100)"
-          @click=${() => this.#moveAxis(MoveAxis.X, 10)} />
+          @click=${() => this.#requestMoveAxis(MoveAxis.X, 10)} />
 
         <!-- Inner Slice Top -->
         <path class="inner-slice" d="
@@ -1378,7 +1402,7 @@ export class A1ScreenCard extends LitElement {
           A25 25 0 0 0 75 100
           Z"
           transform="rotate(45, 100, 100)"
-          @click=${() => this.#moveAxis(MoveAxis.Y, 1)} />
+          @click=${() => this.#requestMoveAxis(MoveAxis.Y, 1)} />
 
         <!-- Outer Slice Top -->
         <path class="outer-slice" d="
@@ -1389,7 +1413,7 @@ export class A1ScreenCard extends LitElement {
           A60 60 0 0 0 40 100
           Z"
           transform="rotate(45, 100, 100)"
-          @click=${() => this.#moveAxis(MoveAxis.Y, 10)} />
+          @click=${() => this.#requestMoveAxis(MoveAxis.Y, 10)} />
 
         <!-- Inner Slice Bottom -->
         <path class="inner-slice" d="
@@ -1400,7 +1424,7 @@ export class A1ScreenCard extends LitElement {
           A25 25 0 0 0 125 100
           Z"
           transform="rotate(45, 100, 100)"
-          @click=${() => this.#moveAxis(MoveAxis.Y, -1)} />
+          @click=${() => this.#requestMoveAxis(MoveAxis.Y, -1)} />
 
         <!-- Outer Slice Bottom -->
         <path class="outer-slice" d="
@@ -1411,7 +1435,7 @@ export class A1ScreenCard extends LitElement {
           A60 60 0 0 0 160 100
           Z"
           transform="rotate(45, 100, 100)"
-          @click=${() => this.#moveAxis(MoveAxis.Y, -10)} />
+          @click=${() => this.#requestMoveAxis(MoveAxis.Y, -10)} />
       </g>
 
       <!-- Middle circle -->
@@ -1468,17 +1492,17 @@ export class A1ScreenCard extends LitElement {
   #renderBedMoveControls() {
     return html`
       <div class="bed-move-controls-container">
-        <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, -10)}>
+        <button class="bed-move-control-button" @click=${() => this.#requestMoveAxis(MoveAxis.Z, -10)}>
           <ha-icon icon="mdi:chevron-double-up"></ha-icon>
         </button>
-        <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, -1)}>
+        <button class="bed-move-control-button" @click=${() => this.#requestMoveAxis(MoveAxis.Z, -1)}>
           <ha-icon icon="mdi:chevron-up"></ha-icon>
         </button>
         <ha-icon icon="mdi:train-car-flatbed"></ha-icon>
-        <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, 1)}>
+        <button class="bed-move-control-button" @click=${() => this.#requestMoveAxis(MoveAxis.Z, 1)}>
           <ha-icon icon="mdi:chevron-down"></ha-icon>
         </button>
-        <button class="bed-move-control-button" @click=${() => this.#moveAxis(MoveAxis.Z, 10)}>
+        <button class="bed-move-control-button" @click=${() => this.#requestMoveAxis(MoveAxis.Z, 10)}>
           <ha-icon icon="mdi:chevron-double-down"></ha-icon>
         </button>
       </div>
