@@ -36,6 +36,8 @@ const ENTITYLIST: string[] = [
   "tray_8",
   "tray_9",
   "remaining_drying_time", // AMS 2 Pro and AMS HT; the AMS 3H's are per zone
+  "ams_heater_power",   // External AMS heater/dryer on a smart plug
+  "ams_heater_drying",
 ];
 
 // The most trays any AMS has (the AMS 3H)
@@ -200,6 +202,8 @@ export class AMS_CARD extends LitElement {
       this._entities = {
         humidity: this._entityList["humidity_index"],
         temperature: this._entityList["ams_temp"],
+        heaterPower: this._entityList["ams_heater_power"],
+        heaterDrying: this._entityList["ams_heater_drying"],
         spools: this._trays.map((t) => t.spool),
         zones: [],
         dryingTime: this._isAms3h() ? undefined : this._entityList["remaining_drying_time"],
