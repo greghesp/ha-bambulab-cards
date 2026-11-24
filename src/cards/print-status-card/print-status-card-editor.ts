@@ -62,6 +62,35 @@ export class PrintControlCardEditor extends LitElement {
       },
     ];
 
+    // The minimal style has no room for these
+    if (this._config?.style !== "minimal") {
+      schema.push({
+        name: "custom_light_2",
+        label: "Second light",
+        selector: { entity: { domain: ["light", "switch"] } },
+      });
+      schema.push({
+        name: "custom_power_usage",
+        label: "Power usage sensor",
+        selector: { entity: { domain: "sensor", device_class: "power" } },
+      });
+    }
+
+    schema.push({
+      name: "show_end_time",
+      label: "Show end time",
+      selector: { boolean: true },
+    });
+
+    // The graphic style always shows it
+    if (this._config?.style === "simple" || this._config?.style === "minimal") {
+      schema.push({
+        name: "show_percentage",
+        label: "Show progress percentage",
+        selector: { boolean: true },
+      });
+    }
+
     const coverProgress = {
       name: "cover_progress",
       label: "Fill cover image with print progress",

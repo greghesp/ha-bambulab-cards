@@ -24,6 +24,7 @@ const ENTITIES: string[] = [
   "current_layer",
   "developer_lan_mode",
   "door_open",
+  "end_time",
   "humidity",
   "hybrid_mode_blocks_control",
   "image|p1p_camera",
