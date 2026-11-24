@@ -275,7 +275,7 @@ export class PrintStatusCard extends EntityProvider {
     A2L: this.A2LEntityUX,
     H2C: this.H2CEntityUX,
     H2D: this.H2DEntityUX,
-    H2PRO: this.H2DEntityUX,
+    H2DPRO: this.H2DEntityUX,
     H2S: this.H2SEntityUX,
     H3C: this.H3CEntityUX,
     P1P: this.P1PEntityUX,
