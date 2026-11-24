@@ -133,7 +133,9 @@ export function isEntityUnavailable(hass, entity: Entity): boolean {
   if (!entity?.entity_id) {
     return true;
   }
-  return hass.states[entity.entity_id].state == "unavailable";
+  // An entity has no state while it's being disabled, or until it's loaded again after being enabled.
+  const state = hass.states[entity.entity_id]?.state;
+  return state == undefined || state == "unavailable";
 }
 
 export function getLocalizedEntityState(hass, entity: Entity) {
