@@ -40,6 +40,7 @@ export class AmsCardEditor extends LitElement {
           name: "show_humidity_percentage",
           label: "Show Humidity as Percentage",
           selector: { boolean: {} },
+          default: true,
         }]),
         {
           name: "custom_humidity",

@@ -74,7 +74,7 @@ export class AMS_CARD extends LitElement {
   @provide({ context: nodeRedContext })
   private _nodeRed: boolean = false;
 
-  private _showHumidityPercentage = false;
+  private _showHumidityPercentage = true;
   private _customHumidity;
   private _customTemperature;
   @state() private _customRemaining: (string | undefined)[] = [];
@@ -123,7 +123,7 @@ export class AMS_CARD extends LitElement {
     this._showType = config.show_type ? true : false;
     this._spoolAnimReflection = (config.spool_anim_reflection == undefined) ? true : config.spool_anim_reflection;
     this._spoolAnimWiggle = (config.spool_anim_wiggle == undefined) ? true : config.spool_anim_wiggle;
-    this._showHumidityPercentage = config.show_humidity_percentage ? true : false;
+    this._showHumidityPercentage = (config.show_humidity_percentage == undefined) ? true : config.show_humidity_percentage;
     this._customHumidity = config.custom_humidity === "" ? nothing : config.custom_humidity;
     this._customTemperature =
       config.custom_temperature === "" ? nothing : config.custom_temperature;
