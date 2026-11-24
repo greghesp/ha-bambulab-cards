@@ -396,6 +396,19 @@ export function isMqttEncryptionEnabled(hass, deviceEntities) {
     return false;
 }
 
+// Same check for a tray. Trays are on the AMS or external spool device, so the sensors to
+// look at are on the printer that device is connected to.
+export function isTrayMqttEncryptionEnabled(hass, tray_entity_id: string): boolean {
+    const deviceId = hass.entities?.[tray_entity_id]?.device_id;
+    const printerId = hass.devices?.[deviceId]?.via_device_id;
+    if (!printerId) {
+        return false;
+    }
+
+    const printerEntities = getBambuDeviceEntities(hass, printerId, ["mqtt_encryption", "developer_lan_mode"]);
+    return isMqttEncryptionEnabled(hass, printerEntities);
+}
+
 export function isHybridMqttConnection(hass, deviceEntities) {
     return hass.states[deviceEntities.hybrid_mode_blocks_control?.entity_id]?.state == "on";
 }
