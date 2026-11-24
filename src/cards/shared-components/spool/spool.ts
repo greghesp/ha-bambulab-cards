@@ -5,7 +5,7 @@ import styles from "./spool.styles";
 import { AMS_LITE_MODEL } from "../../../const";
 import { hassContext } from "../../../utils/context";
 import { consume } from "@lit/context";
-import { getFormattedTime } from "../../../utils/helpers";
+import { getFormattedTime, getTrayText } from "../../../utils/helpers";
 import "../ams-popup/ams-popup";
 
 @customElement("ha-bambulab-spool")
@@ -118,7 +118,7 @@ export class Spool extends LitElement {
             ? html` <div class="ha-bambulab-spool-info-container">
                 <div class="ha-bambulab-spool-info-wrapper">
                   <div class="ha-bambulab-spool-info">
-                    ${this.hass.states[this.entity_id]?.attributes.name}
+                    ${getTrayText(this.hass, this.entity_id, "name")}
                   </div>
                 </div>
               </div>`

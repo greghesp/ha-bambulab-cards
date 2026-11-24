@@ -8,7 +8,6 @@
 
 export const LABEL_FONT = 20; // filament label font size
 export const PCT_FONT = 21; // remaining-percentage font size
-export const EMPTY_LABEL = "Empty"; // text drawn on an empty slot (only when show_empty_label is on)
 /* Bambu reports translucent/clear filament with colour 00000000, the same value an empty tray
    has. Such a loaded tray is drawn in this pale "glass" tint instead of as an empty slot. */
 export const TRANSLUCENT_COLOR = "#dfe8ec";
@@ -232,9 +231,11 @@ export function measureText(text: any, size: number, weight?: number): number {
 export function chipWidth(text: any, size: number, extra?: number, perChar?: number): number {
   const t = String(text);
   const w = measureText(t, size);
+  // Combining marks (e.g. Thai tone marks) sit on another character and take no width
+  const chars = t.replace(/\p{M}/gu, "").length;
   return Math.max(
     w + (extra == null ? 18 : extra),
-    t.length * size * (perChar == null ? 0.72 : perChar)
+    chars * size * (perChar == null ? 0.72 : perChar)
   );
 }
 
