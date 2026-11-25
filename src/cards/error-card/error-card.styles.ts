@@ -16,6 +16,19 @@ export const styles = css`
     display: block;
   }
 
+  .printer-errors {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .printer-errors h3 {
+    margin: 0;
+    font-size: 1em;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
   .message {
     overflow-wrap: anywhere;
   }
