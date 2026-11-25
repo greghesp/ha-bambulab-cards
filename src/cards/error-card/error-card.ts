@@ -20,9 +20,16 @@ registerCustomCard({
 
 interface ErrorCardConfig {
   printer?: string;
+  printers?: string[];
   title?: string;
   show_when_clear?: boolean;
   show_codes?: boolean;
+}
+
+interface PrinterErrors {
+  id: string;
+  name: string;
+  errors: PrinterError[];
 }
 
 @customElement(ERROR_CARD_NAME)
@@ -35,7 +42,7 @@ export class ErrorCard extends LitElement {
   @property({ type: Boolean }) public editMode = false;
 
   @state() private _config: ErrorCardConfig = {};
-  @state() private _errors: PrinterError[] = [];
+  @state() private _printers: PrinterErrors[] = [];
 
   private _hass?;
 
@@ -59,7 +66,8 @@ export class ErrorCard extends LitElement {
   }
 
   public getCardSize(): number {
-    return Math.max(1, this._errors.length) + (this._config.title ? 1 : 0);
+    const errorCount = this._printers.reduce((count, printer) => count + printer.errors.length, 0);
+    return Math.max(1, errorCount) + (this._config.title ? 1 : 0);
   }
 
   // Sections view: full width by default, height follows the content.
@@ -69,28 +77,36 @@ export class ErrorCard extends LitElement {
 
   private get _isHidden(): boolean {
     const showWhenClear = this._config.show_when_clear !== false;
-    return this._errors.length === 0 && !showWhenClear && !this.preview && !this.editMode;
+    return !this._printers.some((printer) => printer.errors.length > 0) && !showWhenClear && !this.preview && !this.editMode;
   }
 
   private _refreshErrors() {
-    if (!this._hass || !this._config.printer) {
-      if (this._errors.length > 0) {
-        this._errors = [];
+    const printerIds = this._config.printers ?? (this._config.printer ? [this._config.printer] : []);
+    if (!this._hass || printerIds.length === 0) {
+      if (this._printers.length > 0) {
+        this._printers = [];
       }
       return;
     }
-    const entities = helpers.getBambuDeviceEntities(this._hass, this._config.printer, [
-      HMS_ERRORS_KEY,
-      PRINT_ERROR_KEY,
-    ]);
-    const stateOf = (key: string) => {
-      const entityId = entities[key]?.entity_id;
-      return entityId ? this._hass.states[entityId] : undefined;
-    };
-    const errors = collectErrors(stateOf(PRINT_ERROR_KEY), stateOf(HMS_ERRORS_KEY));
+    const printers = [...new Set(printerIds)].map((id) => {
+      const device = this._hass.devices?.[id];
+      const entities = helpers.getBambuDeviceEntities(this._hass, id, [
+        HMS_ERRORS_KEY,
+        PRINT_ERROR_KEY,
+      ]);
+      const stateOf = (key: string) => {
+        const entityId = entities[key]?.entity_id;
+        return entityId ? this._hass.states[entityId] : undefined;
+      };
+      return {
+        id,
+        name: device?.name_by_user || device?.name || id,
+        errors: collectErrors(stateOf(PRINT_ERROR_KEY), stateOf(HMS_ERRORS_KEY)),
+      };
+    });
     // hass updates arrive constantly; only re-render when the errors change.
-    if (JSON.stringify(errors) !== JSON.stringify(this._errors)) {
-      this._errors = errors;
+    if (JSON.stringify(printers) !== JSON.stringify(this._printers)) {
+      this._printers = printers;
     }
   }
 
@@ -122,13 +138,23 @@ export class ErrorCard extends LitElement {
   }
 
   private _renderBody() {
-    if (!this._config.printer) {
+    const printerIds = this._config.printers ?? (this._config.printer ? [this._config.printer] : []);
+    if (printerIds.length === 0) {
       return html`<ha-alert alert-type="info">Select a printer in the card editor.</ha-alert>`;
     }
-    if (this._errors.length === 0) {
+    const printersWithErrors = this._printers.filter((printer) => printer.errors.length > 0);
+    if (printersWithErrors.length === 0) {
       return html`<ha-alert alert-type="success">No errors detected</ha-alert>`;
     }
-    return this._errors.map((error) => this._renderError(error));
+    if (this._printers.length === 1) {
+      return printersWithErrors[0].errors.map((error) => this._renderError(error));
+    }
+    return printersWithErrors.map((printer) => html`
+      <section class="printer-errors">
+        <h3>${printer.name}</h3>
+        ${printer.errors.map((error) => this._renderError(error))}
+      </section>
+    `);
   }
 
   private _renderError(error: PrinterError) {

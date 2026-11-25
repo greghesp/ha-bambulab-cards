@@ -11,9 +11,9 @@ const filterCombinations = PRINTER_MODELS.map((model) => ({
 
 const SCHEMA = [
   {
-    name: "printer",
-    label: "Printer",
-    selector: { device: { filter: filterCombinations } },
+    name: "printers",
+    label: "Printers",
+    selector: { device: { filter: filterCombinations, multiple: true } },
   },
   {
     name: "title",
@@ -45,9 +45,10 @@ export class ErrorCardEditor extends LitElement {
   }
 
   private _valueChanged(ev: CustomEvent) {
+    const { printer, ...config } = ev.detail.value;
     this.dispatchEvent(
       new CustomEvent("config-changed", {
-        detail: { config: ev.detail.value },
+        detail: { config },
         bubbles: true,
         composed: true,
       })
@@ -58,7 +59,11 @@ export class ErrorCardEditor extends LitElement {
     return html`
       <ha-form
         .hass=${this.hass}
-        .data=${{ ...DEFAULT_ON, ...this._config }}
+        .data=${{
+          ...DEFAULT_ON,
+          ...this._config,
+          printers: this._config?.printers ?? (this._config?.printer ? [this._config.printer] : []),
+        }}
         .schema=${SCHEMA}
         .computeLabel=${(schema) => schema.label}
         @value-changed=${this._valueChanged}
