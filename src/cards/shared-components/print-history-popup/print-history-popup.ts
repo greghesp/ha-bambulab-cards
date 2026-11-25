@@ -7,6 +7,7 @@ import styles from "./print-history-popup.styles.js";
 import * as helpers from "../../../utils/helpers";
 import { css } from "lit";
 import { PrintSettingsPopup } from './print-settings-popup';
+import "../confirmation-prompt/confirmation-prompt";
 
 // How long a signed timelapse URL stays valid. Long enough to watch or download one video.
 const SIGNED_PATH_EXPIRY_SECONDS = 3600;
@@ -22,11 +23,13 @@ interface FileCacheFile {
   printer_serial: string;
   path: string;
   printer_model: string;
+  printer_device_id: string;
 }
 
 interface PrinterOption {
   serial: string;
   name: string;
+  device_id: string;
 }
 
 @customElement("print-history-popup")
@@ -56,6 +59,9 @@ export class PrintHistoryPopup extends LitElement {
   @state() private _deletingFiles = new Set<string>();
   @state() private _allTimelapseFiles: FileCacheFile[] = [];
   @state() private _allTimelapseFilesSizeBytes: number = 0;
+  @state() private _pendingCacheClear: "all" | "prints" | "timelapse" | null = null;
+  @state() private _clearingCache: boolean = false;
+  private _pendingCacheClearDeviceIds: string[] = [];
 
   private _allPrinters = new Set<string>();
   private _compatiblePrinters = new Set<string>();
@@ -131,6 +137,45 @@ export class PrintHistoryPopup extends LitElement {
     return `${value} ${sizes[i]}`;
   }
 
+  #formatMegabytes(bytes: number): string {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  #countModels(files: FileCacheFile[]): number {
+    return files.filter((file) => file.filename.toLowerCase().endsWith(".3mf")).length;
+  }
+
+  #countTimelapses(files: FileCacheFile[]): number {
+    return files.filter((file) => /\.(mp4|avi|mov)$/i.test(file.filename)).length;
+  }
+
+  #sumFileSizes(files: FileCacheFile[]): number {
+    return files.reduce((total, file) => total + file.size, 0);
+  }
+
+  #updatePrinterOptions() {
+    this._allPrinters = new Set<string>();
+    this._compatiblePrinters = new Set<string>();
+    const files = [...this._allFiles, ...this._allTimelapseFiles];
+
+    files.forEach(file => {
+      this._allPrinters.add(file.printer_serial);
+      if (helpers.areModelsCompatible(this._model, file.printer_model)) {
+        this._compatiblePrinters.add(file.printer_serial);
+      }
+    });
+
+    this._printerOptions = Array.from(this._allPrinters).map(serial => {
+      const printFile = this._allFiles.find(file => file.printer_serial === serial);
+      const timelapseFile = this._allTimelapseFiles.find(file => file.printer_serial === serial);
+      return {
+        serial,
+        name: printFile?.printer_name || timelapseFile?.printer_name || serial,
+        device_id: printFile?.printer_device_id || timelapseFile?.printer_device_id || "",
+      };
+    });
+  }
+
   async _refreshFiles() {
     this._loading = true;
     this._error = null;
@@ -178,28 +223,7 @@ export class PrintHistoryPopup extends LitElement {
       this._error = error instanceof Error ? error.message : String(error);
     }
     
-    // Get unique printers for filter dropdown from all unfiltered data
-    this._allPrinters = new Set<string>();
-    this._compatiblePrinters = new Set<string>();
-    this._allFiles.forEach(file => {
-      this._allPrinters.add(file.printer_serial);
-      if (helpers.areModelsCompatible(this._model, file.printer_model)) {
-        this._compatiblePrinters.add(file.printer_serial)
-      }
-    });
-    this._allTimelapseFiles.forEach(file => {
-      this._allPrinters.add(file.printer_serial);
-      if (helpers.areModelsCompatible(this._model, file.printer_model)) {
-        this._compatiblePrinters.add(file.printer_serial)
-      }
-    });
-
-    this._printerOptions = Array.from(this._allPrinters).map(serial => ({
-      serial,
-      name: this._allFiles.find(f => f.printer_serial === serial)?.printer_name ||
-            this._allTimelapseFiles.find(f => f.printer_serial === serial)?.printer_name ||
-            serial
-    }));
+    this.#updatePrinterOptions();
 
     this._loading = false;
     this.requestUpdate();
@@ -239,57 +263,120 @@ export class PrintHistoryPopup extends LitElement {
       this._timelapseError = error instanceof Error ? error.message : String(error);
     } finally {
       this._timelapseLoading = false;
+      this.#updatePrinterOptions();
       this.requestUpdate();
     }
   }
 
-  async #deletePrint(file: FileCacheFile) {
+  async #deleteFile(file: FileCacheFile) {
+    const isTimelapse = this._allTimelapseFiles.some((entry) => entry.path === file.path);
     this._deletingFiles = new Set(this._deletingFiles).add(file.path);
-    this._error = null;
+    if (isTimelapse) {
+      this._timelapseError = null;
+    } else {
+      this._error = null;
+    }
 
     try {
-      const response = await fetch('/api/bambu_lab/print_history/delete', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this._hass.auth.data.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          serial: file.printer_serial,
-          path: file.path.slice(file.printer_serial.length + 1),
-        }),
+      await this._hass.callService("bambu_lab", "delete_cached_file", {
+        device_id: file.printer_device_id,
+        path: file.path.slice(file.printer_serial.length + 1),
       });
 
-      const responseText = await response.text();
-      let result: any = {};
-      if (responseText) {
-        try {
-          result = JSON.parse(responseText);
-        } catch {
-          result = { error: responseText };
-        }
+      if (isTimelapse) {
+        this._allTimelapseFiles = this._allTimelapseFiles.filter((entry) => entry.path !== file.path);
+        this._timelapseFiles = this._timelapseFiles.filter((entry) => entry.path !== file.path);
+        this._allTimelapseFilesSizeBytes = Math.max(0, this._allTimelapseFilesSizeBytes - file.size);
+        if (this._openTimelapseVideo === file.filename) this.#closeTimelapse();
+      } else {
+        this._allFiles = this._allFiles.filter((entry) => entry.path !== file.path);
+        this._files = this._files.filter((entry) => entry.path !== file.path);
+        this._allFilesSizeBytes = Math.max(0, this._allFilesSizeBytes - file.size);
       }
-      if (!response.ok) {
-        const detail = result?.error ?? response.statusText;
-        throw new Error(`Delete failed (${response.status}): ${detail}`);
-      }
-
-      this._allFiles = this._allFiles.filter((entry) => entry.path !== file.path);
-      this._files = this._files.filter((entry) => entry.path !== file.path);
-      this._allFilesSizeBytes = Math.max(0, this._allFilesSizeBytes - file.size);
 
       if (file.thumbnail_path) {
         const thumbnailUrl = this._thumbnailUrls.get(file.thumbnail_path);
         if (thumbnailUrl) URL.revokeObjectURL(thumbnailUrl);
         this._thumbnailUrls.delete(file.thumbnail_path);
       }
+
+      if (isTimelapse) {
+        await this._refreshTimelapseFiles();
+      } else {
+        await this._refreshFiles();
+      }
     } catch (error) {
-      console.error('[FileCachePopup] Failed to delete print:', error);
-      this._error = error instanceof Error ? error.message : String(error);
+      console.error('[FileCachePopup] Failed to delete cached file:', error);
+      const message = error instanceof Error ? error.message : String(error);
+      if (isTimelapse) {
+        this._timelapseError = message;
+      } else {
+        this._error = message;
+      }
     } finally {
       const deletingFiles = new Set(this._deletingFiles);
       deletingFiles.delete(file.path);
       this._deletingFiles = deletingFiles;
+    }
+  }
+
+  #requestCacheClear(fileType: "all" | "prints" | "timelapse") {
+    const files = fileType === "prints"
+      ? this._files
+      : fileType === "timelapse"
+        ? this._timelapseFiles
+        : [...this._files, ...this._timelapseFiles];
+
+    if (this._selectedPrinter === "all" || this._selectedPrinter === "compatible") {
+      this._pendingCacheClearDeviceIds = [...new Set(files.map(file => file.printer_device_id).filter(Boolean))];
+    } else {
+      const selectedOption = this._printerOptions.find(option => option.serial === this._selectedPrinter);
+      const selectedFile = files.find(file => file.printer_serial === this._selectedPrinter);
+      const deviceId = selectedOption?.device_id || selectedFile?.printer_device_id ||
+        (this._selectedPrinter === this.device_serial ? this.device_id : "");
+      this._pendingCacheClearDeviceIds = deviceId ? [deviceId] : [];
+    }
+
+    this._pendingCacheClear = fileType;
+  }
+
+  #dismissCacheClear() {
+    this._pendingCacheClear = null;
+  }
+
+  async #confirmCacheClear() {
+    const fileType = this._pendingCacheClear;
+    if (!fileType || this._clearingCache) return;
+
+    this._pendingCacheClear = null;
+    this._clearingCache = true;
+    if (fileType !== "timelapse") this._error = null;
+    if (fileType !== "prints") this._timelapseError = null;
+
+    try {
+      if (this._pendingCacheClearDeviceIds.length === 0) {
+        throw new Error("No printer device found for the current selection");
+      }
+
+      await Promise.all(this._pendingCacheClearDeviceIds.map(device_id =>
+        this._hass.callService("bambu_lab", "clear_file_cache", {
+          device_id,
+          file_type: fileType,
+        })
+      ));
+
+      if (fileType === "all" || fileType === "prints") {
+        await this._refreshFiles();
+      }
+      if (fileType === "all" || fileType === "timelapse") {
+        await this._refreshTimelapseFiles();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (fileType !== "timelapse") this._error = message;
+      if (fileType !== "prints") this._timelapseError = message;
+    } finally {
+      this._clearingCache = false;
     }
   }
 
@@ -475,8 +562,15 @@ export class PrintHistoryPopup extends LitElement {
             @input=${(e: any) => { this._searchQuery = e.target.value; }}
           />
         </div>
-        <div>
-          Cache size: ${this.#formatBytesRounded(this._allFilesSizeBytes)}
+        <div class="print-history-cache-size">
+          <span>${this.#countModels(filteredFiles)} models / ${this.#formatMegabytes(this.#sumFileSizes(filteredFiles))}</span>
+          <button
+            class="print-history-clear-btn"
+            type="button"
+            @click=${() => this.#requestCacheClear("prints")}
+            ?disabled=${this._clearingCache}>
+            Clear Cache
+          </button>
         </div>
       </div>
       ${this._error ? html`
@@ -511,6 +605,14 @@ export class PrintHistoryPopup extends LitElement {
                         </div>`;
                     }
                   })()}
+                  <button
+                    class="print-history-delete-btn"
+                    title=${this._deletingFiles.has(file.path) ? 'Deleting' : 'Delete'}
+                    aria-label=${this._deletingFiles.has(file.path) ? 'Deleting print' : 'Delete print'}
+                    @click=${() => this.#deleteFile(file)}
+                    ?disabled=${this._deletingFiles.has(file.path)}>
+                    <ha-icon icon="mdi:delete"></ha-icon>
+                  </button>
               </div>
               <div class="print-history-info">
                 <div class="print-history-content">
@@ -527,13 +629,6 @@ export class PrintHistoryPopup extends LitElement {
                     ?disabled=${this.controlBlocked}>
                   <ha-icon icon="mdi:printer-3d"></ha-icon>
                   Print Again
-                </button>
-                <button
-                    class="print-history-delete-btn"
-                    @click=${() => this.#deletePrint(file)}
-                    ?disabled=${this._deletingFiles.has(file.path)}>
-                  <ha-icon icon="mdi:delete"></ha-icon>
-                  ${this._deletingFiles.has(file.path) ? 'Deleting…' : 'Delete'}
                 </button>
               </div>
             </div>
@@ -555,7 +650,14 @@ export class PrintHistoryPopup extends LitElement {
           </select>
         </div>
         <div class="print-history-cache-size">
-          Cache size: ${this.#formatBytesRounded(this._allTimelapseFilesSizeBytes)}
+          <span>${this.#countTimelapses(this._timelapseFiles)} timelapses / ${this.#formatMegabytes(this.#sumFileSizes(this._timelapseFiles))}</span>
+          <button
+            class="print-history-clear-btn"
+            type="button"
+            @click=${() => this.#requestCacheClear("timelapse")}
+            ?disabled=${this._clearingCache}>
+            Clear Cache
+          </button>
         </div>
       </div>
       ${this._timelapseError ? html`<div class="print-history-error">${this._timelapseError}</div>` : nothing}
@@ -566,7 +668,7 @@ export class PrintHistoryPopup extends LitElement {
             <div>No timelapse videos found</div>
           </div>
         ` : html`
-          <div class="print-history-grid">
+          <div class="print-history-grid timelapse-grid">
             ${this._timelapseFiles.map(file => {
               const isOpen = this._openTimelapseVideo === file.filename;
               const isAvi = file.filename.toLowerCase().endsWith('.avi');
@@ -585,9 +687,6 @@ export class PrintHistoryPopup extends LitElement {
                               return html`<div class="print-history-placeholder">${this._getFileIcon(file.type)}</div>`;
                             }
                           })()}
-                          <div class="timelapse-overlay">
-                            ${this._formatDate(file.modified)}
-                          </div>
                         `
                       : isOpen
                         ? this._openTimelapseVideoUrl
@@ -604,16 +703,30 @@ export class PrintHistoryPopup extends LitElement {
                                 return html`<div class="print-history-placeholder" style="cursor:pointer;" @click=${() => this.#openTimelapse(file)}>${this._getFileIcon(file.type)}</div>`;
                               }
                             })()}
-                            <div class="timelapse-overlay">
-                              ${this._formatDate(file.modified)}
-                            </div>
                           `
                     }
+                    <button
+                      class="timelapse-download-btn"
+                      type="button"
+                      title="Download video"
+                      aria-label="Download video"
+                      @click=${() => this.#downloadTimelapse(file)}>
+                      <ha-icon icon="mdi:download"></ha-icon>
+                    </button>
+                    <button
+                      class="print-history-delete-btn"
+                      type="button"
+                      title=${this._deletingFiles.has(file.path) ? 'Deleting' : 'Delete timelapse'}
+                      aria-label=${this._deletingFiles.has(file.path) ? 'Deleting timelapse' : 'Delete timelapse'}
+                      ?disabled=${this._deletingFiles.has(file.path)}
+                      @click=${() => this.#deleteFile(file)}>
+                      <ha-icon icon="mdi:delete"></ha-icon>
+                    </button>
                   </div>
-                  <a class="timelapse-download-btn" href="#" title="Download video" @click=${(e: Event) => { e.preventDefault(); this.#downloadTimelapse(file); }}>
-                    ⬇ Download
-                  </a>
-                  ${file.printer_name ? html`<div class="printer-info">${file.printer_name}</div>` : nothing}
+                  <div class="timelapse-info">
+                    ${file.printer_name ? html`<span class="timelapse-printer-name">${file.printer_name}</span>` : nothing}
+                    <span class="timelapse-date">${this._formatDate(file.modified)}</span>
+                  </div>
                 </div>
               `;
             })}
@@ -623,6 +736,21 @@ export class PrintHistoryPopup extends LitElement {
     `;
 
     return html`
+      ${this._pendingCacheClear ? html`
+        <confirmation-prompt
+          .title=${"Warning"}
+          .body=${this._pendingCacheClear === "timelapse"
+            ? html`This will permanently delete all cached timelapse videos. Continue?`
+            : this._pendingCacheClear === "prints"
+              ? html`This will permanently delete all cached print models. Continue?`
+              : html`This will permanently delete all cached files. Continue?`}
+          .primaryActionText=${"Clear Cache"}
+          .secondaryActionText=${"Cancel"}
+          .primaryAction=${this.#confirmCacheClear.bind(this)}
+          .secondaryAction=${this.#dismissCacheClear.bind(this)}
+          .onClose=${this.#dismissCacheClear.bind(this)}>
+        </confirmation-prompt>
+      ` : nothing}
       <div class="print-history-overlay" @click=${this.hide}>
         <div class="print-history-popup" @click=${(e) => e.stopPropagation()}>
           <div class="print-history-header">

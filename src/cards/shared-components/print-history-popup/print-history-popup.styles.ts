@@ -45,6 +45,35 @@ export default css`
     background: var(--ha-card-background, var(--card-background-color, white));
   }
 
+  .print-history-cache-size {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .print-history-clear-btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    background: var(--error-color, #db4437);
+    color: var(--text-primary-color, white);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .print-history-clear-btn:hover:not(:disabled) {
+    filter: brightness(0.9);
+  }
+
+  .print-history-clear-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   .print-history-title {
     font-size: 18px;
     font-weight: 500;
@@ -183,6 +212,10 @@ export default css`
     min-height: 0;
   }
 
+  .timelapse-grid {
+    grid-auto-rows: auto;
+  }
+
   .print-history-card {
     display: flex;
     flex-direction: column;
@@ -283,26 +316,26 @@ export default css`
   }
 
   .print-history-delete-btn {
-    margin-top: 8px;
-    padding: 6px 12px;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
     border: none;
     border-radius: 4px;
-    background: var(--error-color, #db4437);
-    color: var(--text-primary-color, white);
+    background: rgba(0, 0, 0, 0.65);
+    color: var(--error-color, #f44336);
     cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 4px;
-    transition: background-color 0.2s;
-    width: 100%;
     justify-content: center;
+    transition: background-color 0.2s;
   }
 
   .print-history-delete-btn:hover:not(:disabled) {
     background: var(--error-color, #c62828);
-    filter: brightness(0.9);
+    color: var(--text-primary-color, white);
   }
 
   .print-history-delete-btn:disabled {
@@ -311,7 +344,7 @@ export default css`
   }
 
   .print-history-delete-btn ha-icon {
-    --mdc-icon-size: 16px;
+    --mdc-icon-size: 20px;
   }
 
   .print-history-type {
@@ -625,38 +658,51 @@ export default css`
     border-bottom: 2px solid var(--primary-color, #03a9f4);
     font-weight: 600;
   }
-  .timelapse-overlay {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    background: rgba(0,0,0,0.6);
-    color: #fff;
-    font-size: 14px;
-    padding: 6px 10px;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    box-sizing: border-box;
-    pointer-events: none;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  .timelapse-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    min-width: 0;
+    color: var(--secondary-text-color, #757575);
+  }
+
+  .timelapse-printer-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+
+  .timelapse-date {
+    flex-shrink: 0;
+    margin-left: auto;
+    font-size: 12px;
+    text-align: right;
+    white-space: nowrap;
   }
 
   .timelapse-download-btn {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.7);
+    top: 8px;
+    left: 8px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.65);
     color: #fff;
-    text-align: center;
-    padding: 6px 0;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
     z-index: 2;
-    transition: background 0.2s;
+    transition: background-color 0.2s;
+  }
+  .timelapse-download-btn ha-icon {
+    --mdc-icon-size: 20px;
   }
   .timelapse-download-btn:hover {
     background: var(--primary-color, #03a9f4);
