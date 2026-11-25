@@ -169,6 +169,7 @@ export const FADE_STOPS: [number, number][] = [
 /* Pick the geometry table from the device model string */
 export function variantFromModel(model: string): string {
   const m = String(model || "").toLowerCase();
+  if (/\bams[\s_-]*3p\b/i.test(m)) return "ams3p";
   if (/\bams[\s_-]*3h\b/i.test(m)) return "ams3h";
   if (m.includes("lite")) return "lite";
   if (m.includes("ht")) return "ht";
@@ -177,10 +178,23 @@ export function variantFromModel(model: string): string {
   return "ams2pro";
 }
 
+export const rackSlotCount = (variant: string): number =>
+  variant === "ams3p" ? 7 : variant === "ams3h" ? 9 : 0;
+
 export function isBlankColor(c: any): boolean {
   if (!c) return true;
   const s = String(c).toLowerCase().replace("#", "").trim();
   return s === "" || s === "00000000" || s === "000000" || s === "none" || s === "nil";
+}
+
+export function trayIsEmpty(state: any): boolean {
+  const a = state?.attributes || {};
+  if (a.empty !== undefined) return a.empty === true || a.empty === "true";
+  if (a.unknown === true || a.unknown === "true") return false;
+  return (
+    [state?.state, a.type].some((value) => String(value).toLowerCase() === "empty") ||
+    (!a.type && !a.name && isBlankColor(a.color))
+  );
 }
 
 /* Filament band height: a tiny value for an empty slot, 95% for full or unknown */
@@ -247,7 +261,7 @@ export function amsDeviceModel(device: any, hass: any): string {
     if (entity.device_id !== device.id) continue;
     const a = hass.states?.[id]?.attributes || {};
     for (const model of [a.device_model, a.model, a.device_type]) {
-      if (/\bams[\s_-]*3h\b/i.test(model || "")) return model;
+      if (/\bams[\s_-]*3[hp]\b/i.test(model || "")) return model;
     }
   }
   return device.model || "";

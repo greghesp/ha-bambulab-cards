@@ -131,9 +131,11 @@ custom_remaining_1: sensor.tray_1_remaining   # one per tray: _1 to _4, or _1 to
 
 ### AMS Graphic card
 
-Draws the unit itself (AMS, AMS 2 Pro, AMS HT) with spool fill levels and
-optional labels. There's no drawing of the AMS 3H yet, so use the
-[AMS card](#ams-card) for it.
+Draws the AMS, AMS 2 Pro and AMS HT with spool fill levels and optional
+labels. On the AMS 3H and AMS 3P it draws the staggered spool rows and
+their corresponding PrintTools. The AMS 3P has trays 2, 4 and 6 in the
+back row and 1, 3, 5 and 7 in front. To use this layout, select an AMS
+that the integration identifies as an AMS 3P.
 
 ![AMS Graphic card for an AMS 2 Pro](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-graphic.png)
 
