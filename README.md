@@ -184,7 +184,8 @@ printer: <printer device id>
 The selected printers' current errors: the print error, if there is one, then each HMS
 error, most severe first. Fatal errors show red, serious ones amber and the
 rest blue. Each HMS error links to its page on the Bambu Lab wiki. When multiple
-printers are selected, errors are grouped under their printer names.
+printers are selected, errors are grouped under the names from their printer
+name sensors, falling back to their device names when a sensor is unavailable.
 
 Turn off **Show the card when there are no errors** to have the card appear
 only while at least one selected printer has an error. It stays visible while you edit the

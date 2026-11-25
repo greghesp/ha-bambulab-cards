@@ -8,6 +8,7 @@ import {
   ERROR_CARD_NAME,
   HMS_ERRORS_KEY,
   PRINT_ERROR_KEY,
+  PRINTER_NAME_KEY,
 } from "./const";
 import { collectErrors, PrinterError } from "./errors";
 import { styles } from "./error-card.styles";
@@ -93,18 +94,21 @@ export class ErrorCard extends LitElement {
       const entities = helpers.getBambuDeviceEntities(this._hass, id, [
         HMS_ERRORS_KEY,
         PRINT_ERROR_KEY,
+        PRINTER_NAME_KEY,
       ]);
       const stateOf = (key: string) => {
         const entityId = entities[key]?.entity_id;
         return entityId ? this._hass.states[entityId] : undefined;
       };
+      const printerName = stateOf(PRINTER_NAME_KEY)?.state?.trim();
       return {
         id,
-        name: device?.name_by_user || device?.name || id,
+        name: printerName && printerName !== "unknown" && printerName !== "unavailable"
+          ? printerName
+          : device?.name_by_user || device?.name || id,
         errors: collectErrors(stateOf(PRINT_ERROR_KEY), stateOf(HMS_ERRORS_KEY)),
       };
     });
-    // hass updates arrive constantly; only re-render when the errors change.
     if (JSON.stringify(printers) !== JSON.stringify(this._printers)) {
       this._printers = printers;
     }
