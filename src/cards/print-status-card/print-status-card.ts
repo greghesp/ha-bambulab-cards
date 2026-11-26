@@ -20,6 +20,7 @@ import H3C_IMAGE from "../../images/H3C.webp";
 import P1P_IMAGE from "../../images/P1P.webp";
 import P1S_IMAGE from "../../images/P1S.webp";
 import P2S_IMAGE from "../../images/P2S.webp";
+import P3C_IMAGE from "../../images/P3C.webp";
 import X1C_IMAGE from "../../images/X1C.webp";
 import X1E_IMAGE from "../../images/X1E.webp";
 import X2D_IMAGE from "../../images/X2D.webp";
@@ -53,6 +54,7 @@ const _images: { [key: string]: any } = {
   P1P: P1P_IMAGE,
   P1S: P1S_IMAGE,
   P2S: P2S_IMAGE,
+  P3C: P3C_IMAGE,
   X1C: X1C_IMAGE,
   X1E: X1E_IMAGE,
   X2D: X2D_IMAGE,
@@ -286,6 +288,27 @@ export class PrintStatusCard extends EntityProvider {
     power_usage:    { x: 13, y: 85, width: 25, height: 0 },
   };
 
+  // Positioned on the P3C photo: the screen is top left on the grey body (y 41-48%), the tool
+  // dock runs across under it (50-57%), then the chamber (57-87%) with the bed at 81-87%
+  private P3CEntityUX: { [key: string]: EntityUX | undefined } = {
+    power:             { x: 93,   y: 45.5, width: 20,  height: 0 },
+    print_progress:    { x: 28,   y: 43, width: 25,  height: 0 },
+    remaining_time:    { x: 28,   y: 47, width: 100, height: 0 },
+    end_time:          { x: 62,   y: 47, width: 100, height: 0 },
+    chamber_light:     { x: 17,   y: 61, width: 20,  height: 0 },
+    chamber_fan_speed: { x: 83,   y: 61, width: 70,  height: 0, click_target: "chamber_fan" },
+    nozzle_temp:       { x: 50,   y: 60.5, width: 25,  height: 0, click_target: "target_nozzle_temperature" },
+    second_light:      { x: 17,   y: 67, width: 20,  height: 0 },
+    aux_fan_speed:     { x: 17,   y: 73, width: 70,  height: 0, click_target: "aux_fan" },
+    power_usage:       { x: 17,   y: 79, width: 25,  height: 0 },
+    chamber_temp:      { x: 83,   y: 67, width: 20,  height: 0 },
+    humidity:          { x: 83,   y: 73, width: 20,  height: 0 },
+    door_open:         { x: 83,   y: 79, width: 20,  height: 0 },
+    cover_image:       { x: 50,   y: 70, width: 50,  height: 50 },
+    bed_temp:          { x: 50,   y: 84.5, width: 25,  height: 0, click_target: "target_bed_temperature" },
+    stage:             { x: 50,   y: 93.5, width: 300, height: 0 },
+  };
+
   private X1CEntityUX: { [key: string]: EntityUX | undefined } = {
     power:             { x: 95.5, y: 10, width: 20,  height: 0 },
     print_progress:    { x: 29,   y: 6,  width: 25,  height: 0 },
@@ -317,6 +340,7 @@ export class PrintStatusCard extends EntityProvider {
     P1P: this.P1PEntityUX,
     P1S: this.P1SEntityUX,
     P2S: this.P2SEntityUX,
+    P3C: this.P3CEntityUX,
     X1:  this.X1CEntityUX,
     X1C: this.X1CEntityUX,
     X1E: this.X1CEntityUX,

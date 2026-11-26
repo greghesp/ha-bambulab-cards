@@ -13,17 +13,25 @@ export const PRINTER_MODELS = [
     "P1P",
     "P1S",
     "P2S",
+    "P3C",
     "X1C",
     "X1E",
     "X2D"
 ];
 export const AMS_3H_MODEL = "AMS 3H";
+export const AMS_3P_MODEL = "AMS 3P";
+// The AMS units built into the Swaptek printers, and how many trays they have
+export const RACK_AMS_TRAYS: { [model: string]: number } = {
+    [AMS_3H_MODEL]: 9,
+    [AMS_3P_MODEL]: 7,
+};
 export const AMS_LITE_MODEL = "AMS Lite";
 export const AMS_MODELS = [
     "AMS",
     AMS_LITE_MODEL,
     "AMS 2 Pro",
     AMS_3H_MODEL,
+    AMS_3P_MODEL,
     "AMS HT"
 ];
 export const AMS_MODELS_WITH_EXTERNAL_SPOOL = [

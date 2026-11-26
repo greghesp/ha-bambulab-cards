@@ -38,7 +38,7 @@ For questions and help, join us on [Discord](https://discord.gg/rsUHAW3DKz).
 | Card | Type | What it shows |
 |---|---|---|
 | [Print Status](#print-status-card) | `custom:ha-bambulab-print_status-card` | Your printer with live values, in a graphic, simple or minimal style |
-| [AMS](#ams-card) | `custom:ha-bambulab-ams-card` | One AMS unit's spools, humidity and temperature, including the H3C's nine-spool AMS 3H |
+| [AMS](#ams-card) | `custom:ha-bambulab-ams-card` | One AMS unit's spools, humidity and temperature, including the H3C's nine-spool AMS 3H and the P3C's seven-spool AMS 3P |
 | [AMS Graphic](#ams-graphic-card) | `custom:ha-bambulab-ams-graphic-card` | The AMS drawn with fill levels and labels |
 | [Spool](#spool-card) | `custom:ha-bambulab-spool-card` | A single spool: the external spool or one AMS slot |
 | [Print Control](#print-control-card) | `custom:ha-bambulab-print_control-card` | Speed, pause, resume, stop and skip objects |
@@ -107,6 +107,9 @@ outline turns orange. The AMS 3H has no single humidity or temperature
 reading, so the info bar shows the other zone's instead. Tap a reading to
 open it. The AMS 3H always uses the vector style.
 
+**AMS 3P (P3C).** Also laid out like the unit, with trays 2, 4 and 6 behind
+1, 3, 5 and 7. The info bar shows the readings of each zone it reports.
+
 ![AMS card in vector style with info bar](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-vector.png)
 
 | AMS 3H, dry box drying | AMS 3H, dry box idle |
@@ -126,14 +129,31 @@ spool_anim_wiggle: true
 # Optional overrides
 custom_humidity: sensor.my_ams_humidity
 custom_temperature: sensor.my_ams_temperature
-custom_remaining_1: sensor.tray_1_remaining   # one per tray: _1 to _4, or _1 to _9 on an AMS 3H
+custom_remaining_1: sensor.tray_1_remaining   # one per tray: _1 to _4, _1 to _9 on an AMS 3H or _1 to _7 on an AMS 3P
 ```
 
 ### AMS Graphic card
 
-Draws the unit itself (AMS, AMS 2 Pro, AMS HT) with spool fill levels and
-optional labels. There's no drawing of the AMS 3H yet, so use the
-[AMS card](#ams-card) for it.
+Draws the AMS, AMS 2 Pro and AMS HT with spool fill levels and optional
+labels. On the AMS 3H and AMS 3P it draws the staggered spool rows and
+their corresponding PrintTools. The AMS 3P has trays 2, 4 and 6 in the
+back row and 1, 3, 5 and 7 in front. To use this layout, select an AMS
+that the integration identifies as an AMS 3P.
+
+The AMS 3H and AMS 3P are shown as a photo of the unit by default (cut from the H3C and
+P3C printer images), with the chamber and dry box readings and the printer's print tools
+(nozzle size, and the filament each one holds) along the bottom. The AMS 3P shows a dry box
+only when its optional dryer module reports two slots. Set `ams3h_style: classic` for the
+drawn version.
+
+```yaml
+type: custom:ha-bambulab-ams-graphic-card
+ams: <AMS 3H or AMS 3P device id>
+ams3h_style: photo        # photo (default) or classic
+show_info_bar: true       # chamber and dry box readings
+show_labels: true
+show_empty_label: false
+```
 
 ![AMS Graphic card for an AMS 2 Pro](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-graphic.png)
 

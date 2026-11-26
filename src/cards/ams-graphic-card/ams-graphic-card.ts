@@ -13,8 +13,9 @@ import {
   Slot,
   VARIANTS,
   variantFromModel,
+  rackSlotCount,
   amsDeviceModel,
-  isBlankColor,
+  trayIsEmpty,
   TRANSLUCENT_COLOR,
 } from "./geo";
 import { renderSvg } from "./render";
@@ -28,7 +29,7 @@ registerCustomCard({
   type: AMS_GRAPHIC_CARD_NAME,
   name: "Bambu Lab AMS Graphic Card",
   description:
-    "Spool status for AMS / AMS 2 PRO / AMS HT / AMS-3H with graphic spool rendering (fill level, glass overlay, labels)",
+    "Spool status for AMS / AMS 2 PRO / AMS HT / AMS-3H / AMS-3P with graphic spool rendering (fill level, glass overlay, labels)",
 });
 
 const ICON_TEMP =
@@ -89,15 +90,22 @@ export class AmsGraphicCard extends LitElement {
     }
   }
 
+  /* The photo-style AMS 3H / 3P keeps the photo's proportions, so its height follows its width */
+  private _isRackPhoto(): boolean {
+    return !!rackSlotCount(this._resolve().variantKey) && this._config?.ams3h_style !== "classic";
+  }
+
   public getCardSize(): number {
-    if (this._resolve().variantKey === "ams3h") return 6;
+    if (this._isRackPhoto()) return 8;
+    if (rackSlotCount(this._resolve().variantKey)) return 6;
     return 4 + (this._config?.show_info_bar === false ? 0 : 1);
   }
 
   /* Match the graphic style of the integration's own AMS card: 4 rows (plus 1 for the info
      bar), with AMS HT spanning a single column */
   public getGridOptions() {
-    if (this._resolve().variantKey === "ams3h")
+    if (this._isRackPhoto()) return { columns: 6, min_columns: 4, rows: "auto" };
+    if (rackSlotCount(this._resolve().variantKey))
       return { columns: "full", min_columns: 6, rows: 5, min_rows: 5 };
     const layout = this.getLayoutOptions();
     return {
@@ -109,7 +117,7 @@ export class AmsGraphicCard extends LitElement {
   }
 
   public getLayoutOptions() {
-    if (this._resolve().variantKey === "ams3h")
+    if (rackSlotCount(this._resolve().variantKey))
       return { grid_rows: 5, grid_columns: 6, grid_min_rows: 5, grid_min_columns: 6 };
     const rows = this.getCardSize();
     const columns = this._resolve().variantKey === "ht" ? 1 : 4;
@@ -136,7 +144,11 @@ export class AmsGraphicCard extends LitElement {
     const devices = this._hass?.devices || {};
     for (const key of Object.keys(devices)) {
       const d = devices[key];
-      if (d.manufacturer === MANUFACTURER && AMS_MODELS.includes(d.model)) return key;
+      if (
+        d.manufacturer === MANUFACTURER &&
+        (AMS_MODELS.includes(d.model) || rackSlotCount(variantFromModel(d.model)))
+      )
+        return key;
     }
     return "";
   }
@@ -208,23 +220,18 @@ export class AmsGraphicCard extends LitElement {
       };
     }
     const a = st.attributes || {};
-    const cols = Array.isArray(a.cols) ? a.cols.filter((c: any) => !isBlankColor(c)) : [];
+    const cols = Array.isArray(a.cols)
+      ? a.cols.filter((value) => /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value))
+      : [];
     const rawColor = cols[0] || a.color || "";
-    const hasType = !!a.type && a.type !== "?" && a.type !== "Empty";
-    /* A blank colour alone does not mean empty: translucent filament reports 00000000 too.
-       Only treat it as empty when the tray also carries no filament type. */
-    const empty =
-      a.unknown === true ||
-      a.empty === true ||
-      a.type === "?" ||
-      (isBlankColor(rawColor) && !hasType) ||
-      st.state === "Empty" ||
-      st.state === "empty";
+    const empty = trayIsEmpty(st) || ["unknown", "unavailable"].includes(st.state);
     const color = empty
       ? "#000000"
-      : isBlankColor(rawColor)
+      : /^#00000000$/i.test(rawColor)
         ? TRANSLUCENT_COLOR
-        : String(rawColor).slice(0, 7);
+        : /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(rawColor)
+          ? rawColor.slice(0, 7)
+          : "#888888";
     const remainNum = a.remain == null ? -1 : Number(a.remain);
     const label = empty
       ? ""
@@ -290,10 +297,11 @@ export class AmsGraphicCard extends LitElement {
     if (!cfg || !this._hass) return nothing;
 
     const r = this._resolve();
-    if (r.variantKey === "ams3h") {
+    if (rackSlotCount(r.variantKey)) {
       return html`<bambu-lab-ams3h-graphic
         ._hass=${this._hass}
         ._config=${cfg}
+        .slotCount=${rackSlotCount(r.variantKey)}
         @ams3h-filament=${(e: CustomEvent) => this._openFilamentPopup(e.detail.entityId)}
       ></bambu-lab-ams3h-graphic>`;
     }
