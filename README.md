@@ -131,9 +131,21 @@ custom_remaining_1: sensor.tray_1_remaining   # one per tray: _1 to _4, or _1 to
 
 ### AMS Graphic card
 
-Draws the unit itself (AMS, AMS 2 Pro, AMS HT) with spool fill levels and
-optional labels. There's no drawing of the AMS 3H yet, so use the
-[AMS card](#ams-card) for it.
+Draws the unit itself (AMS, AMS 2 Pro, AMS HT, AMS 3H) with spool fill levels and
+optional labels.
+
+The AMS 3H is shown as a photo of the unit by default, with the chamber and dry box
+readings and the H3C's nine print tools (nozzle size, and the filament each one holds)
+along the bottom. Set `ams3h_style: classic` for the drawn version.
+
+```yaml
+type: custom:ha-bambulab-ams-graphic-card
+ams: <AMS 3H device id>
+ams3h_style: photo        # photo (default) or classic
+show_info_bar: true       # chamber and dry box readings
+show_labels: true
+show_empty_label: false
+```
 
 ![AMS Graphic card for an AMS 2 Pro](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-graphic.png)
 
