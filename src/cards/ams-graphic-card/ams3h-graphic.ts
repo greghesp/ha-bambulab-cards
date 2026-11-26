@@ -10,6 +10,7 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { esc, trayIsEmpty } from "./geo";
 import * as helpers from "../../utils/helpers";
 import { findAmsZones } from "../ams-card/zones";
+import { PHOTO_STYLES, PhotoReading, PhotoTool, RACK_PHOTO, renderRackPhoto } from "./rack-photo";
 import {
   connectedNozzleLabel,
   findConnectedNozzleEntity,
@@ -46,6 +47,38 @@ const A2P_MESSAGES = {
   dryingStatus: {
     zh: "烘干中",
     en: "Drying",
+  },
+  chamber: {
+    zh: "料仓",
+    en: "Chamber",
+  },
+  dryBox: {
+    zh: "干燥箱",
+    en: "Dry box",
+  },
+  slots: {
+    zh: "槽位",
+    en: "slots",
+  },
+  tool: {
+    zh: "工具头",
+    en: "Tool",
+  },
+  noFilament: {
+    zh: "无耗材",
+    en: "no filament",
+  },
+  noTool: {
+    zh: "无工具头",
+    en: "no tool",
+  },
+  mounted: {
+    zh: "已装载",
+    en: "on the toolhead",
+  },
+  docked: {
+    zh: "已停靠",
+    en: "docked",
   },
 };
 function a2pLanguage(hass) {
@@ -95,6 +128,7 @@ function ams3hSlotData(state, entity, number, hass) {
     colors: Array.isArray(a.cols)
       ? a.cols.filter(ams3hValidColor).map(visibleFilamentColor).slice(0, 8)
       : [],
+    remainKnown: Number.isFinite(remain) && remain >= 0,
     remaining:
       Number.isFinite(remain) && remain >= 0
         ? `${Math.min(100, remain)}%`
@@ -188,7 +222,11 @@ export class Ams3hGraphic extends LitElement {
             0;
     }
     if (!slots[active - 1] || slots[active - 1].offline || slots[active - 1].empty) active = 0;
-    return html`${unsafeHTML(this._renderAms3h(r, slots, active))}${this._renderNozzleBadge()}`;
+    const body =
+      this._config.ams3h_style === "classic"
+        ? this._renderAms3h(r, slots, active)
+        : this._renderAms3hPhoto(r, slots, active);
+    return html`${unsafeHTML(body)}${this._renderNozzleBadge()}`;
   }
 
   /* Which nozzle this AMS feeds, on printers with two: top right, above the zone reading */
@@ -212,7 +250,25 @@ export class Ams3hGraphic extends LitElement {
       .composedPath()
       .find((el) => el instanceof Element && el.hasAttribute("data-entity")) as Element | undefined;
     const entityId = slot?.getAttribute("data-entity");
-    if (!entityId) return;
+    if (!entityId) {
+      // Print tools open the tool's own more-info dialog
+      const tool = event
+        .composedPath()
+        .find((el) => el instanceof Element && el.hasAttribute("data-more-info")) as
+        | Element
+        | undefined;
+      const toolEntity = tool?.getAttribute("data-more-info");
+      if (!toolEntity) return;
+      event.preventDefault();
+      this.dispatchEvent(
+        new CustomEvent("hass-more-info", {
+          detail: { entityId: toolEntity },
+          bubbles: true,
+          composed: true,
+        })
+      );
+      return;
+    }
     event.preventDefault();
     this.dispatchEvent(
       new CustomEvent("ams3h-filament", { detail: { entityId }, bubbles: true, composed: true })
@@ -329,6 +385,118 @@ export class Ams3hGraphic extends LitElement {
         (Array.isArray(slots) ? slots : []).filter((v) => Number.isInteger(v) && v >= 1 && v <= 9)
       ),
     };
+  }
+  _ams3hZoneValue(z, key, unit) {
+    const states = this._hass.states;
+    const entity = states[z[key]];
+    if (!ams3hAvailable(entity)) return "—";
+    const sensorUnit = entity.attributes?.unit_of_measurement || unit;
+    if (key !== "remaining_drying_time") return entity.state + sensorUnit;
+    const amount = Number(entity.state);
+    if (!Number.isFinite(amount)) return entity.state + sensorUnit;
+    if (
+      amount >= 0 &&
+      amount < 1 &&
+      ["h", "hr", "hrs", "hour", "hours"].includes(String(sensorUnit).toLowerCase())
+    ) {
+      return `${Math.round(amount * 60)}m`;
+    }
+    return `${Number(amount.toFixed(1))}${sensorUnit}`;
+  }
+
+  /* Photo style: the AMS cut from a photo of its printer, see rack-photo.ts */
+  _renderAms3hPhoto(r, slots, active) {
+    const hass = this._hass,
+      cfg = this._config;
+    const geo = RACK_PHOTO[r.count === 7 ? "ams3p" : "ams3h"];
+    const panels = this._rackPanels(r);
+    const dryerPanel = panels.find((p) => p?.dryer);
+    const drying = this._ams3hDrying(dryerPanel?.zone || {}, r.count === 9 ? [6, 8] : []);
+    const reading = (panel): PhotoReading | null => {
+      if (!panel) return null;
+      const z = panel.zone;
+      if (!panel.dryer) {
+        return {
+          title: a2pText(hass, "chamber"),
+          temperature: this._ams3hZoneValue(z, "temperature", "°C"),
+          humidity: this._ams3hZoneValue(z, "humidity", "%"),
+        };
+      }
+      const remaining = hass.states[z.remaining_drying_time];
+      const countdown =
+        drying.active && ams3hAvailable(remaining) && Number(remaining.state) > 0
+          ? this._ams3hZoneValue(z, "remaining_drying_time", "")
+          : "";
+      const dryList = [...drying.slots].sort((a, b) => a - b).join(", ");
+      return {
+        // While drying, the countdown replaces the slot list (the slots are framed instead)
+        title: `${a2pText(hass, "dryBox")}${dryList && !countdown ? ` · ${a2pText(hass, "slots")} ${dryList}` : ""}`,
+        temperature: this._ams3hZoneValue(z, "temperature", "°C"),
+        humidity: this._ams3hZoneValue(z, "humidity", "%"),
+        extra: countdown ? `${a2pText(hass, "dryingStatus")} ${countdown}` : undefined,
+        drying: drying.active,
+        dryer: true,
+      };
+    };
+    const tools: PhotoTool[] = r.tools.map((id, i) => {
+      const st = hass.states[id];
+      const a = st?.attributes || {};
+      const available = ams3hAvailable(st);
+      const diameter = Number(a.nozzle_diameter);
+      const loaded =
+        available &&
+        st.state !== "empty" &&
+        a.ams_slot != null &&
+        ams3hValidColor(a.color) &&
+        !/^#00000000$/i.test(a.color);
+      const stateText =
+        st?.state === "mounted"
+          ? a2pText(hass, "mounted")
+          : st?.state === "docked"
+            ? a2pText(hass, "docked")
+            : st?.state === "empty"
+              ? a2pText(hass, "noTool")
+              : a2pText(hass, "offline");
+      const nozzle = Number.isFinite(diameter) && diameter > 0 ? `${diameter} mm` : "";
+      const filament = loaded
+        ? `${a.filament_name || a.filament_type || ""}${a.ams_slot != null ? ` (${a.ams_slot})` : ""}`
+        : a2pText(hass, "noFilament");
+      return {
+        entity: id,
+        number: i + 1,
+        state: available ? st.state : "unavailable",
+        diameter:
+          available && st.state !== "empty" && Number.isFinite(diameter) && diameter > 0
+            ? String(diameter)
+            : "",
+        loaded,
+        color: loaded ? a.color : "",
+        title: [`${a2pText(hass, "tool")} ${i + 1}`, nozzle, filament, stateText]
+          .filter(Boolean)
+          .join(" · "),
+      };
+    });
+    const svg = renderRackPhoto(
+      geo,
+      {
+        slots,
+        active,
+        dryingSlots: drying.active ? drying.slots : new Set<number>(),
+        showLabels: cfg.show_labels !== false,
+        showEmptyLabel: !!cfg.show_empty_label,
+        readings:
+          cfg.show_info_bar !== false ? [reading(panels[0]), reading(panels[1])] : undefined,
+        tools,
+        ariaLabel: `${r.count === 7 ? "AMS-3P" : "AMS-3H"}${a2pText(hass, "spoolStatus")}`,
+      },
+      a2pText(hass, "inUse")
+    );
+    return `<style>
+      :host{display:block;position:relative}
+      ha-card{display:block;padding:12px;box-sizing:border-box;overflow:hidden}
+      .nozzle-badge{position:absolute;top:10px;right:14px;z-index:2}
+      ${PHOTO_STYLES}
+      </style><ha-card>${svg}</ha-card>`;
   }
 
   _rackPanels(r) {

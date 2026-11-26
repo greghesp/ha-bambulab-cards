@@ -140,6 +140,21 @@ their corresponding PrintTools. The AMS 3P has trays 2, 4 and 6 in the
 back row and 1, 3, 5 and 7 in front. To use this layout, select an AMS
 that the integration identifies as an AMS 3P.
 
+The AMS 3H and AMS 3P are shown as a photo of the unit by default (cut from the H3C and
+P3C printer images), with the chamber and dry box readings and the printer's print tools
+(nozzle size, and the filament each one holds) along the bottom. The AMS 3P shows a dry box
+only when its optional dryer module reports two slots. Set `ams3h_style: classic` for the
+drawn version.
+
+```yaml
+type: custom:ha-bambulab-ams-graphic-card
+ams: <AMS 3H or AMS 3P device id>
+ams3h_style: photo        # photo (default) or classic
+show_info_bar: true       # chamber and dry box readings
+show_labels: true
+show_empty_label: false
+```
+
 ![AMS Graphic card for an AMS 2 Pro](https://raw.githubusercontent.com/greghesp/ha-bambulab/main/docs/images/readme/ams-card-graphic.png)
 
 ```yaml

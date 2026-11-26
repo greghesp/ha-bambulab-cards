@@ -90,7 +90,13 @@ export class AmsGraphicCard extends LitElement {
     }
   }
 
+  /* The photo-style AMS 3H / 3P keeps the photo's proportions, so its height follows its width */
+  private _isRackPhoto(): boolean {
+    return !!rackSlotCount(this._resolve().variantKey) && this._config?.ams3h_style !== "classic";
+  }
+
   public getCardSize(): number {
+    if (this._isRackPhoto()) return 8;
     if (rackSlotCount(this._resolve().variantKey)) return 6;
     return 4 + (this._config?.show_info_bar === false ? 0 : 1);
   }
@@ -98,6 +104,7 @@ export class AmsGraphicCard extends LitElement {
   /* Match the graphic style of the integration's own AMS card: 4 rows (plus 1 for the info
      bar), with AMS HT spanning a single column */
   public getGridOptions() {
+    if (this._isRackPhoto()) return { columns: 6, min_columns: 4, rows: "auto" };
     if (rackSlotCount(this._resolve().variantKey))
       return { columns: "full", min_columns: 6, rows: 5, min_rows: 5 };
     const layout = this.getLayoutOptions();
