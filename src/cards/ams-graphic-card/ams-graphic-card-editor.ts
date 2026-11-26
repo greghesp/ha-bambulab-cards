@@ -104,6 +104,19 @@ export class AmsGraphicCardEditor extends LitElement {
             )
           ),
           {
+            name: "ams3h_style",
+            label: "AMS 3H style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "photo", label: "Photo" },
+                  { value: "classic", label: "Classic (drawn)" },
+                ],
+              },
+            },
+          },
+          {
             name: "ams3h_trays",
             label: "Slots 1–9 (use an empty string for automatic matching)",
             selector: { object: {} },
